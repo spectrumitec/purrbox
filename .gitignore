@@ -1,0 +1,7 @@
+/web_source/*
+/web_templates/*
+/server/conf/*
+/node_modules/*
+package-lock.json
+package.json
+server_conf.json

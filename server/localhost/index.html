@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Wonderbox</title>
+		<meta name="description" content="Node.js Wonderbox">
+        <meta name="author" content="Cliff Sandford">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+
+		<link rel="stylesheet" href="css/jquery-ui/jquery-ui.min.css">
+		<link rel="stylesheet" href="css/jstree/style.min.css">
+        <link rel="stylesheet" href="css/common.css">
+
+		<script type="text/javascript" language="javascript" src="js/jquery.min.3.6.1.js"></script>
+		<script type="text/javascript" language="javascript" src="js/jquery-ui.min-1.13.2.js"></script>
+		<script type="text/javascript" language="javascript" src="js/jstree.min-3.3.12.js"></script>
+		<script type="text/javascript" language="javascript" src="js/classes.js"></script>
+		<script type="text/javascript" language="javascript" src="js/common.js"></script>
+		<script type="text/javascript" language="javascript" src="js/vhost_manage.js"></script>
+	</head>
+	<body>
+		<!-- Page Header -->
+		<div class="header" id="header">
+            <div class="header_logo"></div>
+            <div class="header_title">Node.js Wonderbox</div>
+			<div class="authenticated_user">
+				<div id="authenticated_user"></div>
+				<div class="auth_user_dropdown">
+					<div id="auth_user_menu" class="auth_user_menu">HH</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Page Content -->
+		<div class="content" id="content">
+			<div class="content_tabs" id="tabs">
+				<ul>
+					<li><a href="#projects">Projects</a></li>
+					<li><a href="#templates" onClick="templates_list()">Templates</a></li>
+					<li><a href="#vhosts" onClick="ui_site_index()">Sites Index</a></li>
+					<li><a href="#help">Help</a></li>
+					<li><a href="#admin" onClick="ui_admin_page()">Admin</a></li>
+				</ul>
+				<div id="projects"></div>
+				<div id="templates"></div>
+				<div id="vhosts"></div>
+				<div id="help">Future Link</div>
+				<div id="admin"></div>
+			</div>
+		</div>
+
+		<!-- Tool tip div -->
+		<div id="tooltip"></div>
+
+		<!-- Dialog -->
+		<div id="dialog"></div>
+	</body>
+</html>

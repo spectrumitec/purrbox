@@ -1,0 +1,81 @@
+
+body {
+	margin: 0px;
+	height: 100%;
+	width: 100%;
+	background-color: #eeeeee;
+}
+span {
+	display: block;
+}
+
+.content {
+	position: absolute;
+	top: calc(50% - 100px);
+	height: 200px;
+	width: 100%;
+	background-color: white;
+	-webkit-box-shadow: 0px 5px 15px 5px rgba(0,0,0,0.5); 
+	box-shadow: 0px 5px 15px 5px rgba(0,0,0,0.5);
+}
+.error_image {
+	position: absolute;
+	width: 280px;
+	height: 200px;
+	background-image: url('images/pinocchio.png');
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+.error_message {
+	position: absolute;
+	left: 280px;
+	width: calc(100% - 300px);
+	background-color: white;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+}
+
+
+@media screen and (max-width: 840px) {
+	.content {
+		top: calc(50% - 110px);
+		height: 220px;
+		width: 100%;
+	}
+
+	.error_image {
+		width: 300px;
+		height: 220px;
+	}
+
+	.error_message {
+		left: 300px;
+		width: calc(100% - 320px);
+		padding: 5px;
+		font-size: 14px;
+	}
+}
+
+@media screen and (max-width: 460px) {
+	.content {
+		top: calc(50% - 250px);
+		left: calc(50% - 150px);
+		height: 500px;
+		width: 300px;
+	}
+
+	.error_image {
+		position: relative;
+		left: 0px;
+		width: 100%;
+		height: 225px;
+	}
+
+	.error_message {
+		position: absolute;
+		left: 0px;
+		width: calc(100% - 20px);
+		margin: 5px;
+		font-size: 14px;
+	}
+}

@@ -1,0 +1,157 @@
+
+/* 
+
+General Formatting 
+
+*/
+
+body {
+    height: 100%;
+	width: 100%;
+	margin: 0px;
+    background-color: #eeeeee;
+	font-family: Sans-serif;
+}
+
+.header {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100px;
+    background-color: rgb(1, 1, 82);
+}
+.header_logo {
+    position: absolute;
+    top: 10px;
+    left: 0px;
+    height: 80px;
+    width: 120px;
+    background-image: url("images/logo.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+.header_title {
+    position: absolute;
+    top: calc(50% - 12px);
+    left: 120px;
+    height: 24px;
+    font-size: 20px;
+    color: white;
+}
+
+.body {
+    position: absolute;
+    top: 100px;
+    left: 0px;
+    height: calc(100% - 100px);
+    width: 100%;
+    overflow: auto;
+}
+.page {
+    width: 100%;
+    padding: 10px;
+}
+
+/* 
+
+Common div grid - example
+
+*/
+
+/* Grid table formatting */
+.grid1, .grid2, .grid3, .grid4, .grid5, .grid6{
+    display: inline-grid;
+    grid-gap: 1px;
+    padding: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: #aaaaaa;
+}
+.grid1 {
+    grid-template-columns: max-content;
+}
+.grid2 {
+    grid-template-columns: max-content max-content;
+}
+.grid3 {
+    grid-template-columns: max-content max-content max-content;
+}
+.grid4 {
+    grid-template-columns: max-content max-content max-content max-content;
+}
+.grid5 {
+    grid-template-columns: max-content max-content max-content max-content max-content;
+}
+.grid6 {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content;
+}
+
+/* Header formatting */
+.grid1_head, .grid2_head, .grid3_head, .grid4_head, .grid5_head, .grid6_head {
+    background-color: #beebff;
+    padding: 5px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Sub Header formatting */
+.grid1_sub_head, .grid2_sub_head, .grid3_sub_head, .grid4_sub_head, .grid5_sub_head, .grid6_sub_head {
+    background-color: white;
+    padding: 5px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Column formatting */
+.grid1_col, .grid2_col, .grid3_col, .grid4_col, .grid5_col, .grid6_col {
+    background-color: white;
+    padding: 5px;
+    text-align: left;
+    font-weight: normal;
+    font-size: 14px;
+}
+
+/* Column span */
+.grid2_head, .grid2_sub_head, .grid2_col {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+.grid3_head, .grid3_sub_head, .grid3_col {
+    grid-column-start: 1;
+    grid-column-end: 4;
+}
+.grid4_head, .grid4_sub_head, .grid4_col {
+    grid-column-start: 1;
+    grid-column-end: 5;
+}
+.grid5_head, .grid5_sub_head, .grid5_col {
+    grid-column-start: 1;
+    grid-column-end: 6;
+}
+.grid6_head, .grid6_sub_head, .grid6_col {
+    grid-column-start: 1;
+    grid-column-end: 7;
+}
+
+/* Mobile page formatting */
+@media screen and (max-width: 840px) {
+	.grid1, .grid2, .grid3, .grid4, .grid5, .grid6{
+		margin-top: 5px;
+		margin-bottom: 5px;
+	}
+	.grid1_head, .grid2_head, .grid3_head, .grid4_head, .grid5_head, .grid6_head {
+		padding: 2px;
+		font-size: 12px;
+	}
+	.grid1_sub_head, .grid2_sub_head, .grid3_sub_head, .grid4_sub_head, .grid5_sub_head, .grid6_sub_head {
+		padding: 2px;
+		font-size: 10px;
+	}
+	.grid1_col, .grid2_col, .grid3_col, .grid4_col, .grid5_col, .grid6_col {
+		padding: 2px;
+		font-size: 10px;
+	}
+}

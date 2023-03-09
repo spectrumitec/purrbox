@@ -1,0 +1,111 @@
+
+/* 
+
+General Formatting 
+
+*/
+
+* {
+	box-sizing: border-box;
+}
+body {
+    height: 100%;
+	width: 100%;
+	margin: 0px;
+    background-color: #888888;
+	font-family: Sans-serif;
+}
+span{
+    display: block;
+}
+
+/* 
+
+Common div grid - example
+
+*/
+
+/* Grid table formatting */
+.grid1, .grid2, .grid3, .grid4, .grid5{
+    display: inline-grid;
+    grid-gap: 0px;
+    background-color: #0070cc;
+    padding: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.grid1 {
+    grid-template-columns: auto;
+}
+.grid2 {
+    grid-template-columns: auto auto;
+}
+.grid3 {
+    grid-template-columns: auto auto auto;
+}
+.grid4 {
+    grid-template-columns: auto auto auto auto;
+}
+.grid5 {
+    grid-template-columns: auto auto auto auto auto;
+}
+
+/* Header formatting */
+.grid1_head, .grid2_head, .grid3_head, .grid4_head, .grid5_head {
+    background-color: #eeeeee;
+    padding: 5px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 16px;
+}
+.grid2_head, .grid2_col {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+.grid3_head, .grid3_col {
+    grid-column-start: 1;
+    grid-column-end: 4;
+}
+.grid4_head, .grid4_col {
+    grid-column-start: 1;
+    grid-column-end: 5;
+}
+.grid5_head, .grid5_col {
+    grid-column-start: 1;
+    grid-column-end: 6;
+}
+
+/* Sub Header formatting */
+.grid1_sub_head, .grid2_sub_head, .grid3_sub_head, .grid4_sub_head, .grid5_sub_head {
+    background-color: white;
+    padding: 5px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 14px;
+}
+.grid2_sub_head {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+.grid3_sub_head {
+    grid-column-start: 1;
+    grid-column-end: 4;
+}
+.grid4_sub_head {
+    grid-column-start: 1;
+    grid-column-end: 5;
+}
+.grid5_sub_head {
+    grid-column-start: 1;
+    grid-column-end: 6;
+}
+
+/* Column formatting */
+.grid_col, .grid1_col, .grid2_col, .grid3_col, .grid4_col, .grid5_col {
+    background-color: white;
+    padding: 5px;
+    min-width: 150px;
+    text-align: left;
+    font-weight: normal;
+    font-size: 14px;
+}
