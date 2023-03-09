@@ -2958,6 +2958,9 @@ function admin_add_user() {
         return;
     }
 
+    //Set username lowercase
+    username = username.toLowerCase();
+
     //Set URL
     let url = "api/admin";
     let json = {

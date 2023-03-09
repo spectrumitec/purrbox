@@ -100,15 +100,15 @@ p {
 .auth_user_dropdown{
     position: absolute;
     top: 5px;
-    left: 0px;
+    right: 0px;
     width: 140px;
-    height: 20px;
+    height: 25px;
     overflow: hidden;
     transition: height 0.25s;
     cursor: pointer;
 }
 .auth_user_dropdown:hover{
-    height: 60px;
+    height: 90px;
 }
 .auth_user_menu {
     position: absolute;
@@ -142,7 +142,7 @@ p {
         width: 100px;
     }
     .auth_user_dropdown:hover{
-        height: 50px;
+        height: 60px;
     }    
     .auth_user_menu {
         top: 15px;
@@ -809,11 +809,14 @@ p {
 }
 
 /* Custom Grids */
-.grid3_auth_user {
+.grid2_auth_user {
     grid-gap: 0px;
     padding: 0px;
     margin-top: 5px;
     margin-bottom: 5px;
+}
+.grid1_auth_user_select {
+    padding: 1px;
 }
 .grid3_project_websites {
     grid-gap: 0px;
@@ -895,4 +898,10 @@ p {
         padding: 2px;
         font-size: 10px;
     }
+}
+
+/* Overrides */
+
+.auth_user_menu_select {
+    text-align: right;
 }

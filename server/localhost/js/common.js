@@ -170,15 +170,16 @@ function auth_dialog(result=null) {
 
     //Set login button HTML
     html = `
-        <div class="grid3 grid3_auth_user">
-            <div class="grid1_col"></div>
-            <div class="grid1_col"></div>
+        <div class="grid1">
             <div class="grid1_col">
                 <input class="auth_button" type="button" value="Log On" onClick="auth_dialog();" />
             </div>
         </div>
     `;
     $("#authenticated_user").html(html);
+
+    //Hide user drop down menu
+    $("#auth_user_dropdown").css("visibility","hidden");
 }
 function auth_user(response=null) {
     if(response == null) {
@@ -197,8 +198,10 @@ function auth_user(response=null) {
             alert("Password cannot be blank");
             return;
         }
-
         $("#dialog").dialog("close");
+
+        //Set username lowercase
+        this_user = this_user.toLowerCase();
 
         //Define JSON request
         let url = "api/auth";
@@ -337,7 +340,7 @@ function auth_user_init() {
 
     //Set HTML (Logged in user)
     html = `
-        <div class="grid3 grid3_auth_user">
+        <div class="grid2 grid2_auth_user">
             <div class="grid1_col">
                 <img class="auth_user_icon" src="images/user_icon.png" alt="" />
             </div>
@@ -345,9 +348,6 @@ function auth_user_init() {
                 <div class="auth_username">
                     ${display_user}
                 </div>
-            </div>
-            <div class="grid1_col">
-                <input class="auth_button" type="button" value="Log Off" onClick="auth_logoff();" />
             </div>
         </div>
     `;
@@ -357,12 +357,14 @@ function auth_user_init() {
 
     //Set HTML (user menu)
     html = `
-        <div class="grid1">
-            <div class="grid1_col" onClick="ui_admin_user_change_passwd();">&#8618; Change Password</div>
+        <div class="grid1 grid1_auth_user_select">
+            <div class="grid1_col auth_user_menu_select" onClick="ui_admin_user_change_passwd();">Change Password &#8617;</div>
+            <div class="grid1_col auth_user_menu_select" onClick="auth_logoff();">Log Off &#8617;</div>
         </div>
     `;
 
     //Update user drop down menu
+    $("#auth_user_dropdown").css("visibility","visible");
     $("#auth_user_menu").html(html);
 
     //Initialize page

@@ -79,6 +79,11 @@ exports.request = async function(params={}) {
     switch(_query.action) {
         case "check":
             api_response = mgmt.jwt_auth_check();
+            if(api_response.authenticated == false) {
+                _response["headers"] = {
+                    "Set-Cookie":`${user_cookie}; Expires=Tue, 1 Jan 1980 00:00:00 GMT;`,
+                };
+            }
         break;
         case "login":
             //Login 
