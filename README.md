@@ -10,9 +10,20 @@
     <li>Support for SSL and SSL redirection per project site</li>
     <li>Automatic self refesh of project configuration and site mapping</li>
     <li>Configurable option to unload cache content as you develop (server restart and monitoring modules not required)</li>
-    <li>Configurable mapping for static content or server side exection</li>
-    <li>Website source version cloning and preview ability (when working with git code branches)</li>
-    <li>DNS resolution mapping (FQDN resolution to IP can be mapped easily to site code)</li>
-    <li>Server environment passthrough to code for dynamic configuration of database and data repository as code is promted to environments</li>
+    <li>Configurable mapping for static content or server side execution</li>
+    <li>Website source version cloning and preview ability (when working with code branches and feature changes)</li>
+    <li>DNS resolution mapping (FQDN resolution to server IP can be mapped easily to site code)</li>
+    <li>Server environment passthrough to code for use with dynamic configuration of database in your own code for use with promotion between environments</li>
+    <li>Optional default system site template or helper files from file management</li>
+    <li>Ability for templating your starter code for new projects or fully functional sites for distribution</li>
 </ul>
 <b>Installation:</b><br />
+<p>1. Prepare your environment and install Node JS v18.x or higher, git commands, etc.</p>
+<p>2. Install node packages required to support this server</p>
+<pre>
+    npm install ip bcrypt crypto jsonwebtoken 
+</pre>
+<p>3. Start Node JS Wonderbox</p>
+<pre>
+    node start_server
+</pre>
