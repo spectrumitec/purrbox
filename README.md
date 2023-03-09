@@ -1,4 +1,4 @@
 <b>Node JS Wonderbox</b>
 
-About:
-This is a new project for providing an easy way for setting up static sites or applications.
+<b>About:</b><br />
+<p>This is a new project for providing an easy way for setting up static sites or applications where users do not want to use a framework such as react or angular. It is designed to support running multiple site projects under a single IP addres and port. Components include a web server engine and a web UI for management of your project settings. The system is built to support running multiple environments such as a Dev, QA, Stage and Prod via a server configuration setting. Web projects are configured for portability between environments to allow for promoting code from Dev to other environments with minimumal intervention. A template system is built into the management UI allowing users to create their own code templates for projects or packaging fully functional applications.</p>
