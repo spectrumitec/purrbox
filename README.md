@@ -102,13 +102,13 @@
 root folder
   &#9500; node_modules              Node modules installed during installation
   &#9500; server                    Main server folder
-  &#9474;  &#8735; class                   System classes
-    &#8735; conf                    Configuration location for system classes (created on first server start from JWT config creation)
-    &#8735; default_errors          Location of system default 404 and 500 error pages
-    &#8735; default_file_types      Location of template file types (used when creating new files in Dev Management UI)
-    &#8735; default_new_site        Location of default system template
-    &#8735; localhost               Location of Dev Management UI
-    &#8735; ssl_certs               SSL certificate location (see server_conf.json if creating SSL by different file names)
+  &#9474;   &#9500; class                 System classes
+  &#9474;   &#9500; conf                  Configuration location for system classes (created on first server start from JWT config creation)
+  &#9474;   &#9500; default_errors        Location of system default 404 and 500 error pages
+  &#9474;   &#9500; default_file_types    Location of template file types (used when creating new files in Dev Management UI)
+  &#9474;   &#9500; default_new_site      Location of default system template
+  &#9474;   &#9500; localhost             Location of Dev Management UI
+  &#9474;   &#9492; ssl_certs             SSL certificate location (see server_conf.json if creating SSL by different file names)
   &#8735; web_source                Location of all project folders
     &#8735; your_project            The project folder associated with the project tree
       &#8735; website_folder        The folder for each website defined under your project
