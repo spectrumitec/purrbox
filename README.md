@@ -95,3 +95,25 @@
     <li><b>Static Content Server Execute Override</b> - In some cases you may require a file at the root path to execute at the server and not be sent to client like static content. This allows to specify those file paths as an override. An example of this is a health check script used for a load balancer that might check modules, database connectivity, etc. and send the load balancer a 500 error or other code to let it know this web server has a problem.</li>
 </ul>
 <p>For any server side API files, see the 'Project Files' tree and create a new file in your API folder, then select the API type which will drop in a standard template (helper file) that is ready for developing your server side code.</p>
+
+<b>The Manual Side of Things:</b>
+<p>From a manual perspective, the server root has a general layout as the following:</p>
+<pre>
+    root folder
+     &#8735; node_modules
+     &#8735; server
+         &#8735; class
+         &#8735; conf
+         &#8735; default_errors
+         &#8735; default_file_types
+         &#8735; default_new_site
+         &#8735; localhost
+         &#8735; ssl_certs
+     &#8735; web_source
+         &#8735; your_project
+             &#8735; website_folder
+             &#8735; config.json
+     &#8735; web_templates
+     &#8735; server_conf.json
+     &#8735; server_start.js
+</pre>
