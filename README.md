@@ -5,7 +5,7 @@
 <br />
 
 <b>About:</b><br />
-<p>Wonderbox objective is to provide an easy way for setting up static sites or applications where users do not want to use a framework such as react or angular. It is designed to support running multiple site projects under a single IP addres and port. Components include a web server engine and a web UI for management of your project settings. The system is built to support running multiple environments such as a Dev, QA, Stage and Prod via a server configuration setting. Web projects are configured for portability between environments to allow for promoting code from Dev to other environments with minimumal intervention. A template system is built into the management UI allowing users to create their own code templates for projects or packaging fully functional applications.</p>
+<p>Wonderbox objective is to provide an easy way for setting up static sites or applications where users do not want to use a framework such as react or angular. It is designed to support running multiple site projects under a single IP addres and port. Components include a web server engine and a web based Dev UI for management of your project settings. The system is built to support running multiple environments such as a Dev, QA, Stage and Prod via a server configuration setting. Web projects are configured for portability between environments to allow for promoting code from Dev to other environments with minimumal intervention. A template system is built into the management UI allowing users to create their own code templates for projects or packaging fully functional applications.</p>
 
 <b>General Features:</b><br />
 <ul>
@@ -66,7 +66,7 @@
         "auto_refresh_timer":5000
     }
 </pre>
-<p>When you login to the UI management, there is a 'Server Settings' panel under 'Admin' tab that has some basic explaination for the uses of each setting. </p>
+<p>When you login to the Dev Management UI, there is a 'Server Settings' panel under 'Admin' tab that has some basic explaination for the uses of each setting. </p>
 
 <b>Current Limitations:</b><br />
 <ul>
@@ -77,12 +77,12 @@
 </ul>
 
 <b>Quick Start Guide:</b><br />
-<p>To begin with a simple project, and lets not call it 'Hello World!'. You can start with logging in to the Dev Management UI at 'https://your_ip_addres' or 'https://localhost' if you have not already setup the server configuration above with 'server_dev_ui' settings. On the main 'Projects' tab, there are four button on the left pane at the top. The 'box' icon allows you to create a new project. Supply a project 'Name' and 'Description' (optional) to create a base configuration. A new project should appear in the left pane.</p>
+<p>To begin with a simple project, and let's not call it 'Hello World!'. You can start with logging in to the Dev Management UI at 'https://your_ip_addres' or 'https://localhost', if you have not already setup the server configuration above with 'server_dev_ui' settings. On the main 'Projects' tab, there are four button on the left pane at the top. The 'box' icon allows you to create a new project. Supply a project 'Name' and 'Description' (optional) to create a base configuration. A new project should appear in the left pane.</p>
 <p>Select your project and you will see the project tree is broken into a few sections:</p>
 <ul>
-    <li><b>The root of the project</b> - This is where there are some basic settings for changing description or enable / diable for DNS resolution settings. Here you can also preview your site creations under a special VHost path on the Dev management UI. Note: the Dev UI and previous is only available when the server is in Dev mode. Setting the server to Prod mode will disable the Dev management UI.</li>
+    <li><b>The root of the project</b> - This is where there are some basic settings for changing description or enable / diable for DNS resolution settings. Here you can also preview your site creations under a special VHost path on the Dev Management UI. Note: the Dev UI and previous is only available when the server is in Dev mode. Setting the server to Prod mode will disable the Dev Management UI.</li>
     <li><b>Sites and Settings</b> - This is where you create a website under your project. All sites will appear under this tree selector when created. There are three general options here where you can create a blank empty web source folder, a system default starter site, and user defined templates (for a later time if you have created any to use). Blank site selection is for customized builds where needing to create a specific folder structure to your project. See below for website panel settings.</li>
-    <li><b>Project Files</b> - This is more of a helper panel for some basic folder strucutre and file creation. The Dev management UI has some basic file templates for creating HTML, CSS or API files.</li>
+    <li><b>Project Files</b> - This is more of a helper panel for some basic folder strucutre and file creation. The Dev Management UI has some basic file templates for creating HTML, CSS or API files.</li>
     <li><b>DNS Resolution</b> - This is when you either have a DNS server / local host file resolve an FQDN to the IP address of your server or if your server(s) are behind a load balancer. DNS resolution uses the server environment configuration and FQDN name in your project to reslove to a select site version or branch. If you have a Dev, QA, Stage and Prod server environment as an example, copying or using git to clone your source code between environment will leverage this in ech environment. From your Dev server you can specify what DNS FQDN is used for Dev and other environments. When cloned to a different environment, the server will resolve as required. This can allow for code promotion with minimum intervention to change settings.</li>
 </ul>
 <p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would use for how your code is executed. These are broken into the following:</p>
@@ -94,4 +94,4 @@
     <li><b>Static Content Path Mapping</b> - This will cover any static content like HTML, client side JavaScript, CSS, images, etc. You do not need to have API mappings outside of the root location if you choose not to. The server will map server side API execution before static content.</li>
     <li><b>Static Content Server Execute Override</b> - In some cases you may require a file at the root path to execute at the server and not be sent to client like static content. This allows to specify those file paths as an override. An example of this is a health check script used for a load balancer that might check modules, database connectivity, etc. and send the load balancer a 500 error or other code to let it know this web server has a problem.</li>
 </ul>
-<p>For any server side API files, see the 'Project Files' tree and create a new file in your API folder, then select the API type which will drop in a standard template (helper file) that is ready for developing your server side code.
+<p>For any server side API files, see the 'Project Files' tree and create a new file in your API folder, then select the API type which will drop in a standard template (helper file) that is ready for developing your server side code.</p>
