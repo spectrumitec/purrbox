@@ -100,22 +100,22 @@
 <p>From a manual configuration perspective, the server root has a general layout (below). Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. When starting your server for the first time, it will create these folders for your web source and templates. You can setup your own GitHub projects and import node modules into your project folders as required. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configuring your project config.json files with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this. The server can be script friendly if you plan on automating project and site pushes as the server detects new projects and refreshes it's mapping as long as the server auto refresh is enabled and set on a check interval.</p>
 <pre>
 root folder
-  &#766; node_modules              Node modules installed during installation
-  &#8735; server                    Main server folder
-    &#8735; class                   System classes
-    &#8735; conf                    Configuration location for system classes (created on first server start from JWT config creation)
-    &#8735; default_errors          Location of system default 404 and 500 error pages
-    &#8735; default_file_types      Location of template file types (used when creating new files in Dev Management UI)
-    &#8735; default_new_site        Location of default system template
-    &#8735; localhost               Location of Dev Management UI
-    &#8735; ssl_certs               SSL certificate location (see server_conf.json if creating SSL by different file names)
-  &#8735; web_source                Location of all project folders
-    &#8735; your_project            The project folder associated with the project tree
-      &#8735; website_folder        The folder for each website defined under your project
-      &#8735; config.json           The configuration file within your project containing all settings
-  &#8735; web_templates             Location for any template created or downloaded (similar to project folder structure)
-  &#8735; server_conf.json          Server configuration file
-  &#8735; server_start.js           Server start script
+  &#9495; node_modules              Node modules installed during installation
+  &#9495; server                    Main server folder
+    &#9495; class                   System classes
+    &#9495; conf                    Configuration location for system classes (created on first server start from JWT config creation)
+    &#9495; default_errors          Location of system default 404 and 500 error pages
+    &#9495; default_file_types      Location of template file types (used when creating new files in Dev Management UI)
+    &#9495; default_new_site        Location of default system template
+    &#9495; localhost               Location of Dev Management UI
+    &#9495; ssl_certs               SSL certificate location (see server_conf.json if creating SSL by different file names)
+  &#9495; web_source                Location of all project folders
+    &#9495; your_project            The project folder associated with the project tree
+      &#9495; website_folder        The folder for each website defined under your project
+      &#9495; config.json           The configuration file within your project containing all settings
+  &#9495; web_templates             Location for any template created or downloaded (similar to project folder structure)
+  &#9495; server_conf.json          Server configuration file
+  &#9495; server_start.js           Server start script
 </pre>
 <p>Project configuration example is as follows. Most of what is in the configuration file is relatively easy to see where it relates in the Dev Management UI. A few points:</p>
 <ul>
