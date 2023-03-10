@@ -117,7 +117,12 @@
       &#8735; server_conf.json          Server configuration file
       &#8735; server_start.js           Server start script
 </pre>
-<p>Project configuration example is as follows. Most of what is in the configuration file is relatively easy to see where it relates in the Dev Management UI. If you have a server that is in Prod mode (disabling the Dev UI), you can still do some simple things in the project configuration file. One example is setting 'enabled' to 'false' when the server is set to auto referesh it's configuration which is unregister the DNS mapping and disable the site on that server. Path mapping has web URL as the key and the file system relative path as the value. If changing the configuration manually on a Windows platform, maintain the UNIX/Linux style path separator "/" as the server will map properly for Windows systems. Do not use full OS path mapping as the server appends the file path to root of project website folder path.</p>
+<p>Project configuration example is as follows. Most of what is in the configuration file is relatively easy to see where it relates in the Dev Management UI. A few points:</p>
+<ul>
+    <li>If you have a server that is in Prod mode (disabling the Dev UI), you can still do some simple things in the project configuration file. One example is setting 'enabled' to 'false' when the server is set to auto referesh it's configuration which is unregister the DNS mapping and disable the site on that server.</li>
+    <li>Path mapping has web URL as the 'key' and the file system relative path as the 'value'. If changing the configuration manually on a Windows platform, maintain the UNIX/Linux style path separator "/" as the server will map properly for Windows systems. Do not use full OS path mapping as the server appends the file path to root of project website folder path.</li>
+    <li>DNS names has the sections "dev", "qa", "stage" and "prod". You can have multiple DNS FQDNs under each environment section pointing to your site. Each DNS entry is mapped individually to a site. The Dev Management UI will prevent you from setting same DNS names to different sites or projects at the same time since the server will only resolve an FQDN to one site. Caveat here is to be aware if copying project source from different servers into one server for possible overlap. You can view the Dev Management UI 'Site Index' tab for FQDN mapping to make sure your sites are set to resolve correctly.</li>
+</ul>
 <pre>
     {
         "project_desc": "Project description",
