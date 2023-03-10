@@ -100,9 +100,9 @@
 <p>From a manual configuration perspective, the server root has a general layout (below). Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. When starting your server for the first time, it will create these folders for your web source and templates. You can setup your own GitHub projects and import node modules into your project folders as required. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configuring your project config.json files with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this. The server can be script friendly if you plan on automating project and site pushes as the server detects new projects and refreshes it's mapping as long as the server auto refresh is enabled and set on a check interval.</p>
 <pre>
 root folder
-  &#8735; node_modules              Node modules installed during installation
-  &#8735; server                    Main server folder
-    &#8735; class                   System classes
+  &#9500; node_modules              Node modules installed during installation
+  &#9500; server                    Main server folder
+  &#9474;  &#8735; class                   System classes
     &#8735; conf                    Configuration location for system classes (created on first server start from JWT config creation)
     &#8735; default_errors          Location of system default 404 and 500 error pages
     &#8735; default_file_types      Location of template file types (used when creating new files in Dev Management UI)
