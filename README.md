@@ -4,10 +4,10 @@
 <p>Note to users: This is a new project in development awaiting future features and dedicated website for helping users get started. There is minimum content available for information at the current time.</p>
 <br />
 
-<b><u>About:</u></b><br />
+<b>About:</b><br />
 <p>Wonderbox objective is to provide an easy way for setting up static sites or applications where users do not want to use a framework such as react or angular. It is designed to support running multiple site projects under a single IP addres and port. Components include a web server engine and a web based Dev UI for management of your project settings. The system is built to support running multiple environments such as a Dev, QA, Stage and Prod via a server configuration setting. Web projects are configured for portability between environments to allow for promoting code from Dev to other environments with minimumal intervention. A template system is built into the management UI allowing users to create their own code templates for projects or packaging fully functional applications.</p>
 
-<b><u>General Features:</u></b><br />
+<b>General Features:</b><br />
 <ul>
     <li>Simplified installation and setup</li>
     <li>Support running on Linux, Windows, Mac and containers</li>
@@ -24,7 +24,7 @@
     <li>Ability for templating your starter code for new projects or fully functional sites for distribution</li>
 </ul>
 
-<b><u>Installation:</u></b><br />
+<b>Installation:</b><br />
 <p>1. Prepare your environment and install Node JS v18.x or higher, git commands, etc.</p>
 <p>2. Create a directory where you will run the server</p>
 <p>3. Use git to clone the project source files</p>
@@ -42,7 +42,7 @@
 </pre>
 <p>6. Open a web browser and connect to the server IP address to test connectivity (or localhost if running on your local system). The defualt login is 'admin' and password 'admin'</p>
 
-<b><u>Server Configuration:</u></b><br />
+<b>Server Configuration:</b><br />
 <p>There is a single configuration file located in the root directory for server specific functions. Changes to the configuration settings requires a server restart. The following is an example 'server_conf.json' for settings available. For accessing the management UI under a different name (not just IP or localhost), you can add hostnames separated by commas to the 'server_dev_ui' array.</p>
 <pre>
     {
@@ -68,7 +68,7 @@
 </pre>
 <p>When you login to the Dev Management UI, there is a 'Server Settings' panel under 'Admin' tab that has some basic explaination for the uses of each setting. </p>
 
-<b><u>Current Limitations:</u></b><br />
+<b>Current Limitations:</b><br />
 <ul>
     <li>SSL certificates cannot be assinged individually to each site. A server hosting multiple sites will require a SAN or wildcard certificate.</li>
     <li>Cannot use newer import syntax as the site content is executed from further in the server application. Will need to use require statement for module imports.</li>
@@ -76,7 +76,7 @@
     <li>JWT auth for Dev management UI will have MySQL/MariaDB in future versions, currently limited to local file configurations.</li>
 </ul>
 
-<b><u>Quick Start Guide:</u></b><br />
+<b>Quick Start Guide:</b><br />
 <p>To begin with a simple project, and let's not call it 'Hello World!'. You can start with logging in to the Dev Management UI at 'https://your_ip_addres' or 'https://localhost', if you have not already setup the server configuration above with 'server_dev_ui' settings. On the main 'Projects' tab, there are four button on the left pane at the top. The 'box' icon allows you to create a new project. Supply a project 'Name' and 'Description' (optional) to create a base configuration. A new project should appear in the left pane.</p>
 <p>Select your project and you will see the project tree is broken into a few sections:</p>
 <ul>
@@ -96,7 +96,7 @@
 </ul>
 <p>For any server side API files, see the 'Project Files' tree and create a new file in your API folder, then select the API type which will drop in a standard template (helper file) that is ready for developing your server side code.</p>
 
-<b><u>The Manual Side of Things:</u></b><br />
+<b>The Manual Side of Things:</b><br />
 <p>From a manual perspective, the server root has a general layout as the follows. Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. You can setup your own Git repos for your projects and node projects settings. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configured configuration with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this.</p>
 <pre>
     root folder
