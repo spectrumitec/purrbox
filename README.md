@@ -109,13 +109,13 @@ root folder
   &#9474;   &#9500; default_new_site      Location of default system template
   &#9474;   &#9500; localhost             Location of Dev Management UI
   &#9474;   &#9492; ssl_certs             SSL certificate location (see server_conf.json if creating SSL by different file names)
-  &#8735; web_source                Location of all project folders
-    &#8735; your_project            The project folder associated with the project tree
-      &#8735; website_folder        The folder for each website defined under your project
-      &#8735; config.json           The configuration file within your project containing all settings
-  &#8735; web_templates             Location for any template created or downloaded (similar to project folder structure)
-  &#8735; server_conf.json          Server configuration file
-  &#8735; server_start.js           Server start script
+  &#9500; web_source                Location of all project folders
+  &#9474;   &#9492; your_project          The project folder associated with the project tree
+  &#9474;     &#9500; website_folder        The folder for each website defined under your project
+  &#9474;     &#9492; config.json           The configuration file within your project containing all settings
+  &#9500; web_templates             Location for any template created or downloaded (similar to project folder structure)
+  &#9500; server_conf.json          Server configuration file
+  &#9492; server_start.js           Server start script
 </pre>
 <p>Project configuration example is as follows. Most of what is in the configuration file is relatively easy to see where it relates in the Dev Management UI. A few points:</p>
 <ul>
