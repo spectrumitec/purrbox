@@ -96,24 +96,59 @@
 </ul>
 <p>For any server side API files, see the 'Project Files' tree and create a new file in your API folder, then select the API type which will drop in a standard template (helper file) that is ready for developing your server side code.</p>
 
-<b>The Manual Side of Things:</b>
-<p>From a manual perspective, the server root has a general layout as the following:</p>
+<b>The Manual Side of Things:</b><br />
+<p>From a manual perspective, the server root has a general layout as the follows. Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. You can setup your own Git repos for your projects and node projects settings. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configured configuration with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this.</p>
 <pre>
     root folder
-     &#8735; node_modules
-     &#8735; server
-         &#8735; class
-         &#8735; conf
-         &#8735; default_errors
-         &#8735; default_file_types
-         &#8735; default_new_site
-         &#8735; localhost
-         &#8735; ssl_certs
-     &#8735; web_source
-         &#8735; your_project
-             &#8735; website_folder
-             &#8735; config.json
-     &#8735; web_templates
-     &#8735; server_conf.json
-     &#8735; server_start.js
+      &#8735; node_modules              Node modules installed during installation
+      &#8735; server                    Main server folder
+        &#8735; class                   System classes
+        &#8735; conf                    Configuration location for system classes
+        &#8735; default_errors          Location of system default 404 and 500 error pages
+        &#8735; default_file_types      Location of template file types (used when creating new files in Dev Management UI)
+        &#8735; default_new_site        Location of default system template
+        &#8735; localhost               Location of Dev Management UI
+        &#8735; ssl_certs               SSL certificate location (see server_conf.json if creating SSL by different file names)
+      &#8735; web_source                Location of all project folders
+        &#8735; your_project            The project folder associated with the project tree
+          &#8735; website_folder        The folder for each website defined under your project
+          &#8735; config.json           The configuration file within your project containing all settings
+      &#8735; web_templates             Location for any template created or downloaded (similar to project folder structure)
+      &#8735; server_conf.json          Server configuration file
+      &#8735; server_start.js           Server start script
+</pre>
+<p>Project configuration example is as follows. Most of what is in the configuration file is relatively easy to see where it relates in the Dev Management UI. If you have a server that is in Prod mode (disabling the Dev UI), you can still do some simple things in the project configuration file. One example is setting 'enabled' to 'false' when the server is set to auto referesh it's configuration which is unregister the DNS mapping and disable the site on that server. Path mapping has web URL as the key and the file system relative path as the value. If changing the configuration manually on a Windows platform, maintain the UNIX/Linux style path separator "/" as the server will map properly for Windows systems. Do not use full OS path mapping as the server appends the file path to root of project website folder path.</p>
+<pre>
+    {
+        "project_desc": "Project description",
+        "enabled": true,
+        "dns_names": {
+            "dev": {
+                "www-dev.network.local": "main-v1"
+            },
+            "prod": {
+                "www.network.local": "main-v1"
+            }
+        },
+        "websites": {
+            "main-v1": {
+                "ssl_redirect": true,
+                "maintenance": false,
+                "maintenance_page": "maintenance.html",
+                "default_doc": "index.html",
+                "default_errors": {
+                    "404": "404.html",
+                    "500": "500.html"
+                },
+                "apis_fixed_path": {},
+                "apis_dynamic_path": {
+                    "/api/": "/main-v1/api/"
+                },
+                "path_static": {
+                    "/": "/main-v1/"
+                },
+                "path_static_server_exec": {}
+            }
+        }
+    }
 </pre>
