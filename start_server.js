@@ -1,3 +1,5 @@
+'use strict';
+
 /*
 
 MIT License
@@ -30,48 +32,24 @@ Web server start script, node process cluster manager
 
 */
 
-//Check modules exist
-try{
-    //Test modules
-    let module_test = null;
-    module_test = require("cluster")
-    module_test = require("ip")
-    module_test = require("bcrypt")
-    module_test = require("crypto")
-    module_test = require("jsonwebtoken")
-
-    //Cleanup before load
-    delete test;
-    for(let cached in require.cache) {
-        delete require.cache[cached];
-    }
-}catch(e) {
-    console.log(e.message)
-    console.log("")
-    console.log("Modules required:")
-    console.log(" - ip")
-    console.log(" - bcrypt")
-    console.log(" - crypto")
-    console.log(" - jsonwebtoken")
-    console.log("")
-    console.log("npm install ip bcrypt crypto jsonwebtoken")
-    console.log("")
-    process.exit()
-}
-
 //Set Node JS constants
-const cluster = require("cluster");
-const path = require("path");
+import cluster from "node:cluster";
+import path from "node:path";
 
-//Set vhost class
-const vhost_server = require(path.join(__dirname,"server","class","vhost.js"));
-const server = new vhost_server()
+//Import system
+import vhost_server from "./server/class/vhost.js"
+
+//Create server class
+const server = new vhost_server();
+
 
 //Set parameters
-var workers = server.get("workers")
-var debug_mode = server.get("debug_mode_on")
-var auto_refresh = server.get("auto_refresh_on")
-var refresh_timer = server.get("auto_refresh_timer")
+//var workers = server.get("workers")
+//var debug_mode = server.get("debug_mode_on")
+//var auto_refresh = server.get("auto_refresh_on")
+//var refresh_timer = server.get("auto_refresh_timer")
+
+/*
 
 //Cluster
 if(cluster.isMaster) {
@@ -123,3 +101,5 @@ if(cluster.isMaster) {
 	//Start server listeners
 	server.start_server();
 }
+
+*/

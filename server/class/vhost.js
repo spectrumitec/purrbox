@@ -1,3 +1,4 @@
+'use strict';
 
 /*
 
@@ -36,14 +37,15 @@ VHost server class (web services)
 //
 
 //Set Node JS constants
-const http = require("http");
-const https = require("https");
-const url = require("url");
-const fs = require("fs");
-const path = require("path");
-const ip = require("ip");
+import http from "node:http"
+import https from "node:https"
+import * as url from "node:url"
+import * as fs from "node:fs"
+import * as path from "node:path";
 
-//Define OS separator
+//Set const
+const __filename = url.fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const s = path.sep;
 
 //Server class
@@ -100,6 +102,9 @@ class vhost_server {
         //Check essetial files
         this.check_paths();
 
+        /*
+
+
         //Load vhost_server config
         this.load_server_config();
 
@@ -110,21 +115,23 @@ class vhost_server {
 
         //Capture cached files
         this.running_cache = JSON.parse(JSON.stringify(require.cache));
+
+        */
     }
 
     define_paths() {
-        //Get OS path seperator
-        let root = `${path.dirname(path.dirname(__dirname))}`;
-        
+        //Set root
+        let root = `${path.dirname(path.dirname(__dirname))}${path.sep}`;
+
         //Set default paths
-        this.paths["root"] = `${root}${s}`
-        this.paths["server"] = `${root}${s}server${s}`;
-        this.paths["class"] = `${root}${s}server${s}class${s}`;
-        this.paths["errors"] = `${root}${s}server${s}default_errors${s}`;
-        this.paths["localhost"] = `${root}${s}server${s}localhost${s}`;
-        this.paths["ssl_certs"] = `${root}${s}server${s}ssl_certs${s}`;
-        this.paths["web_source"] = `${root}${s}web_source${s}`;
-        this.paths["web_templates"] = `${root}${s}web_templates${s}`;
+        this.paths["root"] = root;
+        this.paths["server"] = path.join(root,"server",path.sep);
+        this.paths["class"] = path.join(root,"server","class",path.sep);
+        this.paths["errors"] = path.join(root,"server","default_errors",path.sep);
+        this.paths["localhost"] = path.join(root,"server","localhost",path.sep);
+        this.paths["ssl_certs"] = path.join(root,"server","ssl_certs",path.sep);
+        this.paths["web_source"] = path.join(root,"web_source",path.sep);
+        this.paths["web_templates"] = path.join(root,"web_templates",path.sep);
     }
     check_paths() {
         //Check required directories
@@ -1866,5 +1873,4 @@ class vhost_server {
     }
 }
 
-//Export modules
-module.exports = vhost_server;
+export default vhost_server;
