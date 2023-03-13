@@ -1,3 +1,4 @@
+'use strict';
 
 /*
 
@@ -35,14 +36,18 @@ Management class for localhost host Dev UI
 // Node JS manage projects
 //
 
-//Set Node JS constants
-const fs = require("fs");
-const path = require("path");
+//Import modules
+import * as url from "node:url"
+import * as fs from "node:fs"
+import * as path from "node:path";
+
+//Set const
+const __filename = url.fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const s = path.sep;
 
 //JWT auth class
-const class_jwt_auth = path.join(path.dirname(__dirname),"class","jwt_auth.js");
-const jwt_auth = require(class_jwt_auth);
+import jwt_auth from path.join(path.dirname(__dirname),"class","jwt_auth.js");
 
 //Manage class
 class manage_server {

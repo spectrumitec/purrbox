@@ -40,6 +40,7 @@ VHost server class (web services)
 import http from "node:http"
 import https from "node:https"
 import * as url from "node:url"
+import * as os from "node:os"
 import * as fs from "node:fs"
 import * as path from "node:path";
 
@@ -50,9 +51,12 @@ const s = path.sep;
 
 //Server class
 class vhost_server {
-    //Default class settings - set via server_conf.json
-    ip_address = "";            //Local IP address
+    //System details
     hostname = "localhost";     //Hostname of running instance
+    ipv4_address = "";          //Local IPv4 address
+    ipv6_address = "";          //Local IPv6 address
+
+    //Server conf settings
     workers = 1;                //Number of worker processes
     cache_on = false;           //Server side cache of import files (cache in production)
     debug_mode_on = false;      //Debug output
@@ -102,9 +106,6 @@ class vhost_server {
         //Check essetial files
         this.check_paths();
 
-        /*
-
-
         //Load vhost_server config
         this.load_server_config();
 
@@ -112,11 +113,6 @@ class vhost_server {
         if(this.workers > 1) {
             this.debug_mode_on = false;
         }
-
-        //Capture cached files
-        this.running_cache = JSON.parse(JSON.stringify(require.cache));
-
-        */
     }
 
     define_paths() {
@@ -167,9 +163,8 @@ class vhost_server {
         }
     }
     load_server_config() {
-
-        //Get local IP address
-        this.ip_address = ip.address();
+        //Get local system settings
+        this.load_server_ipaddr();
 
         //Check for config file
         let server_conf = `${this.paths["root"]}server_conf.json`;
@@ -201,8 +196,10 @@ class vhost_server {
                 (json.server_mode == "prod") ? this.server_mode = "prod" : this.server_mode = "dev";
             }
             if(json.server_dev_ui != undefined) {
-                this.server_dev_ui.push(this.ip_address);
                 this.server_dev_ui.push("localhost");
+                this.server_dev_ui.push(this.hostname);
+                this.server_dev_ui.push(this.ipv4_address);
+                this.server_dev_ui.push(this.ipv6_address);
                 for(let i in json.server_dev_ui) {
                     let hostname = json.server_dev_ui[i];
                     this.server_dev_ui.push(hostname);
@@ -245,6 +242,29 @@ class vhost_server {
                     this.auto_refresh_timer = json.auto_refresh_timer;
                 }
             }
+        }
+    }
+    load_server_ipaddr() {
+        //Get system IP addresses
+        try {
+            //Set hostname
+            this.hostname = os.hostname();
+
+            //Process IP addresses
+            let ifaces = os.networkInterfaces();
+            let fisrt_iface = (Object.keys(ifaces))[0];
+            for(let i in ifaces[fisrt_iface]) {
+                let iface = ifaces[fisrt_iface][i];
+                if(iface.family == "IPv4") {
+                    this.ipv4_address = iface.address;
+                }else if(iface.family == "IPv6") {
+                    this.ipv6_address = iface.address;
+                }
+            }
+        }catch(err) {
+            console.log("Cannot get OS details")
+            console.log(err)
+            return
         }
     }
 
@@ -370,6 +390,29 @@ class vhost_server {
     //////////////////////////////////////
     // Configuration query
     //////////////////////////////////////
+
+    refresh_web_config() {
+
+
+        //Set defaults
+        var detect_change = false;
+        var web_path = this.paths["web_source"];
+
+        //Query folders in web source path (look for new / modified config files)
+        fs.readdir(web_path, (err, dir_list) => {
+            if(err) {
+                console.log(" :: Error reading web source directory")
+            }else{
+                //Loop directories
+                for(let target in dir_list) {
+                    //Get project name from folder name
+                    let website_project = dir_list[target];
+
+                    //console.log(website_project)
+                }
+            }
+        });
+    }
 
     //Read through configuration and load or update web_configs
     query_web_source_config() {
@@ -924,12 +967,6 @@ class vhost_server {
         let file_path = response_params.path;
         let exec_mode = response_params.exec;
 
-        //Unload the server side file if cache is false (used when content is static)
-        if(this.cache_on == false) {
-            //delete require.cache[file_path];
-            this.clear_cahced()
-        }
-
         //Handle exec type
         if(exec_mode == "client") {
             //Send client side files
@@ -981,7 +1018,9 @@ class vhost_server {
         //Run server side code
         try {
             //Include server side code
-            let exec_javascript = require(file_path);
+            //let exec_javascript = require(file_path);
+
+            let exec_javascript = await import(file_path);
 
             //Execute request and get response
             let response = await exec_javascript.request(params);
@@ -1043,9 +1082,6 @@ class vhost_server {
         console.log("-------- Stack Trace --------");
         this.stack_trace();
         console.log("-----------------------------");
-
-        //Unload the server side file on error
-        delete require.cache[file_path];
 
         res.statusCode = 500;
         res.setHeader('Content-Type', 'text/plain');
@@ -1382,18 +1418,6 @@ class vhost_server {
         return mime_types[this_ext] || mime_types.default;
     }
 
-    //Server cache mode = false, unload cached files (not node modules loaded via server)
-    clear_cahced() {
-        for(let cached in require.cache) {
-            if(!(cached.includes("node_modules"))) {
-                if(this.running_cache[cached] == undefined) {
-                    console.log(`   :: server.cache_on = false, remove module from server cache [${cached}]`)
-                    delete require.cache[cached];
-                }
-            }
-        }
-    }
-
     //////////////////////////////////////
     // Debug mode functions
     //////////////////////////////////////
@@ -1408,7 +1432,8 @@ class vhost_server {
             this.log(`   Node Version            : ${process.version}`);
             this.log(`   Platform                : ${process.platform}`);
             this.log(`   Hostname                : ${this.hostname}`);
-            this.log(`   IP Address              : ${this.ip_address}`);
+            this.log(`   IPv4 Address            : ${this.ipv4_address}`);
+            this.log(`   IPv6 Address            : ${this.ipv6_address}`);
             this.log(`   Server Root             : ${this.paths["root"]}`);
             this.log(`   Website Source Path     : ${this.paths["web_source"]}`);
             this.log("");

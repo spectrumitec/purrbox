@@ -34,7 +34,6 @@ Web server start script, node process cluster manager
 
 //Set Node JS constants
 import cluster from "node:cluster";
-import path from "node:path";
 
 //Import system
 import vhost_server from "./server/class/vhost.js"
@@ -42,14 +41,11 @@ import vhost_server from "./server/class/vhost.js"
 //Create server class
 const server = new vhost_server();
 
-
 //Set parameters
-//var workers = server.get("workers")
-//var debug_mode = server.get("debug_mode_on")
-//var auto_refresh = server.get("auto_refresh_on")
-//var refresh_timer = server.get("auto_refresh_timer")
-
-/*
+var workers = server.get("workers")
+var debug_mode = server.get("debug_mode_on")
+var auto_refresh = server.get("auto_refresh_on")
+var refresh_timer = server.get("auto_refresh_timer")
 
 //Cluster
 if(cluster.isMaster) {
@@ -90,9 +86,14 @@ if(cluster.isMaster) {
     //Load web source configs
     server.query_web_source_config()
 
+    server.refresh_web_config();
+
 	//Set refresh timer to periodically refresh web project configurations without server reload
 	function refresh_web_configs() {
 		server.query_web_source_config()
+
+        server.refresh_web_config();
+
 	}    
 	if(auto_refresh == true) {
 		setInterval(refresh_web_configs, refresh_timer);
@@ -101,5 +102,3 @@ if(cluster.isMaster) {
 	//Start server listeners
 	server.start_server();
 }
-
-*/

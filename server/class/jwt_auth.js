@@ -1,3 +1,5 @@
+'use strict';
+
 /*
 
 MIT License
@@ -34,14 +36,17 @@ SOFTWARE.
        - Act as auth service
 */
 
-'use strict';
-
 //Set Node JS constants
-const fs = require("fs");
-const path = require("path");
-const bcrypt = require("bcrypt");
-const crypto = require('crypto');
-const jwt = require("jsonwebtoken");
+import * as fs from "node:fs"
+import * as path from "node:path";
+import * as url from "node:url"
+import * as bcrypt from "node:bcrypt"
+import * as crypto from "node:crypto"
+import * as jwt from "node:jsonwebtoken"
+
+//Set const
+const __filename = url.fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const s = path.sep;
 
 //Manage class

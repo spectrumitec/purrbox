@@ -25,6 +25,17 @@ SOFTWARE.
 
 */
 
+//Import modules
+import * as url from "node:url"
+import * as path from "node:path";
+
+//Set const
+const __filename = url.fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+//Import manage
+import manage_server from path.join(path.dirname(path.dirname(__dirname)),"class","manage.js");
+
 //Set response data
 var _response = {
     "status_code":200,
@@ -35,7 +46,7 @@ var _response = {
 }
 
 //Module request
-exports.request = async function(params={}) {
+export const request = async function(params={}) {
     //Set const
     const _env = params._server.environment;
     const _server = params._server;
@@ -64,12 +75,7 @@ exports.request = async function(params={}) {
 		user_ip = _client.remote_ip_xff;
 	}
 
-    //Imports
-    const path = require("path");
-	const class_manage = path.join(path.dirname(path.dirname(__dirname)),"class","manage.js");
-
     //Create Class Object
-    var manage_server = require(class_manage);
 	var mgmt = new manage_server(user_cookie, user_agent, user_ip);
 
     //API response
