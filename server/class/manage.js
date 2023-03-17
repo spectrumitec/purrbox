@@ -37,9 +37,9 @@ Management class for localhost host Dev UI
 //
 
 //Import modules
-import * as url from "node:url"
-import * as fs from "node:fs"
-import * as path from "node:path";
+import * as url from "url"
+import * as fs from "fs"
+import * as path from "path";
 
 //Set const
 const __filename = url.fileURLToPath(import.meta.url)
@@ -47,10 +47,10 @@ const __dirname = path.dirname(__filename)
 const s = path.sep;
 
 //JWT auth class
-import jwt_auth from path.join(path.dirname(__dirname),"class","jwt_auth.js");
+const __auth = await import(path.join(path.dirname(__dirname),"class","jwt_auth.js"));
 
 //Manage class
-class manage_server {
+export class manage_server {
     //General settings
     paths = {}
     jwt_auth = null;
@@ -61,11 +61,32 @@ class manage_server {
         this.define_paths();
 
         //Init JWT auth class
-        this.jwt_auth = new jwt_auth(cookie, user_agent, user_ip);
+        this.jwt_auth = new __auth.jwt_auth(cookie, user_agent, user_ip);
 
         //Initialize class - JWT configurations
         this.class_init()
     }
+
+    //////////////////////////////////////
+    // Init functions
+    //////////////////////////////////////
+
+    //Set paths
+    define_paths() {
+        //Set root
+        let root = `${path.dirname(path.dirname(__dirname))}${path.sep}`;
+
+        //Set default paths
+        this.paths["root"] = root;
+        this.paths["server"] = path.join(root,"server",path.sep);
+        this.paths["class"] = path.join(root,"server","class",path.sep);
+        this.paths["errors"] = path.join(root,"server","default_errors",path.sep);
+        this.paths["localhost"] = path.join(root,"server","localhost",path.sep);
+        this.paths["ssl_certs"] = path.join(root,"server","ssl_certs",path.sep);
+        this.paths["web_source"] = path.join(root,"web_source",path.sep);
+        this.paths["web_templates"] = path.join(root,"web_templates",path.sep);
+    }
+
     class_init() {
 
         // JWT Auth Class initialize for application
@@ -209,26 +230,6 @@ class manage_server {
                 }
             }
         }
-    }
-
-    //////////////////////////////////////
-    // Set functions
-    //////////////////////////////////////
-
-    //Set paths
-    define_paths() {
-        //Get OS path seperator
-        let root = `${path.dirname(path.dirname(__dirname))}`;
-        
-        //Set default paths
-        this.paths["root"] = `${root}${s}`
-        this.paths["server"] = `${root}${s}server${s}`;
-        this.paths["class"] = `${root}${s}server${s}class${s}`;
-        this.paths["errors"] = `${root}${s}server${s}default_errors${s}`;
-        this.paths["localhost"] = `${root}${s}server${s}localhost${s}`;
-        this.paths["ssl_certs"] = `${root}${s}server${s}ssl_certs${s}`;
-        this.paths["web_source"] = `${root}${s}web_source${s}`;
-        this.paths["web_templates"] = `${root}${s}web_templates${s}`;
     }
 
     //////////////////////////////////////
@@ -4047,6 +4048,3 @@ class manage_server {
         return result;
     }
 }
-
-//Export modules
-module.exports = manage_server;

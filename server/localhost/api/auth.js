@@ -1,3 +1,4 @@
+'use strict';
 
 /*
 
@@ -33,8 +34,8 @@ import * as path from "node:path";
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-//Import manage
-import manage_server from path.join(path.dirname(path.dirname(__dirname)),"class","manage.js");
+//Define server
+const vhost = await import(path.join(path.dirname(path.dirname(__dirname)),"class","manage.js"));
 
 //Set response data
 var _response = {
@@ -46,7 +47,7 @@ var _response = {
 }
 
 //Module request
-export const request = async function(params={}) {
+export async function request(params={}) {
     //Set const
     const _env = params._server.environment;
     const _server = params._server;
@@ -76,7 +77,7 @@ export const request = async function(params={}) {
 	}
 
     //Create Class Object
-	var mgmt = new manage_server(user_cookie, user_agent, user_ip);
+	var mgmt = new vhost.manage_server(user_cookie, user_agent, user_ip);
 
     //API response
     let api_response = {};

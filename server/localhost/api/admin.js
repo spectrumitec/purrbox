@@ -1,3 +1,4 @@
+'use strict';
 
 /*
 
@@ -25,6 +26,17 @@ SOFTWARE.
 
 */
 
+//Import modules
+import * as url from "node:url"
+import * as path from "node:path";
+
+//Set const
+const __filename = url.fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+//Define server
+const vhost = await import(path.join(path.dirname(path.dirname(__dirname)),"class","manage.js"));
+
 //Set response data
 var _response = {
     "status_code":200,
@@ -35,7 +47,7 @@ var _response = {
 }
 
 //Module request
-exports.request = async function(params={}) {
+export async function request(params={}) {
     //Set const
     const _env = params._server.environment;
     const _server = params._server;
@@ -63,16 +75,9 @@ exports.request = async function(params={}) {
 	if(_client.remote_ip_xff) {
 		user_ip = _client.remote_ip_xff;
 	}
-	
-    //Imports
-    const path = require("path");
-	const class_manage = path.join(path.dirname(path.dirname(__dirname)),"class","manage.js");
 
-    //Define classes
-    var manage_server = require(class_manage);
-
-	//Define auth objects
-	var mgmt = new manage_server(user_cookie, user_agent, user_ip);
+    //Create Class Object
+	var mgmt = new vhost.manage_server(user_cookie, user_agent, user_ip);
 
 	//Response
 	let api_response = null;

@@ -37,12 +37,12 @@ VHost server class (web services)
 //
 
 //Set Node JS constants
-import http from "node:http"
-import https from "node:https"
-import * as url from "node:url"
-import * as os from "node:os"
-import * as fs from "node:fs"
-import * as path from "node:path";
+import http from "http"
+import https from "https"
+import * as url from "url"
+import * as os from "os"
+import * as fs from "fs"
+import * as path from "path";
 
 //Set const
 const __filename = url.fileURLToPath(import.meta.url)
@@ -163,6 +163,9 @@ class vhost_server {
         }
     }
     load_server_config() {
+        //Set hostname
+        this.hostname = os.hostname();
+
         //Get local system settings
         this.load_server_ipaddr();
 
@@ -180,9 +183,6 @@ class vhost_server {
             }
 
             //Load config settings
-            if(json.hostname != undefined) {
-                this.hostname = json.hostname;
-            }
             if(json.workers != undefined) {
                 this.workers = json.workers;
             }
@@ -198,11 +198,11 @@ class vhost_server {
             if(json.server_dev_ui != undefined) {
                 this.server_dev_ui.push("localhost");
                 this.server_dev_ui.push(this.hostname);
-                this.server_dev_ui.push(this.ipv4_address);
-                this.server_dev_ui.push(this.ipv6_address);
                 for(let i in json.server_dev_ui) {
                     let hostname = json.server_dev_ui[i];
-                    this.server_dev_ui.push(hostname);
+                    if(this.server_dev_ui.indexOf(hostname) == -1) {
+                        this.server_dev_ui.push(hostname);
+                    }
                 }
             }
             if(json.environment != undefined) {
@@ -252,19 +252,43 @@ class vhost_server {
 
             //Process IP addresses
             let ifaces = os.networkInterfaces();
-            let fisrt_iface = (Object.keys(ifaces))[0];
-            for(let i in ifaces[fisrt_iface]) {
-                let iface = ifaces[fisrt_iface][i];
-                if(iface.family == "IPv4") {
-                    this.ipv4_address = iface.address;
-                }else if(iface.family == "IPv6") {
-                    this.ipv6_address = iface.address;
+            let ipv4_select = false;
+            let ipv6_select = false;
+            for(let iface in ifaces) {
+                for(let ipconf in ifaces[iface]) {
+                    let this_ipconf = ifaces[iface][ipconf];
+                    if(this_ipconf.family == "IPv4") {
+                        //Add to server Dev UI IP list
+                        this.load_server_ipaddr_dev_ui(this_ipconf.address)
+
+                        //Determine host primary IP address
+                        if(this_ipconf.address != "127.0.0.1" && ipv4_select == false) {
+                            ipv4_select = true;
+                            this.ipv4_address = this_ipconf.address;
+                        }
+                    }else if(this_ipconf.family == "IPv6") {
+                        //Add to server Dev UI IP list
+                        this.load_server_ipaddr_dev_ui(this_ipconf.address)
+
+                        //Determine host primary IP address
+                        if(this_ipconf.address != "::1" && ipv6_select == false) {
+                            ipv6_select = true;
+                            this.ipv6_address = this_ipconf.address;
+                        }
+                    }
                 }
             }
         }catch(err) {
             console.log("Cannot get OS details")
             console.log(err)
             return
+        }
+    }
+    load_server_ipaddr_dev_ui(ipaddr=null){
+        if(ipaddr != null) {
+            if(ipaddr != "" && this.server_dev_ui.indexOf(ipaddr) == -1) {
+                this.server_dev_ui.push(ipaddr);
+            }
         }
     }
 
@@ -1017,14 +1041,33 @@ class vhost_server {
     async exec_server_side(res, file_path, params) {
         //Run server side code
         try {
-            //Include server side code
-            //let exec_javascript = require(file_path);
+            /*
 
+            To test on Windows
+
+            let pattern = null;
+            if(os.platform() == "win32"){
+                pattern = new RegExp(/\\/, "g")
+            }else{
+                pattern = new RegExp(/\//, "g")
+            }
+
+            let target_path = file_path.substr(2, file_path.length - 2)
+            target_path = target_path.replace(pattern, "/")
+
+            console.log(`Test file path: ${file_path}`)
+
+            */
+
+            //Import server side file
             let exec_javascript = await import(file_path);
 
             //Execute request and get response
             let response = await exec_javascript.request(params);
 
+            console.log("Response result")
+            console.log(response)
+            
             //Handle response
             this.exec_server_side_response(res, file_path, response)
         }catch(err){

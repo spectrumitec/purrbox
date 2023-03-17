@@ -37,20 +37,19 @@ SOFTWARE.
 */
 
 //Set Node JS constants
-import * as fs from "node:fs"
-import * as path from "node:path";
-import * as url from "node:url"
-import * as bcrypt from "node:bcrypt"
-import * as crypto from "node:crypto"
-import * as jwt from "node:jsonwebtoken"
+import * as url from "url"
+import * as fs from "fs"
+import * as path from "path";
+import * as bcrypt from "bcrypt"
+import * as crypto from "crypto"
+import jwt from "jsonwebtoken"
 
 //Set const
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const s = path.sep;
 
 //Manage class
-class jwt_auth {
+export class jwt_auth {
     //General settings
     paths = {}
     error = "";
@@ -133,19 +132,19 @@ class jwt_auth {
 
     //Set paths
     define_paths() {
-        //Get OS path seperator
-        let root = `${path.dirname(path.dirname(__dirname))}`;
-        
+        //Set root
+        let root = `${path.dirname(path.dirname(__dirname))}${path.sep}`;
+
         //Set default paths
-        this.paths["root"] = `${root}${s}`
-        this.paths["server"] = `${root}${s}server${s}`;
-        this.paths["class"] = `${root}${s}server${s}class${s}`;
-        this.paths["conf"] = `${root}${s}server${s}conf${s}`;
+        this.paths["root"] = root;
+        this.paths["server"] = path.join(root,"server",path.sep);
+        this.paths["class"] = path.join(root,"server","class",path.sep);
+        this.paths["conf"] = path.join(root,"server","conf",path.sep);
 
         //Set conf files
-        this.paths["conf_file"] = `${this.paths["conf"]}jwt_auth_conf.json`;
-        this.paths["file_db"] = `${this.paths["conf"]}jwt_auth_db.json`;
-        this.paths["sessions_db"] = `${this.paths["conf"]}jwt_auth_sessions.json`;
+        this.paths["conf_file"] = path.join(this.paths["conf"],"jwt_auth_conf.json");
+        this.paths["file_db"] = path.join(this.paths["conf"],"jwt_auth_db.json");
+        this.paths["sessions_db"] = path.join(this.paths["conf"],"jwt_auth_sessions.json");
     }
     get_config() {
         let if_dir_exists = null;
@@ -2615,6 +2614,3 @@ class jwt_auth {
         //Future state server auth
     }
 }
-
-//Export modules
-module.exports = jwt_auth;

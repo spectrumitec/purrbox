@@ -8,7 +8,7 @@ var _response = {
 }
 
 //Module request
-exports.request = async function() {
+export async function request() {
 	//Output
 	_response["body"] = `
         <!doctype html>

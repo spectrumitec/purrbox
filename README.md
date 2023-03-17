@@ -1,7 +1,7 @@
 <b>Node JS Wonderbox</b>
 
 <br />
-<p>Note to users: This is a new project in development awaiting future features and dedicated website for helping users get started. There is minimum content available for information at the current time.</p>
+<p>NOTE: ES6 in testing. Currently does not allow for remove cache without restart, does not run on windows.</p>
 <br />
 
 <b>About:</b><br />

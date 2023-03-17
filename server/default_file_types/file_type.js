@@ -12,7 +12,7 @@ var _response = {
 }
 
 //Module request
-exports.request = async function(params={}) {
+export async function request(params={}) {
     //Set const
     const _env = params._server.environment;
     const _server = params._server;
