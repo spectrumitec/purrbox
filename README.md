@@ -71,7 +71,7 @@
 <b>Current Limitations:</b><br />
 <ul>
     <li>SSL certificates cannot be assinged individually to each site. A server hosting multiple sites will require a SAN or wildcard certificate. Alternatively, you can create a new self signed certificate and allow a load balancer to handle the SSL certificates (SSL offload).</li>
-    <li>Cannot use newer import syntax as site content is executed from inside a server class which does not allow imports. Will need to use require statement for module imports.</li>
+    <li>Cannot use newer import syntax. Working on ES6 version. Some limitations in clearing import cache.</li>
     <li>Logging has not yet been completed, planned for future versions.</li>
     <li>JWT auth for Dev management UI will have MySQL/MariaDB in future versions, currently limited to local file configurations. See server path '/root_folder/server/conf/'</li>
 </ul>
