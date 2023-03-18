@@ -79,6 +79,7 @@ class vhost_server {
     paths = {}                  //System paths
 
     //Configurations and mapping
+    web_config_change = false;  //Mark when detected chagnes
     web_configs = {};		    //Configuration settings for each site
     web_dns_mapping = {};       //Mapping DNS FQDN to content
     web_dev_mapping = {};       //Dev preview (vhost)
@@ -416,14 +417,49 @@ class vhost_server {
     //////////////////////////////////////
 
     refresh_web_config() {
+        //Initialize default mapping -- on server start with no project folders (dev mode only)
+        if(this.server_mode == "dev") {
+            if(Object.keys(this.web_dns_mapping).length == 0) {
+                //Map default DNS for dev mode
+                for(let i in this.server_dev_ui) {
+                    let this_dns = this.server_dev_ui[i];
 
+                    console.log(this_dns)
 
+                    //Mapping dev UI names
+                    this.web_dns_mapping[this_dns] = {}
+                    this.web_dns_mapping[this_dns]["ssl_redirect"] = true;
+                    this.web_dns_mapping[this_dns]["maintenance_mode"] = false;
+                    this.web_dns_mapping[this_dns]["maintenance_doc"] = "";
+                    this.web_dns_mapping[this_dns]["default_doc"] = "index.html";
+                    this.web_dns_mapping[this_dns]["default_404"] = "404.js";
+                    this.web_dns_mapping[this_dns]["default_500"] = "500.js";
+                    this.web_dns_mapping[this_dns]["apis_fixed"] = {}
+                    this.web_dns_mapping[this_dns]["apis_dynamic"] = {
+                        "/api/":`${this.paths["localhost"]}api${s}`
+                    }
+                    this.web_dns_mapping[this_dns]["path_static_exec"] = {}
+                    this.web_dns_mapping[this_dns]["paths_static"] = {
+                        "/":this.paths["localhost"]
+                    }
+                }
+
+                //Output site mapping
+                if(this.debug_mode_on == true) {
+                    this.output_mapping_table()
+                }
+            }
+        }
+
+        //Start refresh
+        this.refresh_web_config_new_source();
+    }
+    refresh_web_config_new_source() {
         //Set defaults
-        var detect_change = false;
         var web_path = this.paths["web_source"];
 
         //Query folders in web source path (look for new / modified config files)
-        fs.readdir(web_path, (err, dir_list) => {
+        fs.readdir(web_path, async (err, dir_list) => {
             if(err) {
                 console.log(" :: Error reading web source directory")
             }else{
@@ -432,11 +468,25 @@ class vhost_server {
                     //Get project name from folder name
                     let website_project = dir_list[target];
 
-                    //console.log(website_project)
+                    //Check if directory
+                    let this_dir = dir_list[target];
+                    let this_path = path.join(web_path, this_dir);
+                    let this_config = path.join(this_path, "config.json");
+
+                    //Check directory
+
+
                 }
             }
         });
     }
+    refresh_web_config_purge_source() {
+
+    }
+    refresh_web_config_reindex() {
+
+    }
+
 
     //Read through configuration and load or update web_configs
     query_web_source_config() {
