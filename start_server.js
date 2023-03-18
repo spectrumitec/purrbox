@@ -41,7 +41,7 @@ try{
     module_test = require("jsonwebtoken")
 
     //Cleanup before load
-    delete test;
+    delete module_test;
     for(let cached in require.cache) {
         delete require.cache[cached];
     }
@@ -110,11 +110,11 @@ if(cluster.isMaster) {
     server.output_server_settings();
 
     //Load web source configs
-    server.query_web_source_config()
+    server.refresh_web_configs();
 
 	//Set refresh timer to periodically refresh web project configurations without server reload
 	function refresh_web_configs() {
-		server.query_web_source_config()
+		server.refresh_web_configs();
 	}    
 	if(auto_refresh == true) {
 		setInterval(refresh_web_configs, refresh_timer);
