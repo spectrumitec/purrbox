@@ -41,10 +41,7 @@ const url = require("url");
 const os = require("os");
 const fs = require("fs");
 const path = require("path");
-const ip = require("ip");
-
-//Define OS separator
-const s = path.sep;
+//const ip = require("ip");
 
 //Server class
 class vhost_server {
@@ -80,18 +77,6 @@ class vhost_server {
     web_dns_mapping = {};       //Mapping DNS FQDN to content
     web_dev_mapping = {};       //Dev preview (vhost)
 
-    //Mapping indexes
-    web_ssl_redirect = {};	    //Hold SSL redirect settings
-    web_maintenance_mode = {}   //Sites under maintenance
-    web_default_doc = {};	    //Default Doc
-    web_default_404 = {};	    //Default 404 page
-    web_default_500 = {};	    //Default 500 page
-
-    web_apis_fixed = {};	    // Map URL base path to fixed API file (URI path parsing)
-    web_apis_dynamic = {};	    // Map URL base path to dynamic API file paths (URI base path to multiple files and directories)
-    web_path_static_exec = {};	// Map URL path to static path (override static path to exec as server side code)
-    web_path_static = {};	    // Map URL path to static path
-
     //https options
     ssl_certificate = {};
 
@@ -116,18 +101,18 @@ class vhost_server {
     }
 
     define_paths() {
-        //Get OS path seperator
-        let root = `${path.dirname(path.dirname(__dirname))}`;
-        
+        //Set root
+        let root = `${path.dirname(path.dirname(__dirname))}${path.sep}`;
+
         //Set default paths
-        this.paths["root"] = `${root}${s}`
-        this.paths["server"] = `${root}${s}server${s}`;
-        this.paths["class"] = `${root}${s}server${s}class${s}`;
-        this.paths["errors"] = `${root}${s}server${s}default_errors${s}`;
-        this.paths["localhost"] = `${root}${s}server${s}localhost${s}`;
-        this.paths["ssl_certs"] = `${root}${s}server${s}ssl_certs${s}`;
-        this.paths["web_source"] = `${root}${s}web_source${s}`;
-        this.paths["web_templates"] = `${root}${s}web_templates${s}`;
+        this.paths["root"] = root;
+        this.paths["server"] = path.join(root,"server",path.sep);
+        this.paths["class"] = path.join(root,"server","class",path.sep);
+        this.paths["errors"] = path.join(root,"server","default_errors",path.sep);
+        this.paths["localhost"] = path.join(root,"server","localhost",path.sep);
+        this.paths["ssl_certs"] = path.join(root,"server","ssl_certs",path.sep);
+        this.paths["web_source"] = path.join(root,"web_source",path.sep);
+        this.paths["web_templates"] = path.join(root,"web_templates",path.sep);        
     }
     check_paths() {
         //Check required directories
@@ -325,16 +310,16 @@ class vhost_server {
     format_path(this_path) {
         //Replace '/' with platform separator if windows
         let this_pattern = "/"
-        this_path = this_path.replace(new RegExp(this_pattern, "g"), s)
+        this_path = this_path.replace(new RegExp(this_pattern, "g"), path.sep)
 
         //Ensure start and end has OS slash
-        if(this_path.startsWith(s) == false) {
-            this_path = `${s}${this_path}`;
+        if(this_path.startsWith(path.sep) == false) {
+            this_path = `${path.sep}${this_path}`;
         }
         let ext = path.extname(this_path);
         if(ext == "") {
-            if(this_path.endsWith(s) == false) {
-                this_path = `${this_path}${s}`;
+            if(this_path.endsWith(path.sep) == false) {
+                this_path = `${this_path}${path.sep}`;
             }
         }
         
@@ -444,7 +429,7 @@ class vhost_server {
                     this.web_dns_mapping[this_dns]["default_500"] = "500.js";
                     this.web_dns_mapping[this_dns]["apis_fixed"] = {}
                     this.web_dns_mapping[this_dns]["apis_dynamic"] = {
-                        "/api/":`${this.paths["localhost"]}api${s}`
+                        "/api/":`${this.paths["localhost"]}api${path.sep}`
                     }
                     this.web_dns_mapping[this_dns]["path_static_exec"] = {}
                     this.web_dns_mapping[this_dns]["paths_static"] = {
@@ -568,7 +553,7 @@ class vhost_server {
                 all_dns[this_dns]["default_500"] = "500.js";
                 all_dns[this_dns]["apis_fixed"] = {}
                 all_dns[this_dns]["apis_dynamic"] = {
-                    "/api/":`${this.paths["localhost"]}api${s}`
+                    "/api/":`${this.paths["localhost"]}api${path.sep}`
                 }
                 all_dns[this_dns]["path_static_exec"] = {}
                 all_dns[this_dns]["paths_static"] = {
@@ -865,14 +850,25 @@ class vhost_server {
         console.log(` > HTTP server - port ${this.https_port}`);
     }
     client_request(protocol, req, res) {
+
         //Define _server
         let _server = {
-            "local_ip":null,
+            "local_ipv4":this.ipv4_address,
+            "local_ipv6":this.ipv6_address,
+            "request_ip":null,
             "node_version":null,
             "environment":this.environment
         }
         if(req.socket.localAddress != undefined) {
-            _server["local_ip"] = req.socket.localAddress.split(":")[3];
+            if(req.socket.localAddress == "::1") {
+                _server["request_ip"] = "localhost";
+            }else{
+                let this_split = req.socket.localAddress.split(":");
+                _server["request_ip"] = this_split[(this_split.length - 1)];
+                if(_server["request_ip"] == "127.0.0.1") {
+                    _server["request_ip"] = "localhost";
+                }
+            }
         }
         if(process.version != undefined) {
             _server["node_version"] = process.version;
@@ -886,7 +882,15 @@ class vhost_server {
             "cookie":null
         }
         if(req.socket.remoteAddress != undefined) {
-            _client["remote_ip"] = req.socket.remoteAddress.split(":")[3];
+            if(req.socket.remoteAddress == "::1") {
+                _client["remote_ip"] = "localhost";
+            }else{
+                let this_split = req.socket.remoteAddress.split(":");
+                _client["remote_ip"] = this_split[(this_split.length - 1)];
+                if(_client["remote_ip"] == "127.0.0.1") {
+                    _client["remote_ip"] = "localhost";
+                }
+            }
         }
         if(req.headers['x-forwarded-for'] != undefined) {
             _client["remote_ip_xff"] = req.headers['x-forwarded-for'];
