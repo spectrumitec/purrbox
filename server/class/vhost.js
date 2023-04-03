@@ -47,7 +47,6 @@ import * as path from "path";
 //Set const
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const s = path.sep;
 
 //Server class
 class vhost_server {
@@ -72,29 +71,17 @@ class vhost_server {
     auto_refresh_on=true;       //Web project configuration auto reload on changes
     auto_refresh_timer=10000;   //Time check for config changes (1,000 = 1 second)
 
-    //Start up cached files
-    running_cache = {};
-
     //System paths
     paths = {}                  //System paths
 
     //Configurations and mapping
-    web_config_change = false;  //Mark when detected chagnes
     web_configs = {};		    //Configuration settings for each site
     web_dns_mapping = {};       //Mapping DNS FQDN to content
     web_dev_mapping = {};       //Dev preview (vhost)
 
-    //Mapping indexes
-    web_ssl_redirect = {};	    //Hold SSL redirect settings
-    web_maintenance_mode = {}   //Sites under maintenance
-    web_default_doc = {};	    //Default Doc
-    web_default_404 = {};	    //Default 404 page
-    web_default_500 = {};	    //Default 500 page
-
-    web_apis_fixed = {};	    // Map URL base path to fixed API file (URI path parsing)
-    web_apis_dynamic = {};	    // Map URL base path to dynamic API file paths (URI base path to multiple files and directories)
-    web_path_static_exec = {};	// Map URL path to static path (override static path to exec as server side code)
-    web_path_static = {};	    // Map URL path to static path
+    //File and cache tracking
+    file_timestamp = {};
+    file_cache = {};
 
     //https options
     ssl_certificate = {};
@@ -327,16 +314,16 @@ class vhost_server {
     format_path(this_path) {
         //Replace '/' with platform separator if windows
         let this_pattern = "/"
-        this_path = this_path.replace(new RegExp(this_pattern, "g"), s)
+        this_path = this_path.replace(new RegExp(this_pattern, "g"), path.sep)
 
         //Ensure start and end has OS slash
-        if(this_path.startsWith(s) == false) {
-            this_path = `${s}${this_path}`;
+        if(this_path.startsWith(path.sep) == false) {
+            this_path = `${path.sep}${this_path}`;
         }
         let ext = path.extname(this_path);
         if(ext == "") {
-            if(this_path.endsWith(s) == false) {
-                this_path = `${this_path}${s}`;
+            if(this_path.endsWith(path.sep) == false) {
+                this_path = `${this_path}${path.sep}`;
             }
         }
         
@@ -416,15 +403,25 @@ class vhost_server {
     // Configuration query
     //////////////////////////////////////
 
-    refresh_web_config() {
+    refresh_web_configs() {
+
+        //
+        // Run on load and timer based query
+        // - Processes all the website project conf files
+        // - Update on changed configuration (conf file time stamp)
+        // - Remove configurations for removed websites
+        //
+        // On change detected, update indexes
+        // - Create URL mapping index for web request (on configuration changes / remove only)
+        // - Create streamlined URL to PATH mappings to get close to best performance 
+        //
+
         //Initialize default mapping -- on server start with no project folders (dev mode only)
         if(this.server_mode == "dev") {
             if(Object.keys(this.web_dns_mapping).length == 0) {
                 //Map default DNS for dev mode
                 for(let i in this.server_dev_ui) {
                     let this_dns = this.server_dev_ui[i];
-
-                    console.log(this_dns)
 
                     //Mapping dev UI names
                     this.web_dns_mapping[this_dns] = {}
@@ -436,86 +433,50 @@ class vhost_server {
                     this.web_dns_mapping[this_dns]["default_500"] = "500.js";
                     this.web_dns_mapping[this_dns]["apis_fixed"] = {}
                     this.web_dns_mapping[this_dns]["apis_dynamic"] = {
-                        "/api/":`${this.paths["localhost"]}api${s}`
+                        "/api/":`${this.paths["localhost"]}api${path.sep}`
                     }
                     this.web_dns_mapping[this_dns]["path_static_exec"] = {}
                     this.web_dns_mapping[this_dns]["paths_static"] = {
                         "/":this.paths["localhost"]
                     }
                 }
-
-                //Output site mapping
-                if(this.debug_mode_on == true) {
-                    this.output_mapping_table()
-                }
             }
         }
 
-        //Start refresh
-        this.refresh_web_config_new_source();
+        //Check website project config changes
+        this.refresh_web_configs_check();
+
+        //Check server config changes
+
+        //Cache mode handing
+        this.track_file_changes()
     }
-    refresh_web_config_new_source() {
-        //Set defaults
-        var web_path = this.paths["web_source"];
-
-        //Query folders in web source path (look for new / modified config files)
-        fs.readdir(web_path, async (err, dir_list) => {
-            if(err) {
-                console.log(" :: Error reading web source directory")
-            }else{
-                //Loop directories
-                for(let target in dir_list) {
-                    //Get project name from folder name
-                    let website_project = dir_list[target];
-
-                    //Check if directory
-                    let this_dir = dir_list[target];
-                    let this_path = path.join(web_path, this_dir);
-                    let this_config = path.join(this_path, "config.json");
-
-                    //Check directory
-
-
-                }
-            }
-        });
-    }
-    refresh_web_config_purge_source() {
-
-    }
-    refresh_web_config_reindex() {
-
-    }
-
-
-    //Read through configuration and load or update web_configs
-    query_web_source_config() {
-        
-        //
-        // Run on load and timer based query
-        // - Processes all the website project conf files
-        // - Update on changed configuration (conf file time stamp)
-        // - Remove configurations for removed websites
-        //
-        // On change detected, update indexes
-        // - Create URL mapping index for web request (on configuration changes / remove only)
-        // - Create streamlined URL to PATH mappings to get close to best performance 
-        //
-        
-        //Set defaults
-        let detect_change = false;
+    refresh_web_configs_check() {
+        //Set vars
         let web_path = this.paths["web_source"];
-        
+        let detect_change = false;
+
+        //Purge configuration where website project folders are removed
+        for(let website_project in this.web_configs) {
+            //Check of config file exists
+            let this_config = path.join(web_path, website_project, "config.json");
+            if(fs.existsSync(this_config) == false) {
+                this.log(" :: website_project[" + website_project + "] folder or configuration removed, removing config data");
+                delete this.web_configs[website_project];
+                detect_change = true;
+            }
+        }
+
         //Query folders in web source path (look for new / modified config files)
         let dir_list = fs.readdirSync(web_path);
-        for(var target in dir_list) {
+        for(let target in dir_list) {
             //Get project name from folder name
             let website_project = dir_list[target];
 
             //Check if directory
             let this_dir = dir_list[target];
-            let this_path = `${web_path}${this_dir}`;
-            let this_config = `${this_path}${s}config.json`;
+            let this_path = path.join(web_path, this_dir);
+            let this_config = path.join(this_path, "config.json");
 
             //Verify this_path is a directory
             let is_dir = fs.lstatSync(this_path).isDirectory();
@@ -563,310 +524,276 @@ class vhost_server {
                 }
             }
         }
-        
-        //Purge configuration where website project folders are removed
-        for(let website_project in this.web_configs) {
-            //Check of config file exists
-            let this_config = `${web_path}${website_project}${s}config.json`;
-            let if_cfg_exists = fs.existsSync(this_config);
-            if(if_cfg_exists == false) {
-                this.log(" :: website_project[" + website_project + "] folder or configuration removed, removing config data");
-                delete this.web_configs[website_project];
-                detect_change = true;
+
+        //Re-index on changes
+        if(detect_change == true) {
+            this.refresh_web_configs_reindex();
+        }
+    }
+    refresh_web_configs_reindex() {
+        //Set vars
+        let web_path = this.paths["web_source"];
+
+        this.log(" :: Website project configuration changes found, updating hostnames index");
+
+        //Update indexes
+        let this_ssl_redirect = {};     //Hold mapping for SSL redirect setting
+        let this_web_maint_mode = {};   //Hold mapping for site maintenance mode
+        let this_default_doc = {};      //Hold mapping for site default doc
+        let this_default_404 = {};      //Hold mapping for site 404 doc
+        let this_default_500 = {};      //Hold mapping for site 500 doc
+
+        //Define mapping
+        let all_vhosts = {};
+        let all_dns = {};
+
+        //Add 'dev' mappings dns
+        if(this.server_mode == "dev") {
+            for(let i in this.server_dev_ui) {
+                let this_dns = this.server_dev_ui[i];
+
+                //Mapping dev UI names
+                all_dns[this_dns] = {}
+                all_dns[this_dns]["ssl_redirect"] = true;
+                all_dns[this_dns]["maintenance_mode"] = false;
+                all_dns[this_dns]["maintenance_doc"] = "";
+                all_dns[this_dns]["default_doc"] = "index.html";
+                all_dns[this_dns]["default_404"] = "404.js";
+                all_dns[this_dns]["default_500"] = "500.js";
+                all_dns[this_dns]["apis_fixed"] = {}
+                all_dns[this_dns]["apis_dynamic"] = {
+                    "/api/":`${this.paths["localhost"]}api${path.sep}`
+                }
+                all_dns[this_dns]["path_static_exec"] = {}
+                all_dns[this_dns]["paths_static"] = {
+                    "/":this.paths["localhost"]
+                }
             }
         }
 
-        //Map website indexes
-        if(detect_change == true) {
-            this.log(" :: Website project configuration changes found, updating hostnames index");
+        //Process configurations
+        for(let website_project in this.web_configs) {
+            //Set path
+            let root_path = path.join(web_path, website_project)    //to replace above
 
-            //Update indexes
-            let this_ssl_redirect = {};     //Hold mapping for SSL redirect setting
-            let this_web_maint_mode = {};   //Hold mapping for site maintenance mode
-            let this_default_doc = {};      //Hold mapping for site default doc
-            let this_default_404 = {};      //Hold mapping for site 404 doc
-            let this_default_500 = {};      //Hold mapping for site 500 doc
+            //Get website project enabled
+            let project_enabled = this.web_configs[website_project].json.enabled;
 
-            //Define mapping
-            let all_vhosts = {};
-            let all_dns = {};
-
-            //Add 'dev' mappings dns
-            if(this.server_mode == "dev") {
-                for(let i in this.server_dev_ui) {
-                    let this_dns = this.server_dev_ui[i];
-
-                    //Mapping dev UI names
-                    all_dns[this_dns] = {}
-                    all_dns[this_dns]["ssl_redirect"] = true;
-                    all_dns[this_dns]["maintenance_mode"] = false;
-                    all_dns[this_dns]["maintenance_doc"] = "";
-                    all_dns[this_dns]["default_doc"] = "index.html";
-                    all_dns[this_dns]["default_404"] = "404.js";
-                    all_dns[this_dns]["default_500"] = "500.js";
-                    all_dns[this_dns]["apis_fixed"] = {}
-                    all_dns[this_dns]["apis_dynamic"] = {
-                        "/api/":`${this.paths["localhost"]}api${s}`
-                    }
-                    all_dns[this_dns]["path_static_exec"] = {}
-                    all_dns[this_dns]["paths_static"] = {
-                        "/":this.paths["localhost"]
-                    }
+            //Get DNS configuration (dev or prod)
+            let project_dns_name = null;
+            if(this.web_configs[website_project]["json"]["dns_names"] != undefined) {
+                if(this.web_configs[website_project]["json"]["dns_names"][this.environment] != undefined) {
+                    project_dns_name = this.web_configs[website_project]["json"]["dns_names"][this.environment];
                 }
             }
 
-            //Process configurations
-            for(let website_project in this.web_configs) {
-                //Set path
-                let root_path = `${web_path}${website_project}`;    //to replace above
+            //Validate JSON data
+            if(this.web_configs[website_project]["json"] == undefined) {
+                this.log(" :: Error : website_project[" + website_project + "] -- Missing JSON data");
+                continue;
+            }
 
-                //Get website project enabled
-                let project_enabled = this.web_configs[website_project].json.enabled;
+            //Validate JSON data
+            let websites = {};
+            if(this.web_configs[website_project]["json"]["websites"] == undefined) {
+                this.log(" :: Error : website_project[" + website_project + "] -- Missing Websites in JSON data");
+                continue;
+            }else{
+                websites = this.web_configs[website_project]["json"]["websites"];
+            }
 
-                //Get DNS configuration (dev or prod)
-                let project_dns_name = null;
-                if(this.web_configs[website_project]["json"]["dns_names"] != undefined) {
-                    if(this.web_configs[website_project]["json"]["dns_names"][this.environment] != undefined) {
-                        project_dns_name = this.web_configs[website_project]["json"]["dns_names"][this.environment];
-                    }
+            //Loop through websites
+            for(let website in websites) {
+
+                //Set defaults
+                let ssl_redirect = true;
+                let maint_mode = false;
+                let maint_doc = "maintenance.html";
+                let default_doc = "index.html";
+                let default_404 = "";   //Blank is default system errors
+                let default_500 = "";   //Blank is default system errors
+
+                let apis_fixed = {};
+                let apis_dynamic = {};
+                let paths_static = {};
+                let path_static_exec = [];
+
+                //Get settings from website in project config
+                if(websites[website]["ssl_redirect"] != undefined) {
+                    ssl_redirect = websites[website]["ssl_redirect"];
+                }
+                if(websites[website]["maintenance"] != undefined) {
+                    maint_mode = websites[website]["maintenance"];
+                }
+                if(websites[website]["maintenance_page"] != undefined) {
+                    maint_doc = websites[website]["maintenance_page"];
+                }
+                if(websites[website]["default_doc"] != undefined) {
+                    default_doc = websites[website]["default_doc"];
                 }
 
-                //Validate JSON data
-                if(this.web_configs[website_project]["json"] == undefined) {
-                    this.log(" :: Error : website_project[" + website_project + "] -- Missing JSON data");
-                    continue;
+                if(websites[website]["default_errors"]["404"] != undefined) {
+                    default_404 = websites[website]["default_errors"]["404"];
+                }
+                if(websites[website]["default_errors"]["500"] != undefined) {
+                    default_500 = websites[website]["default_errors"]["500"];
                 }
 
-                //Validate JSON data
-                let websites = {};
-                if(this.web_configs[website_project]["json"]["websites"] == undefined) {
-                    this.log(" :: Error : website_project[" + website_project + "] -- Missing Websites in JSON data");
-                    continue;
-                }else{
-                    websites = this.web_configs[website_project]["json"]["websites"];
+                if(websites[website]["apis_fixed_path"] != undefined) {
+                    apis_fixed = websites[website]["apis_fixed_path"];
+                }
+                if(websites[website]["apis_dynamic_path"] != undefined) {
+                    apis_dynamic = websites[website]["apis_dynamic_path"];
+                }
+                if(websites[website]["path_static"] != undefined) {
+                    paths_static = websites[website]["path_static"];
+                }
+                if(websites[website]["path_static_server_exec"] != undefined) {
+                    path_static_exec = websites[website]["path_static_server_exec"];
                 }
 
-                //Loop through websites
-                for(let website in websites) {
+                //Map api fixed paths
+                let this_api_fixed_map = {};
+                for(let web_path in apis_fixed) {
+                    //Set mapping
+                    let this_web_path = this.format_url(web_path);
+                    let this_map_path = root_path + this.format_path(apis_fixed[web_path]);
 
-                    //Set defaults
-                    let ssl_redirect = true;
-                    let maint_mode = false;
-                    let maint_doc = "maintenance.html";
-                    let default_doc = "index.html";
-                    let default_404 = "";   //Blank is default system errors
-                    let default_500 = "";   //Blank is default system errors
+                    //Add to mapping object
+                    this_api_fixed_map[this_web_path] = this_map_path;
+                }
 
-                    let apis_fixed = {};
-                    let apis_dynamic = {};
-                    let paths_static = {};
-                    let path_static_exec = [];
+                // Map api dynamic paths
+                let this_api_dyn_map = {};
+                for(let web_path in apis_dynamic) {
+                    //Set mapping
+                    let this_web_path = this.format_url(web_path);
+                    let this_map_path = root_path + this.format_path(apis_dynamic[web_path]);
 
-                    //Get settings from website in project config
-                    if(websites[website]["ssl_redirect"] != undefined) {
-                        ssl_redirect = websites[website]["ssl_redirect"];
-                    }
-                    if(websites[website]["maintenance"] != undefined) {
-                        maint_mode = websites[website]["maintenance"];
-                    }
-                    if(websites[website]["maintenance_page"] != undefined) {
-                        maint_doc = websites[website]["maintenance_page"];
-                    }
-                    if(websites[website]["default_doc"] != undefined) {
-                        default_doc = websites[website]["default_doc"];
-                    }
+                    //Add to mapping object
+                    this_api_dyn_map[this_web_path] = this_map_path;
+                }
 
-                    if(websites[website]["default_errors"]["404"] != undefined) {
-                        default_404 = websites[website]["default_errors"]["404"];
-                    }
-                    if(websites[website]["default_errors"]["500"] != undefined) {
-                        default_500 = websites[website]["default_errors"]["500"];
-                    }
+                // Map static path overrides
+                let this_static_exec_map = {};
+                for(let web_path in path_static_exec) {
+                    //Set mapping
+                    let this_web_path = this.format_url(web_path);
+                    let this_map_path = root_path + this.format_path(path_static_exec[web_path]);
 
-                    if(websites[website]["apis_fixed_path"] != undefined) {
-                        apis_fixed = websites[website]["apis_fixed_path"];
-                    }
-                    if(websites[website]["apis_dynamic_path"] != undefined) {
-                        apis_dynamic = websites[website]["apis_dynamic_path"];
-                    }
-                    if(websites[website]["path_static"] != undefined) {
-                        paths_static = websites[website]["path_static"];
-                    }
-                    if(websites[website]["path_static_server_exec"] != undefined) {
-                        path_static_exec = websites[website]["path_static_server_exec"];
-                    }
+                    //Add to mapping object
+                    this_static_exec_map[this_web_path] = this_map_path;
+                }
 
-                    //Map api fixed paths
-                    let this_api_fixed_map = {};
-                    for(let web_path in apis_fixed) {
-                        //Set mapping
-                        let this_web_path = this.format_url(web_path);
-                        let this_map_path = root_path + this.format_path(apis_fixed[web_path]);
+                // Map static paths
+                let this_static_map = {};
+                for(let web_path in paths_static) {
+                    //Set mapping
+                    let this_web_path = this.format_url(web_path);
+                    let this_map_path = root_path + this.format_path(paths_static[web_path]);
 
-                        //Add to mapping object
-                        this_api_fixed_map[this_web_path] = this_map_path;
-                    }
+                    //Add to mapping object
+                    this_static_map[this_web_path] = this_map_path;
+                }
 
-                    // Map api dynamic paths
-                    let this_api_dyn_map = {};
-                    for(let web_path in apis_dynamic) {
-                        //Set mapping
-                        let this_web_path = this.format_url(web_path);
-                        let this_map_path = root_path + this.format_path(apis_dynamic[web_path]);
+                //Sort arrays
+                this_api_fixed_map      = this.sort_mapping(this_api_fixed_map);
+                this_api_dyn_map        = this.sort_mapping(this_api_dyn_map);
+                this_static_exec_map    = this.sort_mapping(this_static_exec_map);
+                this_static_map         = this.sort_mapping(this_static_map);
 
-                        //Add to mapping object
-                        this_api_dyn_map[this_web_path] = this_map_path;
-                    }
+                //Add 'dev' vhost mode mappings for website projects
+                if(this.server_mode == "dev") {
+                    //Set vhost path
+                    let this_vhost_path = `/vhost/${website_project}::${website}`;
 
-                    // Map static path overrides
-                    let this_static_exec_map = {};
-                    for(let web_path in path_static_exec) {
-                        //Set mapping
-                        let this_web_path = this.format_url(web_path);
-                        let this_map_path = root_path + this.format_path(path_static_exec[web_path]);
+                    //VHost mapping
+                    all_vhosts[this_vhost_path] = {}
+                    all_vhosts[this_vhost_path]["default_doc"] = default_doc;
+                    all_vhosts[this_vhost_path]["default_404"] = default_404;
+                    all_vhosts[this_vhost_path]["default_500"] = default_500;
+                    all_vhosts[this_vhost_path]["apis_fixed"] = this_api_fixed_map
+                    all_vhosts[this_vhost_path]["apis_dynamic"] = this_api_dyn_map
+                    all_vhosts[this_vhost_path]["path_static_exec"] = this_static_exec_map
+                    all_vhosts[this_vhost_path]["paths_static"] = this_static_map
+                }
 
-                        //Add to mapping object
-                        this_static_exec_map[this_web_path] = this_map_path;
-                    }
+                //Check DNS names linked to website (for dev or prod mode)
+                if(project_dns_name != null) {
+                    for(let dns in project_dns_name) {
+                        let this_website = project_dns_name[dns];
+                        if(this_website == website) {
+                            if(project_enabled == true) {
 
-                    // Map static paths
-                    let this_static_map = {};
-                    for(let web_path in paths_static) {
-                        //Set mapping
-                        let this_web_path = this.format_url(web_path);
-                        let this_map_path = root_path + this.format_path(paths_static[web_path]);
+                                //NEW mapping
+                                all_dns[dns] = {}
+                                all_dns[dns]["ssl_redirect"] = ssl_redirect;
+                                all_dns[dns]["maintenance_mode"] = maint_mode;
+                                all_dns[dns]["maintenance_doc"] = maint_doc;
+                                all_dns[dns]["default_doc"] = default_doc;
+                                all_dns[dns]["default_404"] = default_404;
+                                all_dns[dns]["default_500"] = default_500;
+                                all_dns[dns]["apis_fixed"] = {}
+                                all_dns[dns]["apis_dynamic"] = {}
+                                all_dns[dns]["path_static_exec"] = {}
+                                all_dns[dns]["paths_static"] = {}
+        
 
-                        //Add to mapping object
-                        this_static_map[this_web_path] = this_map_path;
-                    }
+                                //Set domain SSL redirect setting
+                                this_ssl_redirect[dns] = ssl_redirect;
 
-                    //Sort arrays
-                    this_api_fixed_map      = this.sort_mapping(this_api_fixed_map);
-                    this_api_dyn_map        = this.sort_mapping(this_api_dyn_map);
-                    this_static_exec_map    = this.sort_mapping(this_static_exec_map);
-                    this_static_map         = this.sort_mapping(this_static_map);
+                                //Set domain maintenance mode doc
+                                if(maint_mode == true) {
+                                    this_web_maint_mode[dns] = maint_doc;
+                                }
+                                
+                                //Set domain default document
+                                this_default_doc[dns] = default_doc;
 
-                    //Add 'dev' vhost mode mappings for website projects
-                    if(this.server_mode == "dev") {
-                        //Set vhost path
-                        let this_vhost_path = `/vhost/${website_project}::${website}`;
+                                //Set domain default 404 page
+                                this_default_404[dns] = default_404;
 
-                        //VHost mapping
-                        all_vhosts[this_vhost_path] = {}
-                        all_vhosts[this_vhost_path]["default_doc"] = default_doc;
-                        all_vhosts[this_vhost_path]["default_404"] = default_404;
-                        all_vhosts[this_vhost_path]["default_500"] = default_500;
-                        all_vhosts[this_vhost_path]["apis_fixed"] = this_api_fixed_map
-                        all_vhosts[this_vhost_path]["apis_dynamic"] = this_api_dyn_map
-                        all_vhosts[this_vhost_path]["path_static_exec"] = this_static_exec_map
-                        all_vhosts[this_vhost_path]["paths_static"] = this_static_map
-                    }
+                                //Set domain default 500 page
+                                this_default_500[dns] = default_500;
 
-                    //Check DNS names linked to website (for dev or prod mode)
-                    if(project_dns_name != null) {
-                        for(let dns in project_dns_name) {
-                            let this_website = project_dns_name[dns];
-                            if(this_website == website) {
-                                if(project_enabled == true) {
+                                //DNS API Fixed Paths
+                                if(Object.keys(this_api_fixed_map).length > 0) {
+                                    all_dns[dns]["apis_fixed"] = this_api_fixed_map;
+                                }
 
-                                    //NEW mapping
-                                    all_dns[dns] = {}
-                                    all_dns[dns]["ssl_redirect"] = ssl_redirect;
-                                    all_dns[dns]["maintenance_mode"] = maint_mode;
-                                    all_dns[dns]["maintenance_doc"] = maint_doc;
-                                    all_dns[dns]["default_doc"] = default_doc;
-                                    all_dns[dns]["default_404"] = default_404;
-                                    all_dns[dns]["default_500"] = default_500;
-                                    all_dns[dns]["apis_fixed"] = {}
-                                    all_dns[dns]["apis_dynamic"] = {}
-                                    all_dns[dns]["path_static_exec"] = {}
-                                    all_dns[dns]["paths_static"] = {}
-            
+                                //DNS API Dynamic Paths
+                                if(Object.keys(this_api_dyn_map).length > 0) {
+                                    all_dns[dns]["apis_dynamic"] = this_api_dyn_map;
+                                }
+                                
+                                //DNS Statis Paths (Server Execute Override)
+                                if(Object.keys(this_static_exec_map).length > 0) {
+                                    all_dns[dns]["path_static_exec"] = this_static_exec_map;
+                                }
 
-                                    //Set domain SSL redirect setting
-                                    this_ssl_redirect[dns] = ssl_redirect;
-
-                                    //Set domain maintenance mode doc
-                                    if(maint_mode == true) {
-                                        this_web_maint_mode[dns] = maint_doc;
-                                    }
-                                    
-                                    //Set domain default document
-                                    this_default_doc[dns] = default_doc;
-
-                                    //Set domain default 404 page
-                                    this_default_404[dns] = default_404;
-
-                                    //Set domain default 500 page
-                                    this_default_500[dns] = default_500;
-
-                                    //DNS API Fixed Paths
-                                    if(Object.keys(this_api_fixed_map).length > 0) {
-                                        all_dns[dns]["apis_fixed"] = this_api_fixed_map;
-                                    }
-
-                                    //DNS API Dynamic Paths
-                                    if(Object.keys(this_api_dyn_map).length > 0) {
-                                        all_dns[dns]["apis_dynamic"] = this_api_dyn_map;
-                                    }
-                                    
-                                    //DNS Statis Paths (Server Execute Override)
-                                    if(Object.keys(this_static_exec_map).length > 0) {
-                                        all_dns[dns]["path_static_exec"] = this_static_exec_map;
-                                    }
-
-                                    //DNS Static Paths
-                                    if(Object.keys(this_static_map).length > 0) {
-                                        all_dns[dns]["paths_static"] = this_static_map;
-                                    }
+                                //DNS Static Paths
+                                if(Object.keys(this_static_map).length > 0) {
+                                    all_dns[dns]["paths_static"] = this_static_map;
                                 }
                             }
                         }
                     }
                 }
             }
-
-            //Set mapping to system
-            this.web_dns_mapping = all_dns;
-            this.web_dev_mapping = all_vhosts;
-
-            //Output site mapping
-            if(this.debug_mode_on == true) {
-                this.output_mapping_table()
-            }
-        }else{
-            //Initialize default mapping -- on server start with no project folders (dev mode only)
-            if(this.server_mode == "dev") {
-                if(Object.keys(this.web_dns_mapping).length == 0) {
-                    //Map default DNS for dev mode
-                    for(let i in this.server_dev_ui) {
-                        let this_dns = this.server_dev_ui[i];
-    
-                        //Mapping dev UI names
-                        this.web_dns_mapping[this_dns] = {}
-                        this.web_dns_mapping[this_dns]["ssl_redirect"] = true;
-                        this.web_dns_mapping[this_dns]["maintenance_mode"] = false;
-                        this.web_dns_mapping[this_dns]["maintenance_doc"] = "";
-                        this.web_dns_mapping[this_dns]["default_doc"] = "index.html";
-                        this.web_dns_mapping[this_dns]["default_404"] = "404.js";
-                        this.web_dns_mapping[this_dns]["default_500"] = "500.js";
-                        this.web_dns_mapping[this_dns]["apis_fixed"] = {}
-                        this.web_dns_mapping[this_dns]["apis_dynamic"] = {
-                            "/api/":`${this.paths["localhost"]}api${s}`
-                        }
-                        this.web_dns_mapping[this_dns]["path_static_exec"] = {}
-                        this.web_dns_mapping[this_dns]["paths_static"] = {
-                            "/":this.paths["localhost"]
-                        }
-                    }
-
-                    //Output site mapping
-                    if(this.debug_mode_on == true) {
-                        this.output_mapping_table()
-                    }
-                }
-            }
         }
+
+        //Set mapping to system
+        this.web_dns_mapping = all_dns;
+        this.web_dev_mapping = all_vhosts;
+
+        //Output site mapping
+        if(this.debug_mode_on == true) {
+            this.output_mapping_table()
+        }
+    }
+
+    track_file_changes() {
+        
     }
 
     //////////////////////////////////////
@@ -1115,8 +1042,8 @@ class vhost_server {
             //Execute request and get response
             let response = await exec_javascript.request(params);
 
-            console.log("Response result")
-            console.log(response)
+            //console.log("Response result")
+            //console.log(response)
             
             //Handle response
             this.exec_server_side_response(res, file_path, response)
