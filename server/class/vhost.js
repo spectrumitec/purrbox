@@ -41,7 +41,6 @@ const url = require("url");
 const os = require("os");
 const fs = require("fs");
 const path = require("path");
-//const ip = require("ip");
 
 //Server class
 class vhost_server {
@@ -342,35 +341,6 @@ class vhost_server {
         //Return
         return new_mapping;
     }    
-
-    convert_seconds(str) {
-        //If number only, return number
-        if(isNaN(str) == false) {
-            return str * 1000;
-        }
-
-        //Check format - e.g. '30m' as 30 minutes
-        let last_chr = str.substr(str.length - 1);
-        str = (str.substr(0, (str.length - 1)) * 1);
-
-        //Check for valid number, not valid return default 5 minutes
-        if(isNaN(str) == true) {
-            return 5000;
-        }else{
-            //Set default value
-            let value = 5000;
-
-            //Calc seconds based on last_chr
-            switch(last_chr) {
-                case "m":
-                    value = (str * 60) * 1000;
-                break;
-            }
-
-            //Return value
-            return value;
-        }
-    }
 
     //////////////////////////////////////
     // Class functions
