@@ -28,13 +28,13 @@ exports.request = async function(params={}) {
     }
     const _query = params.query;
 
-    //
-    // Your code here
-    //
-
     //Validation checks
     if(_request.method == undefined) { _error("Method undefined"); return _response;  }
     if(_request.method != "GET") {     _error("Method invalid"); return _response; }
+
+    //
+    // Your code here
+    //
 
     //Dump variables from server
     _end({
@@ -48,45 +48,6 @@ exports.request = async function(params={}) {
 
     //Return data
     return _response;
-
-    /*
-    Examples:
-        Returning text value
-            _end("Some text output")
-            return _response;
-
-        Using a wait function
-            //Async wait function (cannot use await at this level)
-            var _wait_max_count = 1000;   //
-            var _wait_count = 0;          // Check server async_wait settings
-            var _wait_timer = 10;         //
-
-            //Wait function
-            function _wait() {
-                if(app.db_status == "complete") {
-                    _end(app.get_result())
-                }else if(app.db_status == "error"){
-                    _error(app.get_result())
-                }else{
-                    //Check count
-                    if(_wait_count > _wait_max_count) {
-                        _error("API timeout, DB query too long");
-                    }else{
-                        setTimeout(() => {
-                            _wait();
-                        }, _wait_timer);
-                        _wait_count++;
-                    }
-                }
-            }
-
-            //Wait for response
-            _wait();
-
-            //Return response
-            return _response;
-
-    */
 }
 
 
