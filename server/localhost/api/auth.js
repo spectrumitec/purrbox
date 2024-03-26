@@ -66,7 +66,7 @@ exports.request = async function(params={}) {
 
     //Imports
     const path = require("path");
-	const class_manage = path.join(path.dirname(path.dirname(__dirname)),"class","manage.js");
+	const class_manage = path.join(path.dirname(path.dirname(__dirname)),"class","manage_server.js");
 
     //Create Class Object
     var manage_server = require(class_manage);

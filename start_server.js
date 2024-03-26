@@ -64,8 +64,12 @@ const cluster = require("cluster");
 const path = require("path");
 
 //Set vhost class
-const vhost_server = require(path.join(__dirname,"server","class","vhost.js"));
+const vhost_server = require(path.join(__dirname,"server","class","vhost_server.js"));
 const server = new vhost_server()
+
+//Set vhost logger
+const vhost_logger = require(path.join(__dirname,"server","class","vhost_logger.js"));
+const logger = new vhost_logger()
 
 //Set parameters
 var workers = server.get("workers")

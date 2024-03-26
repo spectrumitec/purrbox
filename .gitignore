@@ -2,6 +2,7 @@
 /web_templates/*
 /server/conf/*
 /node_modules/*
+/logs/*
 package-lock.json
 package.json
 server_conf.json

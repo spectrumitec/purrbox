@@ -42,6 +42,10 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 
+//Set vhost logger
+const vhost_logger = require(path.join(__dirname,"vhost_logger.js"));
+const logger = new vhost_logger()
+
 //Server class
 class vhost_server {
     //System details
@@ -908,14 +912,31 @@ class vhost_server {
         }
 
         //Log connection
-        //
-        // Future class to manage log output
-        //
+        let this_request = "";
         if(this_query == null) {
-            console.log(`   :: Client Request > [${this_method}][HTTP/${this_http_version}] ${this_protocol}://${this_host}${this_port}${this_path}`);
+            this_request = `[${this_method}][HTTP/${this_http_version}] ${this_protocol}://${this_host}${this_port}${this_path}`;
         }else{
-            console.log(`   :: Client Request > [${this_method}][HTTP/${this_http_version}] ${this_protocol}://${this_host}${this_port}${this_path}?${this_query}`);
+            this_request = `[${this_method}][HTTP/${this_http_version}] ${this_protocol}://${this_host}${this_port}${this_path}?${this_query}`;
         }
+        console.log(`   :: Client Request > ${this_request}`);
+        logger.log({
+            "state":"info",
+            "target":this_host,
+            "request":this_request,
+            "log":{
+                "_server":_server,
+                "_client":_client,
+                "_request":{
+                    "method":this_method,
+                    "http_version":this_http_version,
+                    "protocol":this_protocol,
+                    "host":this_host,
+                    "port":this_port,
+                    "path":this_path,
+                    "query":this_query
+                }
+            }
+        })
 
         //Determine if SSL redirect
         if(this_protocol == "http" && this.https_on == true) {
