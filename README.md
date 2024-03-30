@@ -118,7 +118,7 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 <pre>
 root folder
   &#9500; node_modules                  Node modules installed during installation
-  &#9500; conf                          Node modules installed during installation
+  &#9500; conf                          Server configuration folder
   &#9474;   &#9500; cert.pem                  SSL Cert
   &#9474;   &#9500; key.pem                   SSL Private Key    
   &#9474;   &#9500; server_conf.json          Server configuration file
