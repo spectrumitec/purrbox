@@ -109,16 +109,20 @@ class vhost_server {
 
         //Set default paths
         this.paths["root"] = root;
+        this.paths["conf"] = path.join(root,"conf",path.sep);
+        this.paths["config"] = path.join(root,"conf","server_conf.json");
         this.paths["server"] = path.join(root,"server",path.sep);
         this.paths["class"] = path.join(root,"server","class",path.sep);
         this.paths["errors"] = path.join(root,"server","default_errors",path.sep);
         this.paths["localhost"] = path.join(root,"server","localhost",path.sep);
-        this.paths["ssl_certs"] = path.join(root,"server","ssl_certs",path.sep);
         this.paths["web_source"] = path.join(root,"web_source",path.sep);
         this.paths["web_templates"] = path.join(root,"web_templates",path.sep);        
     }
     check_paths() {
         //Check required directories
+        if(!fs.existsSync(this.paths["conf"])){
+            fs.mkdirSync(this.paths["conf"]);
+        }
         if(!fs.existsSync(this.paths["web_source"])){
             fs.mkdirSync(this.paths["web_source"]);
         }
@@ -127,7 +131,7 @@ class vhost_server {
         }
 
         //Check server config file
-        let this_conf = `${this.paths["root"]}server_conf.json`;
+        let this_conf = `${this.paths["conf"]}server_conf.json`;
         if(!fs.existsSync(this_conf)){
             let conf_data = {
                 "workers":1,
@@ -157,7 +161,7 @@ class vhost_server {
         this.load_server_ipaddr();
 
         //Check for config file
-        let server_conf = `${this.paths["root"]}server_conf.json`;
+        let server_conf = this.paths["config"];
         let if_cfg_exists = fs.existsSync(server_conf);
         if(if_cfg_exists == true) {
             //Load JSON data
@@ -165,7 +169,7 @@ class vhost_server {
             try {
                 var json = JSON.parse(config_data);
             }catch{
-                print(" :: Cannot open server conf [" + server_conf + "] :: JSON config parse error, ignoring"); 
+                console.error(" :: Cannot open server conf [" + server_conf + "] :: JSON config parse error, ignoring");
                 return;
             }
 
@@ -280,14 +284,48 @@ class vhost_server {
     }
 
     //Console.log
-    log(output="") {
-        if(this.debug_mode_on == true) {
-            console.log(output);
+    async log(data={}) {
+        //Check log output empty
+        if(Object.keys(data).length === 0) {
+            return;
         }
+
+        //Set default log message
+        let this_log = {
+            "logfile":"",
+            "state":"info",
+            "message":"",
+            "log":{"log":"none"}
+        }
+
+        //Validate fields
+        if(data.logfile != undefined) {
+            this_log.logfile = data.logfile
+        }
+        if(data.state != undefined) {
+            this_log.state = data.state
+        }
+        if(data.message != undefined) {
+            this_log.message = data.message
+        }
+        if(data.log != undefined) {
+            this_log.log = data.log
+        }
+
+        //Output in debug mode
+        if(this.debug_mode_on == true) {
+            if(data.message != undefined) {
+                console.log(`   :: ${this_log.message}`);
+            }
+        }
+
+        //Send to logger
+        logger.log(this_log)
     }
-    stack_trace() {
-        var err = new Error();
-        console.log(err.stack);
+    consolelog(message) {
+        if(this.debug_mode_on == true) {
+            console.log(message);
+        }
     }
 
     //////////////////////////////////////
@@ -395,6 +433,7 @@ class vhost_server {
 
                     //Mapping dev UI names
                     this.web_dns_mapping[this_dns] = {}
+                    this.web_dns_mapping[this_dns]["project"] = "system";
                     this.web_dns_mapping[this_dns]["ssl_redirect"] = true;
                     this.web_dns_mapping[this_dns]["maintenance_mode"] = false;
                     this.web_dns_mapping[this_dns]["maintenance_doc"] = "";
@@ -426,7 +465,11 @@ class vhost_server {
             //Check of config file exists
             let this_config = path.join(web_path, website_project, "config.json");
             if(fs.existsSync(this_config) == false) {
-                this.log(" :: website_project[" + website_project + "] folder or configuration removed, removing config data");
+                this.log({
+                    "state":"info",
+                    "message":`website_project[${website_project}] folder or configuration removed, removing config data`,
+                    "log":{}
+                })
                 delete this.web_configs[website_project];
                 detect_change = true;
             }
@@ -462,13 +505,21 @@ class vhost_server {
                     try {
                         var this_json = JSON.parse(this_content);
                     }catch{
-                        print(" :: website_project[" + website_project + "] :: JSON config parse error, ignoring"); 
+                        this.log({
+                            "state":"info",
+                            "message":`website_project[${website_project}] :: JSON config parse error, ignoring`,
+                            "log":{}
+                        })
                         continue;
                     }
 
                     //Check if web_config already exists
                     if(this.web_configs[website_project] == undefined) {
-                        this.log(" :: New Configuration @ website_project[" + website_project + "]");
+                        this.log({
+                            "state":"info",
+                            "message":`New Configuration @ website_project[${website_project}]`,
+                            "log":{}
+                        })
                         this.web_configs[website_project] = {};
                         this.web_configs[website_project]["modified"] = this_modified;
                         this.web_configs[website_project]["json"] = this_json;
@@ -476,7 +527,11 @@ class vhost_server {
                     }else{
                         //Check if newer time stamp
                         if(this.web_configs[website_project]["modified"].toString() != this_modified.toString()) {
-                            this.log(" :: Configuration Updated @ website_project[" + website_project + "]");
+                            this.log({
+                                "state":"info",
+                                "message":`Configuration Updated @ website_project[${website_project}]`,
+                                "log":{}
+                            })
                             this.web_configs[website_project] = {};
                             this.web_configs[website_project]["modified"] = this_modified;
                             this.web_configs[website_project]["json"] = this_json;
@@ -484,7 +539,11 @@ class vhost_server {
                         }
                     }
                 }else{
-                    this.log(" :: No configuration for [" + website_project + " > " + this_config + "], ignoring"); 
+                    this.log({
+                        "state":"info",
+                        "message":`No configuration for [${website_project}] > ${this_config}, ignoring`,
+                        "log":{}
+                    })
                     continue;
                 }
             }
@@ -496,10 +555,15 @@ class vhost_server {
         }
     }
     refresh_web_configs_reindex() {
+        //Log
+        this.log({
+            "state":"info",
+            "message":`Website project configuration changes found, updating hostnames index`,
+            "log":{}
+        })
+
         //Set vars
         let web_path = this.paths["web_source"];
-
-        this.log(" :: Website project configuration changes found, updating hostnames index");
 
         //Update indexes
         let this_ssl_redirect = {};     //Hold mapping for SSL redirect setting
@@ -519,6 +583,7 @@ class vhost_server {
 
                 //Mapping dev UI names
                 all_dns[this_dns] = {}
+                all_dns[this_dns]["project"] = "system";
                 all_dns[this_dns]["ssl_redirect"] = true;
                 all_dns[this_dns]["maintenance_mode"] = false;
                 all_dns[this_dns]["maintenance_doc"] = "";
@@ -554,14 +619,23 @@ class vhost_server {
 
             //Validate JSON data
             if(this.web_configs[website_project]["json"] == undefined) {
-                this.log(" :: Error : website_project[" + website_project + "] -- Missing JSON data");
+                this.log({
+                    "state":"error",
+                    "message":`website_project[${website_project}] -- Missing JSON data`,
+                    "log":{}
+                })
                 continue;
             }
 
             //Validate JSON data
             let websites = {};
             if(this.web_configs[website_project]["json"]["websites"] == undefined) {
-                this.log(" :: Error : website_project[" + website_project + "] -- Missing Websites in JSON data");
+                this.log({
+                    "state":"error",
+                    "message":`website_project[${website_project}] -- Missing Websites in JSON data`,
+                    "log":{}
+                })
+
                 continue;
             }else{
                 websites = this.web_configs[website_project]["json"]["websites"];
@@ -674,6 +748,7 @@ class vhost_server {
 
                     //VHost mapping
                     all_vhosts[this_vhost_path] = {}
+                    all_vhosts[this_vhost_path]["project"] = website_project;
                     all_vhosts[this_vhost_path]["default_doc"] = default_doc;
                     all_vhosts[this_vhost_path]["default_404"] = default_404;
                     all_vhosts[this_vhost_path]["default_500"] = default_500;
@@ -692,6 +767,7 @@ class vhost_server {
 
                                 //NEW mapping
                                 all_dns[dns] = {}
+                                all_dns[dns]["project"] = website_project;
                                 all_dns[dns]["ssl_redirect"] = ssl_redirect;
                                 all_dns[dns]["maintenance_mode"] = maint_mode;
                                 all_dns[dns]["maintenance_doc"] = maint_doc;
@@ -763,7 +839,11 @@ class vhost_server {
 
     //Server listeners
     start_server() {
-        this.log(" Starting Node.js (virtual hosts server)");
+        this.log({
+            "state":"info",
+            "message":"Starting Node.js (virtual hosts server)",
+            "log":{}
+        })
 
         //Start HTTP server
         if(this.http_on == true) {
@@ -773,7 +853,7 @@ class vhost_server {
         //Start HTTPS server
         if(this.https_on == true) {
             //Load SSL certificate files
-            let ssl_path = this.paths["ssl_certs"];
+            let ssl_path = this.paths["conf"];
 
             //Load SSL files
             let ssl_key = `${ssl_path}${this.ssl_key}`;
@@ -786,7 +866,11 @@ class vhost_server {
                     cert: fs.readFileSync(ssl_cert)
                 };
             }else{
-                this.log(" *** Cannot load SSL certificate files *** ")
+                this.log({
+                    "state":"error",
+                    "message":"Cannot load SSL certificate files",
+                    "log":{}
+                })
                 return;
             }
 
@@ -796,7 +880,12 @@ class vhost_server {
 
         //Client warning
         if(this.http_on == false && this.https_on == false) {
-            console.log(" ** WARNING: HTTP and HTTPS services are configured as disabled -- this worker is sitting around not doing their job");
+            this.consolelog("** ERROR: HTTP and HTTPS services are disabled -- workers are sitting around not doing their job");
+            this.log({
+                "state":"error",
+                "message":"HTTP and HTTPS services are disabled -- workers are sitting around not doing their job",
+                "log":{}
+            })
         }
     }
     start_http_server() {
@@ -809,8 +898,12 @@ class vhost_server {
             parent.client_request("http", req, res)
         }).listen(this.http_port);
 
-        console.log(` > HTTP server - port ${this.http_port}`);
-
+        //Log
+        this.log({
+            "state":"info",
+            "message":`HTTP server - port ${this.http_port}`,
+            "log":{}
+        })
     }
     start_https_server() {
         //Reference to parent class
@@ -821,9 +914,16 @@ class vhost_server {
             parent.client_request("https", req, res)
         }).listen(this.https_port);
 
-        console.log(` > HTTP server - port ${this.https_port}`);
+        //Log
+        this.log({
+            "state":"info",
+            "message":`HTTP server - port ${this.https_port}`,
+            "log":{}
+        })
     }
     client_request(protocol, req, res) {
+        //Set logger target name
+        logger.target_log_name = "system"
 
         //Define _server
         let _server = {
@@ -911,32 +1011,13 @@ class vhost_server {
             this_target = this.web_dns_mapping[this_host];
         }
 
-        //Log connection
+        //Request string
         let this_request = "";
         if(this_query == null) {
             this_request = `[${this_method}][HTTP/${this_http_version}] ${this_protocol}://${this_host}${this_port}${this_path}`;
         }else{
-            this_request = `[${this_method}][HTTP/${this_http_version}] ${this_protocol}://${this_host}${this_port}${this_path}?${this_query}`;
+            this_request = `[${this_method}][HTTP/${this_http_version}] ${this_protocol}://${this_host}${this_port}${this_path}?${decodeURIComponent(this_query)}`;
         }
-        console.log(`   :: Client Request > ${this_request}`);
-        logger.log({
-            "state":"info",
-            "target":this_host,
-            "request":this_request,
-            "log":{
-                "_server":_server,
-                "_client":_client,
-                "_request":{
-                    "method":this_method,
-                    "http_version":this_http_version,
-                    "protocol":this_protocol,
-                    "host":this_host,
-                    "port":this_port,
-                    "path":this_path,
-                    "query":this_query
-                }
-            }
-        })
 
         //Determine if SSL redirect
         if(this_protocol == "http" && this.https_on == true) {
@@ -950,20 +1031,59 @@ class vhost_server {
                     redirect_url += `?${this_query}`
                 }
 
+                //Log
+                this.log({
+                    "state":"info",
+                    "message":`Enforce SSL Connection : Redirect to > ${redirect_url}`,
+                    "log":{}
+                })
+
                 //Redirect
-                console.log(`   :: Enforce SSL Connection : Redirect to > ${redirect_url}`)
                 res.writeHead(301, {"Location": redirect_url});
                 res.end();
                 return;
             }
         }
+        if(this_target["ssl_redirect"] == true && this.https_on == false) {
+            //Log
+            this.log({
+                "state":"warn",
+                "message":`SSL Redirect Enforced but server HTTPS is disabled`,
+                "log":{}
+            })
+        }
 
         //Get URL to folder mapping
         let response_params = this.request_mapping(this_host, this_path, this_target);
-
         let status_code = response_params.status;
         let file_path = response_params.path;
         let exec_mode = response_params.exec;
+
+        //Log connection
+        this_request = {
+            "logfile":response_params.project,
+            "state":"info",
+            "message":`Client Request > ${this_request}`,
+            "log":{
+                "_status_code":status_code,
+                "_server":_server,
+                "_client":_client,
+                "_request":{
+                    "method":this_method,
+                    "http_version":this_http_version,
+                    "protocol":this_protocol,
+                    "host":this_host,
+                    "port":this_port,
+                    "path":this_path,
+                    "query": decodeURIComponent(this_query)
+                },
+                "_mapping":{
+                    "file_path":file_path,
+                    "exec_mode":exec_mode
+                }
+            }
+        }
+        this.log(this_request)
 
         //Unload the server side file if cache is false (used when content is static)
         if(this.cache_on == false) {
@@ -1012,7 +1132,23 @@ class vhost_server {
                 this.exec_server_side(res, file_path, params);
             }
         }else{
-            console.log(`   ** ERROR: Request not defined for client or server handling: ${file_path}`);
+            this.log({
+                "state":"error",
+                "message":`Request not defined for client or server handling: ${file_path}`,
+                "log":{
+                    "_server":_server,
+                    "_client":_client,
+                    "_request":{
+                        "method":this_method,
+                        "http_version":this_http_version,
+                        "protocol":this_protocol,
+                        "host":this_host,
+                        "port":this_port,
+                        "path":this_path,
+                        "query": decodeURIComponent(this_query)
+                    }
+                }
+            })
             res.statusCode = 500;
             res.setHeader('Content-Type', 'text/plain');
             res.end("Error: exec state not set");
@@ -1067,8 +1203,11 @@ class vhost_server {
     }
     exec_server_side_response_null(res, file_path) {
         //Output error
-        console.log(`   ** ERROR: Server side execution error: ${file_path}`);
-        console.log(`             Response was 'undefined' or was not returned`);
+        this.log({
+            "state":"error",
+            "message":`Server side execution error: ${file_path}`,
+            "log":{}
+        })
 
         //Unload the server side file on error
         delete require.cache[file_path];
@@ -1078,12 +1217,19 @@ class vhost_server {
         res.end(`{"error":"500 Internal Server Error"}`);
     }
     exec_server_side_error(res, file_path, err) {
+        //Stack trace
+        var this_error = new Error();
+
         //Output error
-        console.log(`   ** ERROR: Server side execution error: ${file_path}`);
-        console.log(`             ${err.toString()}`);
-        console.log("-------- Stack Trace --------");
-        this.stack_trace();
-        console.log("-----------------------------");
+        this.log({
+            "state":"error",
+            "message":`Server side execution error: ${file_path}`,
+            "log":{
+                "file":file_path,
+                "err_string":err.toString(),
+                "stack_trace":this_error.stack
+            }
+        })
 
         //Unload the server side file on error
         delete require.cache[file_path];
@@ -1158,7 +1304,6 @@ class vhost_server {
         return hashmap;
     }
     request_mapping(this_host, this_url, this_target) {
-
         //Set default vars
         let mapped_path = "";
         let mapped_params = {};
@@ -1173,6 +1318,9 @@ class vhost_server {
         var server_mode = this.server_mode;
         var web_dns_mapping = this.web_dns_mapping;
 
+        //Set project source for site match
+        let this_project = this_target.project;
+
         ///////////////////////////////////////////////////
         // Default system 404 error
         ///////////////////////////////////////////////////
@@ -1185,6 +1333,7 @@ class vhost_server {
             let mapped_path = `${this.paths["server"]}${this_match[0]}`
 
             //Set mapped response
+            mapped_params["project"] = this_project;
             mapped_params["status"] = 200;
             mapped_params["path"] = mapped_path;
             mapped_params["exec"] = "client";
@@ -1193,6 +1342,7 @@ class vhost_server {
 
         //Return system 404 error with no matching target site
         if(Object.keys(this_target).length === 0) {
+            mapped_params["project"] = this_project;
             mapped_params["status"] = 404;
             mapped_params["path"] = system_404;
             mapped_params["exec"] = "server";
@@ -1207,6 +1357,9 @@ class vhost_server {
                 if(this_url.startsWith("/vhost/")) {
                     for(let vhost in this.web_dev_mapping) {
                         if(this_url.startsWith(vhost)) {
+                            //Override project source for vhost
+                            this_project = this.web_dev_mapping[vhost]["project"];
+
                             //Set target site
                             this_target = this.web_dev_mapping[vhost]
 
@@ -1248,10 +1401,12 @@ class vhost_server {
                     //Verify if file exists
                     let if_map_exists = fs.existsSync(mapped_path);
                     if(if_map_exists) {
+                        mapped_params["project"] = this_project;
                         mapped_params["status"] = 200;
                         mapped_params["path"] = mapped_path;
                         mapped_params["exec"] = "server";
                     }else{
+                        mapped_params["project"] = this_project;
                         mapped_params["status"] = 404;
                         mapped_params["path"] = system_404_api;
                         mapped_params["exec"] = "server";
@@ -1280,10 +1435,12 @@ class vhost_server {
                         //Verify if file exists
                         let if_map_exists = fs.existsSync(mapped_path);
                         if(if_map_exists) {
+                            mapped_params["project"] = this_project;
                             mapped_params["status"] = 200;
                             mapped_params["path"] = mapped_path;
                             mapped_params["exec"] = "server";
                         }else{
+                            mapped_params["project"] = this_project;
                             mapped_params["status"] = 404;
                             mapped_params["path"] = system_404_api;
                             mapped_params["exec"] = "server";
@@ -1337,10 +1494,12 @@ class vhost_server {
                     //Verify if file exists
                     let if_map_exists = fs.existsSync(mapped_path);
                     if(if_map_exists) {
+                        mapped_params["project"] = this_project;
                         mapped_params["status"] = 200;
                         mapped_params["path"] = mapped_path;
                         mapped_params["exec"] = "server";
                     }else{
+                        mapped_params["project"] = this_project;
                         mapped_params["status"] = 404;
                         mapped_params["path"] = site_404(this_target);
                         mapped_params["exec"] = "server";
@@ -1370,6 +1529,7 @@ class vhost_server {
                     //Verify if file exists
                     let if_map_exists = fs.existsSync(mapped_path);
                     if(if_map_exists) {
+                        mapped_params["project"] = this_project;
                         mapped_params["status"] = 200;
                         mapped_params["path"] = mapped_path;
                         mapped_params["exec"] = "client";
@@ -1381,6 +1541,7 @@ class vhost_server {
                             }
                         }
                     }else{
+                        mapped_params["project"] = this_project;
                         mapped_params["status"] = 404;
                         mapped_params["path"] = site_404(this_target);
                         if(path.extname(mapped_params["path"]) == default_ext) {
@@ -1397,6 +1558,7 @@ class vhost_server {
         }
 
         //Catch all
+        mapped_params["project"] = this_project;
         mapped_params["status"] = 404;
         mapped_params["path"] = system_404;
         mapped_params["exec"] = "server";
@@ -1428,7 +1590,12 @@ class vhost_server {
         for(let cached in require.cache) {
             if(!(cached.includes("node_modules"))) {
                 if(this.running_cache[cached] == undefined) {
-                    console.log(`   :: server.cache_on = false, remove module from server cache [${cached}]`)
+                    this.log({
+                        "state":"info",
+                        "message":`server.cache_on = false, remove module from server cache [${cached}]`,
+                        "log":{}
+                    })
+
                     delete require.cache[cached];
                 }
             }
@@ -1444,46 +1611,45 @@ class vhost_server {
         if(this.debug_mode_on == true && this.workers == 1) {
             let auto_refresh_timer = `${this.auto_refresh_timer.toString()} milliseconds`;
 
-            this.log(" ═══════════════════════════════════════════════════════════════════════════════");
-            this.log(" Node.js VHost Server");
-            this.log(`   Node Version            : ${process.version}`);
-            this.log(`   Platform                : ${process.platform}`);
-            this.log(`   Hostname                : ${this.hostname}`);
-            this.log(`   IPv4 Address            : ${this.ipv4_address}`);
-            this.log(`   IPv6 Address            : ${this.ipv6_address}`);
-            this.log(`   Server Root             : ${this.paths["root"]}`);
-            this.log(`   Website Source Path     : ${this.paths["web_source"]}`);
-            this.log("");
-            this.log(`   Server Mode             : ${this.server_mode}`);
-            this.log(`   Server Dev UI Hostnames : ${this.server_dev_ui.toString()}`);
-            this.log(`   Environment             : ${this.environment}`);
-            this.log(`   Cache Mode On           : ${this.cache_on}`);
-            this.log(`   Debug Mode On           : ${this.debug_mode_on}`);
-            this.log(`   Auto Refresh            : ${this.auto_refresh_on}`);
-            this.log(`   Auto Refresh Interval   : ${auto_refresh_timer}`);
-            this.log(`   HTTP State              : ${this.http_on}`);
-            this.log(`   HTTP Port               : ${this.http_port.toString()}`);
-            this.log(`   HTTPS State             : ${this.https_on}`);
-            this.log(`   HTTPS Port              : ${this.https_port.toString()}`);
-            this.log(`   SSL Key File            : ${this.ssl_key.toString()}`);
-            this.log(`   SSL Cert File           : ${this.ssl_cert.toString()}`);                
-            this.log(" ═══════════════════════════════════════════════════════════════════════════════");
+            this.consolelog(" ═══════════════════════════════════════════════════════════════════════════════");
+            this.consolelog(" Node.js VHost Server");
+            this.consolelog(`   Node Version            : ${process.version}`);
+            this.consolelog(`   Platform                : ${process.platform}`);
+            this.consolelog(`   Hostname                : ${this.hostname}`);
+            this.consolelog(`   IPv4 Address            : ${this.ipv4_address}`);
+            this.consolelog(`   IPv6 Address            : ${this.ipv6_address}`);
+            this.consolelog(`   Server Root             : ${this.paths["root"]}`);
+            this.consolelog(`   Website Source Path     : ${this.paths["web_source"]}`);
+            this.consolelog("");
+            this.consolelog(`   Server Mode             : ${this.server_mode}`);
+            this.consolelog(`   Server Dev UI Hostnames : ${this.server_dev_ui.toString()}`);
+            this.consolelog(`   Environment             : ${this.environment}`);
+            this.consolelog(`   Cache Mode On           : ${this.cache_on}`);
+            this.consolelog(`   Debug Mode On           : ${this.debug_mode_on}`);
+            this.consolelog(`   Auto Refresh            : ${this.auto_refresh_on}`);
+            this.consolelog(`   Auto Refresh Interval   : ${auto_refresh_timer}`);
+            this.consolelog(`   HTTP State              : ${this.http_on}`);
+            this.consolelog(`   HTTP Port               : ${this.http_port.toString()}`);
+            this.consolelog(`   HTTPS State             : ${this.https_on}`);
+            this.consolelog(`   HTTPS Port              : ${this.https_port.toString()}`);
+            this.consolelog(`   SSL Key File            : ${this.ssl_key.toString()}`);
+            this.consolelog(`   SSL Cert File           : ${this.ssl_cert.toString()}`);                
+            this.consolelog(" ═══════════════════════════════════════════════════════════════════════════════");
         }
     }
 
     output_mapping_table() {
-        this.log(" :: Web Configurations");
         this.output_web_configs_tracking();
         this.output_web_dns_mapping();
         this.output_web_path_mapping();
         this.output_vhosts();
         this.output_vhost_mapping();
 
-        this.log("");
+        this.consolelog("");
     }
     output_web_configs_tracking(){
-        this.log("");
-        this.log("    Web Configuration Tracking");
+        this.consolelog("");
+        this.consolelog("    Web Configuration Tracking");
 
         //Heading
         let name = "Project Name";
@@ -1509,25 +1675,25 @@ class vhost_server {
         name       = name.padEnd(n_len," ");
         enabled    = enabled.padEnd(e_len," ");
         modified   = modified.padEnd(m_len," ");
-        this.log(`     ${name}${enabled}${modified}`)
+        this.consolelog(`     ${name}${enabled}${modified}`)
 
         //Output underline
         name       = ("+").padEnd(n_len,"-");
         enabled    = ("+").padEnd(e_len,"-");
         modified   = ("+").padEnd(m_len,"-");
-        this.log(`     ${name}${enabled}${modified}`)
+        this.consolelog(`     ${name}${enabled}${modified}`)
 
         //Output rows
         for(let project in this.web_configs) {
             name =      (project).toString().padEnd(n_len," ");
             enabled =   (this.web_configs[project].json.enabled).toString().padEnd(e_len," ");
             modified =  (this.web_configs[project].modified).toString().padEnd(m_len," ");
-            this.log(`     ${name}${enabled}${modified}`)
+            this.consolelog(`     ${name}${enabled}${modified}`)
         }
     }
     output_web_dns_mapping() {
-        this.log("");
-        this.log("    Web DNS Active");
+        this.consolelog("");
+        this.consolelog("    Web DNS Active");
 
         //Heading
         let a_dns = "Active DNS Name";
@@ -1576,7 +1742,7 @@ class vhost_server {
         d_doc  = d_doc.padEnd(dd_len," ");
         d_404  = d_404.padEnd(d4_len," ");
         d_500  = d_500.padEnd(d5_len," ");
-        this.log(`     ${a_dns}${ssl}${m_mode}${m_doc}${d_doc}${d_404}${d_500}`)
+        this.consolelog(`     ${a_dns}${ssl}${m_mode}${m_doc}${d_doc}${d_404}${d_500}`)
 
         //Output underline
         a_dns  = ("+").padEnd(a_len,"-");
@@ -1586,7 +1752,7 @@ class vhost_server {
         d_doc  = ("+").padEnd(dd_len,"-");
         d_404  = ("+").padEnd(d4_len,"-");
         d_500  = ("+").padEnd(d5_len,"-");
-        this.log(`     ${a_dns}${ssl}${m_mode}${m_doc}${d_doc}${d_404}${d_500}`)
+        this.consolelog(`     ${a_dns}${ssl}${m_mode}${m_doc}${d_doc}${d_404}${d_500}`)
 
         //Output rows
         for(let dns in this_map) {
@@ -1597,12 +1763,12 @@ class vhost_server {
             d_doc  = (this_map[dns]["default_doc"]).toString().padEnd(dd_len," ");
             d_404  = (this_map[dns]["default_404"]).toString().padEnd(d4_len," ");
             d_500  = (this_map[dns]["default_500"]).toString().padEnd(d5_len," ");
-            this.log(`     ${a_dns}${ssl}${m_mode}${m_doc}${d_doc}${d_404}${d_500}`)
+            this.consolelog(`     ${a_dns}${ssl}${m_mode}${m_doc}${d_doc}${d_404}${d_500}`)
         }
     }
     output_web_path_mapping() {
-        this.log("");
-        this.log(`    Web Path Mapping`);
+        this.consolelog("");
+        this.consolelog(`    Web Path Mapping`);
 
         //Heading
         let dns_name = "DNS Name";
@@ -1666,14 +1832,14 @@ class vhost_server {
         map_type = map_type.padEnd(mt_len," ");
         web_path = web_path.padEnd(wp_len," ");
         map_path = map_path.padEnd(mp_len," ");
-        this.log(`     ${dns_name}${map_type}${web_path}${map_path}`)
+        this.consolelog(`     ${dns_name}${map_type}${web_path}${map_path}`)
 
         //Output underline
         dns_name  = ("+").padEnd(d_len,"-");
         map_type  = ("+").padEnd(mt_len,"-");
         web_path  = ("+").padEnd(wp_len,"-");
         map_path  = ("+").padEnd(mp_len,"-");
-        this.log(`     ${dns_name}${map_type}${web_path}${map_path}`)
+        this.consolelog(`     ${dns_name}${map_type}${web_path}${map_path}`)
 
         //Scale column width
         for(let dns in this.web_dns_mapping) {
@@ -1684,34 +1850,34 @@ class vhost_server {
                 map_type = map_types[0].padEnd(mt_len," ");
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
-                this.log(`     ${dns_name}${map_type}${web_path}${map_path}`)
+                this.consolelog(`     ${dns_name}${map_type}${web_path}${map_path}`)
             }
             for(let web_path in this_conf["apis_dynamic"]) {
                 let map_path = this_conf["apis_dynamic"][web_path];
                 map_type = map_types[1].padEnd(mt_len," ");
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
-                this.log(`     ${dns_name}${map_type}${web_path}${map_path}`)
+                this.consolelog(`     ${dns_name}${map_type}${web_path}${map_path}`)
             }
             for(let web_path in this_conf["path_static_exec"]) {
                 let map_path = this_conf["path_static_exec"][web_path];
                 map_type = map_types[2].padEnd(mt_len," ");
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
-                this.log(`     ${dns_name}${map_type}${web_path}${map_path}`)
+                this.consolelog(`     ${dns_name}${map_type}${web_path}${map_path}`)
             }
             for(let web_path in this_conf["paths_static"]) {
                 let map_path = this_conf["paths_static"][web_path];
                 map_type = map_types[3].padEnd(mt_len," ");
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
-                this.log(`     ${dns_name}${map_type}${web_path}${map_path}`)
+                this.consolelog(`     ${dns_name}${map_type}${web_path}${map_path}`)
             }
         }
     }
     output_vhosts() {
-        this.log("");
-        this.log(`    VHost Alias and Defaults`);
+        this.consolelog("");
+        this.consolelog(`    VHost Alias and Defaults`);
 
         //RegEx pattern
         let pattern = new RegExp("/vhost/","g");
@@ -1754,14 +1920,14 @@ class vhost_server {
         d_doc = d_doc.padEnd(dd_len," ");
         d_404 = d_404.padEnd(d4_len," ");
         d_500 = d_500.padEnd(d5_len," ");
-        this.log(`     ${vhost}${d_doc}${d_404}${d_500}`)
+        this.consolelog(`     ${vhost}${d_doc}${d_404}${d_500}`)
 
         //Output underline
         vhost  = ("+").padEnd(v_len,"-");
         d_doc  = ("+").padEnd(dd_len,"-");
         d_404  = ("+").padEnd(d4_len,"-");
         d_500  = ("+").padEnd(d5_len,"-");
-        this.log(`     ${vhost}${d_doc}${d_404}${d_500}`)
+        this.consolelog(`     ${vhost}${d_doc}${d_404}${d_500}`)
 
         //Output row data
         for(let vname in this.web_dev_mapping) {
@@ -1776,12 +1942,12 @@ class vhost_server {
             d_doc = (this_conf["default_doc"]).toString().padEnd(dd_len," ");
             d_404 = (this_conf["default_404"]).toString().padEnd(d4_len," ");
             d_500 = (this_conf["default_500"]).toString().padEnd(d5_len," ");
-            this.log(`     ${vhost}${d_doc}${d_404}${d_500}`)
+            this.consolelog(`     ${vhost}${d_doc}${d_404}${d_500}`)
         }
     }
     output_vhost_mapping() {
-        this.log("");
-        this.log(`    VHOST Path Mapping`);
+        this.consolelog("");
+        this.consolelog(`    VHOST Path Mapping`);
 
         //RegEx pattern
         let pattern = new RegExp("/vhost/","g");
@@ -1854,14 +2020,14 @@ class vhost_server {
         map_type = map_type.padEnd(mt_len," ");
         web_path = web_path.padEnd(wp_len," ");
         map_path = map_path.padEnd(mp_len," ");
-        this.log(`     ${vhost}${map_type}${web_path}${map_path}`)
+        this.consolelog(`     ${vhost}${map_type}${web_path}${map_path}`)
 
         //Output underline
         vhost  = ("+").padEnd(v_len,"-");
         map_type  = ("+").padEnd(mt_len,"-");
         web_path  = ("+").padEnd(wp_len,"-");
         map_path  = ("+").padEnd(mp_len,"-");
-        this.log(`     ${vhost}${map_type}${web_path}${map_path}`)
+        this.consolelog(`     ${vhost}${map_type}${web_path}${map_path}`)
 
         //Output row data
         for(let vname in this.web_dev_mapping) {
@@ -1880,7 +2046,7 @@ class vhost_server {
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
 
-                this.log(`     ${vhost}${map_type}${web_path}${map_path}`)    
+                this.consolelog(`     ${vhost}${map_type}${web_path}${map_path}`)    
             }
             for(let web_path in this_conf["apis_dynamic"]) {
                 let map_path = this_conf["apis_dynamic"][web_path];
@@ -1889,7 +2055,7 @@ class vhost_server {
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
 
-                this.log(`     ${vhost}${map_type}${web_path}${map_path}`)    
+                this.consolelog(`     ${vhost}${map_type}${web_path}${map_path}`)    
             }
             for(let web_path in this_conf["path_static_exec"]) {
                 let map_path = this_conf["path_static_exec"][web_path];
@@ -1898,7 +2064,7 @@ class vhost_server {
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
 
-                this.log(`     ${vhost}${map_type}${web_path}${map_path}`)    
+                this.consolelog(`     ${vhost}${map_type}${web_path}${map_path}`)    
             }
             for(let web_path in this_conf["paths_static"]) {
                 let map_path = this_conf["paths_static"][web_path];
@@ -1907,7 +2073,7 @@ class vhost_server {
                 web_path = web_path.padEnd(wp_len," ");
                 map_path = map_path.padEnd(mp_len," ");
 
-                this.log(`     ${vhost}${map_type}${web_path}${map_path}`)    
+                this.consolelog(`     ${vhost}${map_type}${web_path}${map_path}`)    
             }
         }
         

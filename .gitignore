@@ -3,6 +3,7 @@
 /server/conf/*
 /node_modules/*
 /logs/*
+/conf/logger.json
+/conf/server_conf.json
 package-lock.json
 package.json
-server_conf.json
