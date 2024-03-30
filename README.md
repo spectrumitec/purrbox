@@ -119,9 +119,9 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 root folder
   &#9500; node_modules                  Node modules installed during installation
   &#9500; conf                          Node modules installed during installation
-  &#9474;   &#9500; server_conf.json    Server configuration file
-  &#9474;   &#9500; logger.json         Server logging configuration file
-  &#9500; logs                          Node modules installed during installation
+  &#9474;   &#9500; server_conf.json        Server configuration file
+  &#9474;   &#9500; logger.json             Server logging configuration file
+  &#9500; logs                          Log files when set for file logging
   &#9500; server                        Main server folder
   &#9474;   &#9500; class                     System classes
   &#9474;   &#9500; conf                      Configuration location for system classes (created on first server start from JWT config creation)
