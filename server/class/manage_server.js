@@ -212,18 +212,19 @@ class manage_server {
 
     //Set paths
     define_paths() {
-        //Get OS path seperator
-        let root = `${path.dirname(path.dirname(__dirname))}`;
+        //Set root
+        let root = `${path.dirname(path.dirname(__dirname))}${path.sep}`;
         
         //Set default paths
-        this.paths["root"] = `${root}${s}`
-        this.paths["server"] = `${root}${s}server${s}`;
-        this.paths["class"] = `${root}${s}server${s}class${s}`;
-        this.paths["errors"] = `${root}${s}server${s}default_errors${s}`;
-        this.paths["localhost"] = `${root}${s}server${s}localhost${s}`;
-        this.paths["ssl_certs"] = `${root}${s}server${s}ssl_certs${s}`;
-        this.paths["web_source"] = `${root}${s}web_source${s}`;
-        this.paths["web_templates"] = `${root}${s}web_templates${s}`;
+        this.paths["root"] = root;
+        this.paths["conf"] = path.join(root,"conf",path.sep);
+        this.paths["config"] = path.join(root,"conf","server_conf.json");
+        this.paths["server"] = path.join(root,"server",path.sep);
+        this.paths["class"] = path.join(root,"server","class",path.sep);
+        this.paths["errors"] = path.join(root,"server","default_errors",path.sep);
+        this.paths["localhost"] = path.join(root,"server","localhost",path.sep);
+        this.paths["web_source"] = path.join(root,"web_source",path.sep);
+        this.paths["web_templates"] = path.join(root,"web_templates",path.sep);    
     }
 
     //////////////////////////////////////
@@ -586,8 +587,7 @@ class manage_server {
 
     //Load config file
     load_server_conf() {
-        let root = this.paths["root"];
-        let server_conf = `${root}server_conf.json`;
+        let server_conf = this.paths["config"];
 
         let if_cfg_exists = fs.existsSync(server_conf);
         let conf_data = {}
