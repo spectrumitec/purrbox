@@ -39,6 +39,7 @@ try{
     module_test = require("bcrypt")
     module_test = require("crypto")
     module_test = require("jsonwebtoken")
+    module_test = require("syslog-client")
 
     //Cleanup before load
     delete module_test;
@@ -53,8 +54,9 @@ try{
     console.log(" - bcrypt")
     console.log(" - crypto")
     console.log(" - jsonwebtoken")
+    console.log(" - syslog-client")
     console.log("")
-    console.log("npm install ip bcrypt crypto jsonwebtoken")
+    console.log("npm install ip bcrypt crypto jsonwebtoken syslog-client")
     console.log("")
     process.exit()
 }
