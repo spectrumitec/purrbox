@@ -2,6 +2,7 @@
 
 <br />
 <p>Note to users: This is a new project in development awaiting future features and dedicated website for helping users get started. There is minimum content available for information at the current time.</p>
+<p>I would appreciate any feedback or comments if currently using this tool!</p>
 <br />
 
 <img src=".github/wonderbox_sample.png" alt="" />
