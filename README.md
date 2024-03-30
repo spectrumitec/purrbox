@@ -119,6 +119,8 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 root folder
   &#9500; node_modules                  Node modules installed during installation
   &#9500; conf                          Node modules installed during installation
+  &#9474;   &#9500; cert.pem                  SSL Cert
+  &#9474;   &#9500; key.pem                   SSL Private Key    
   &#9474;   &#9500; server_conf.json          Server configuration file
   &#9474;   &#9492; logger.json               Server logging configuration file
   &#9500; logs                          Log files when set for file logging
@@ -128,8 +130,7 @@ root folder
   &#9474;   &#9500; default_errors            Location of system default 404 and 500 error pages
   &#9474;   &#9500; default_file_types        Location of template file types (used when creating new files in Dev Management UI)
   &#9474;   &#9500; default_new_site          Location of default system template
-  &#9474;   &#9500; localhost                 Location of Dev Management UI
-  &#9474;   &#9492; ssl_certs                 SSL certificate location (see server_conf.json if creating SSL by different file names)
+  &#9474;   &#9492; localhost                 Location of Dev Management UI
   &#9500; web_source                    Location of all project folders
   &#9474;   &#9492; your_project              The project folder associated with the project tree
   &#9474;       &#9500; website_folder        The folder for each website defined under your project
