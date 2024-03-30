@@ -34,9 +34,9 @@
     cd /path/to/server
     git clone https://github.com/spectrumitec/wonderbox.git
 </pre>
-<p>4. Install node modules required to support this server</p>
+<p>4. Install node modules required to support this server. Newer versions of Node may already include 'crypto' module.</p>
 <pre>
-    npm install ip bcrypt crypto jsonwebtoken 
+    npm install ip bcrypt crypto jsonwebtoken syslog-client
 </pre>
 <p>5. Start Node JS Wonderbox</p>
 <pre>
@@ -45,7 +45,7 @@
 <p>6. Open a web browser and connect to the server IP address (or localhost if running on your local system). The defualt login is 'admin' and password 'admin'. You may change password after login in top right corner from user drop down.</p>
 
 <b>Server Configuration:</b><br />
-<p>There is a single server configuration file located in the root directory. Changes to the configuration settings requires a server restart. The following is an example 'server_conf.json'. If you prefer to connect to the Dev Managment UI via server hostname, you can add the FQDN and hostnames in your server configuration 'server_dev_ui' setting(See example below 'nodejs-dev' and 'nodejs-dev.network.local').</p>
+<p>Server configuration files are located in the conf directory from root. Changes to the configuration settings requires a server restart. The following is an example 'server_conf.json'. If you prefer to connect to the Dev Managment UI via server hostname, you can add the FQDN and hostnames in your server configuration 'server_dev_ui' setting(See example below 'nodejs-dev' and 'nodejs-dev.network.local').</p>
 <pre>
     {
         "hostname":"nodejs-dev",
@@ -68,13 +68,28 @@
         "auto_refresh_timer":5000
     }
 </pre>
+
+Syslog or log files can be configured. In conf directory off the root folder, you can edit the logger.conf. You may either select to use 'file' or 'network'. File logging is more ideal for single instance and testing. Setting to network can point logs at graylog. 
+<pre>
+    {
+    	"use": "network",
+    	"file": {
+    		"delete_older": "7d"
+    	},
+    	"server": {
+    		"ipaddr": "192.168.50.5",
+    		"port": "1514",
+    		"protocol": "udp"
+    	}
+    }
+</pre>
+
 <p>When you login to the Dev Management UI, there is a 'Server Settings' panel under 'Admin' tab that has some basic explaination for the uses of each setting.</p>
 
 <b>Current Limitations:</b><br />
 <ul>
     <li>SSL certificates cannot be assinged individually to each site. A server hosting multiple sites will require a SAN or wildcard certificate. Alternatively, you can create a new self signed certificate and allow a load balancer to handle the SSL certificates (SSL offload).</li>
     <li>Cannot use newer import syntax as site content is executed from inside a server class which does not allow imports. Will need to use require statement for module imports.</li>
-    <li>Logging has not yet been completed, planned for future versions.</li>
     <li>JWT auth for Dev management UI will have MySQL/MariaDB in future versions, currently limited to local file configurations. See server path '/root_folder/server/conf/'</li>
 </ul>
 
@@ -102,8 +117,12 @@
 <p>From a manual configuration perspective, the server root has a general layout (below). Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. When starting your server for the first time, it will create these folders for your web source and templates. You can setup your own GitHub projects and import node modules into your project folders as required. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configuring your project config.json files with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this. The server can be script friendly if you plan on automating project and site pushes as the server detects new projects and refreshes it's mapping as long as the server auto refresh is enabled and set on a check interval.</p>
 <pre>
 root folder
-  &#9500; node_modules              Node modules installed during installation
-  &#9500; server                    Main server folder
+  &#9500; node_modules               Node modules installed during installation
+  &#9500; conf                       Node modules installed during installation
+  &#9474;   &#9500; server_conf.json Server configuration file
+  &#9474;   &#9500; logger.json      Server logging configuration file
+  &#9500; logs                       Node modules installed during installation
+  &#9500; server                     Main server folder
   &#9474;   &#9500; class                 System classes
   &#9474;   &#9500; conf                  Configuration location for system classes (created on first server start from JWT config creation)
   &#9474;   &#9500; default_errors        Location of system default 404 and 500 error pages
@@ -111,13 +130,12 @@ root folder
   &#9474;   &#9500; default_new_site      Location of default system template
   &#9474;   &#9500; localhost             Location of Dev Management UI
   &#9474;   &#9492; ssl_certs             SSL certificate location (see server_conf.json if creating SSL by different file names)
-  &#9500; web_source                Location of all project folders
+  &#9500; web_source                 Location of all project folders
   &#9474;   &#9492; your_project          The project folder associated with the project tree
   &#9474;       &#9500; website_folder    The folder for each website defined under your project
   &#9474;       &#9492; config.json       The configuration file within your project containing all settings
-  &#9500; web_templates             Location for any template created or downloaded (similar to project folder structure)
-  &#9500; server_conf.json          Server configuration file
-  &#9492; server_start.js           Server start script
+  &#9500; web_templates              Location for any template created or downloaded (similar to project folder structure)
+  &#9492; server_start.js            Server start script
 </pre>
 <p>Project configuration example is as follows. Most of what is in the configuration file is relatively easy to see where it relates in the Dev Management UI. A few points:</p>
 <ul>
