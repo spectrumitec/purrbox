@@ -292,15 +292,15 @@ class vhost_server {
 
         //Set default log message
         let this_log = {
-            "logfile":"",
+            "project":"",
             "state":"info",
             "message":"",
             "log":{"log":"none"}
         }
 
         //Validate fields
-        if(data.logfile != undefined) {
-            this_log.logfile = data.logfile
+        if(data.project != undefined) {
+            this_log.project = data.project
         }
         if(data.state != undefined) {
             this_log.state = data.state
@@ -1061,7 +1061,7 @@ class vhost_server {
 
         //Log connection
         this_request = {
-            "logfile":response_params.project,
+            "project":response_params.project,
             "state":"info",
             "message":`Client Request > ${this_request}`,
             "log":{

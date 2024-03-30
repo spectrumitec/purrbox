@@ -169,6 +169,7 @@ class vhost_logger {
             "server":this.server,
             "process_id":process.pid,
             "application":"wonderbox",
+            "project":"",
             "state":"info",
             "message":"",
             "log":{}
@@ -180,13 +181,12 @@ class vhost_logger {
         //Set default log files
         this.file_text = `${this.default_log_name}_${filedatetime}.log`;
         this.file_json = `${this.default_log_name}_${filedatetime}.json`;
-        log_data.application = `${log_data.application}-${this.default_log_name}`;
 
         //Get fields from payload
-        if(data.logfile != "") {
-            this.file_text = `request-${data.logfile}_${filedatetime}.log`;
-            this.file_json = `request-${data.logfile}_${filedatetime}.json`;
-            log_data.application = `${log_data.application}-${data.logfile}`;
+        if(data.project != undefined) {
+            this.file_text = `request-${data.project}_${filedatetime}.log`;
+            this.file_json = `request-${data.project}_${filedatetime}.json`;
+            log_data.project = data.project;
         }
         if(data.state != undefined) {
             log_data.state = data.state
