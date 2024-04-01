@@ -52,6 +52,7 @@ class vhost_logger {
     server_ipaddr = "127.0.0.1";
     server_port = "514";
     server_protocol = "udp";
+    server_timeout = 5000;
 
     //Construct class
     constructor() { 
@@ -156,6 +157,9 @@ class vhost_logger {
             }
             if(json["server"]["protocol"] != undefined) {
                 this.server_protocol = json["server"]["protocol"];
+            }
+            if(json["server"]["protocol"] != undefined) {
+                this.server_timeout = Number(json["server"]["timeout"]);
             }
         }
     }
@@ -280,13 +284,18 @@ class vhost_logger {
         });
     }
     log_network(log) {
+        //Vars
+        var parent = this;
+        var timestamp = new Date().toISOString();
+
         //Set log settings
         if(this.server_type == "rsyslog") {
             //Create client
             let options = {
                 "syslogHostname": this.server,
                 "transport": syslog.Transport.Udp,
-                "port": this.server_port
+                "port": this.server_port,
+                "tcpTimeout": this.server_timeout
             };
             if(this.server_protocol == "tcp") {
                 options.transport = syslog.Transport.Tcp;
@@ -294,9 +303,11 @@ class vhost_logger {
             let client = syslog.createClient(this.server_ipaddr, options);
 
             //Send log options
+
             options = {
                 "facility": syslog.Facility.Local0,
-                "severity": syslog.Severity.Informational
+                "severity": syslog.Severity.Informational,
+                "timestamp": Date()
             };
             if(log.state == "error") {
                 options.severity = syslog.Severity.Error;
@@ -308,10 +319,30 @@ class vhost_logger {
             //Configure message
             let json = JSON.stringify(log)
             client.log(json, options, function(error) {
-                if (error) {
-                    console.error(error);
+                if (!error) {
+                    //Close client connection
+                    client.close();
                 }
             });
+
+            client.on("error", function (error) {
+                console.log(error)
+
+                //Set default log files
+                let filedatetime = timestamp.replace(/T.+/, '');
+                parent.file_text = `log_error_${filedatetime}.log`;
+                parent.file_json = `log_error_${filedatetime}.json`;
+                log.state = "error";
+                log.message = `Failure sending syslog to: '${parent.server_ipaddr}:${parent.server_port} ${parent.server_protocol}'`;
+                log.log = {
+                    "error":error
+                };
+                parent.log_file(log);
+
+                //Close client connection
+                client.close();
+            });
+
         }
     }
 }
