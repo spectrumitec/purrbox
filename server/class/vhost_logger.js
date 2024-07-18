@@ -202,13 +202,13 @@ class vhost_logger {
             log_data.log = data.log
         }
 
-        //Log cleanup (if set to network, still check log file path to clear old file if any)
+        //Log cleanup (if set to server, still check log file path to clear old file if any)
         this.log_file_cleanup()
 
         //Write log
         if(this.syslog_use == "file") {
             this.log_file(log_data)
-        }else if(this.syslog_use == "network") {
+        }else if(this.syslog_use == "server") {
             this.log_network(log_data)
         }else{
             //Set default log files

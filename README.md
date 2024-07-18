@@ -73,7 +73,7 @@
 Syslog or log files can be configured. In conf directory off the root folder, you can edit the logger.conf. You may either select to use 'file' or 'network'. File logging is more ideal for single instance and testing. Setting to network can point logs at graylog. 
 <pre>
     {
-    	"use": "network",
+    	"use": "server",
     	"file": {
     		"delete_older": "7d"
     	},
