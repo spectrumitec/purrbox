@@ -433,7 +433,7 @@ class vhost_server {
 
                     //Mapping dev UI names
                     this.web_dns_mapping[this_dns] = {}
-                    this.web_dns_mapping[this_dns]["project"] = "system";
+                    this.web_dns_mapping[this_dns]["project"] = "devui";
                     this.web_dns_mapping[this_dns]["ssl_redirect"] = true;
                     this.web_dns_mapping[this_dns]["maintenance_mode"] = false;
                     this.web_dns_mapping[this_dns]["maintenance_doc"] = "";
@@ -583,7 +583,7 @@ class vhost_server {
 
                 //Mapping dev UI names
                 all_dns[this_dns] = {}
-                all_dns[this_dns]["project"] = "system";
+                all_dns[this_dns]["project"] = "devui";
                 all_dns[this_dns]["ssl_redirect"] = true;
                 all_dns[this_dns]["maintenance_mode"] = false;
                 all_dns[this_dns]["maintenance_doc"] = "";
@@ -923,7 +923,7 @@ class vhost_server {
     }
     client_request(protocol, req, res) {
         //Set logger target name
-        logger.target_log_name = "system"
+        logger.target_log_name = "devui"
 
         //Define _server
         let _server = {

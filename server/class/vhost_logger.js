@@ -40,7 +40,7 @@ const syslog = require("syslog-client");
 class vhost_logger {
     //System paths
     paths = {}                          //System paths
-    default_log_name = "log-system";    //Log filename or syslog identifier
+    default_log_name = "system-log";   //Log filename or syslog identifier
     server = "";
 
     //Syslog File Parameters
@@ -187,9 +187,9 @@ class vhost_logger {
         this.file_json = `${this.default_log_name}_${filedatetime}.json`;
 
         //Get fields from payload
-        if(data.project != undefined) {
-            this.file_text = `request-${data.project}_${filedatetime}.log`;
-            this.file_json = `request-${data.project}_${filedatetime}.json`;
+        if(data.project != undefined && data.project != "") {
+            this.file_text = `${data.project}-request_${filedatetime}.log`;
+            this.file_json = `${data.project}-request_${filedatetime}.json`;
             log_data.project = data.project;
         }
         if(data.state != undefined) {
@@ -209,7 +209,7 @@ class vhost_logger {
         if(this.syslog_use == "file") {
             this.log_file(log_data)
         }else if(this.syslog_use == "server") {
-            this.log_network(log_data)
+            this.log_server(log_data)
         }else{
             //Set default log files
             this.file_text = `log_error_${filedatetime}.log`;
@@ -283,7 +283,7 @@ class vhost_logger {
             }
         });
     }
-    log_network(log) {
+    log_server(log) {
         //Vars
         var parent = this;
         var timestamp = new Date().toISOString();
@@ -294,16 +294,15 @@ class vhost_logger {
             let options = {
                 "syslogHostname": this.server,
                 "transport": syslog.Transport.Udp,
-                "port": this.server_port,
-                "tcpTimeout": this.server_timeout
+                "port": this.server_port
             };
             if(this.server_protocol == "tcp") {
-                options.transport = syslog.Transport.Tcp;
+				options.transport = syslog.Transport.Tcp;
+				options.tcpTimeout = this.server_timeout;
             }
             let client = syslog.createClient(this.server_ipaddr, options);
 
             //Send log options
-
             options = {
                 "facility": syslog.Facility.Local0,
                 "severity": syslog.Severity.Informational,
