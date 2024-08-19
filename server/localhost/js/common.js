@@ -151,19 +151,19 @@ function auth_dialog(result=null) {
     let html = `
         ${message}
         <form name="authentication">
-            <div class="grid2">
+            <div class="grid2 grid2_auth_user_dialog">
                 <div class="grid1_col">Username</div>
                 <div class="grid1_col">
                     <input id="auth_user" type="text" value="" autocomplete="off">
                 </div>
                 <div class="grid1_col">Password</div>
                 <div class="grid1_col">
-                    <input  id="auth_pass" type="password" value="" autocomplete="off">
+                    <input id="auth_pass" type="password" value="" autocomplete="off">
                 </div>
             </div>
         </form>
         <br />
-        <input type="button" value="Login" onClick="auth_user()">
+        <input id="auth_login" type="button" value="Login" onClick="auth_user()">
         <input type="button" value="Cancel" onClick="$('#dialog').dialog('close')">
     `;
     dialog("User Authentication", html);
@@ -180,6 +180,22 @@ function auth_dialog(result=null) {
 
     //Hide user drop down menu
     $("#auth_user_dropdown").css("visibility","hidden");
+
+    //Add listener
+    var auth_user = document.getElementById("auth_user");
+    auth_user.addEventListener("keypress", function(event){
+        if(event.key === "Enter") {
+            event.preventDefault()
+            document.getElementById("auth_pass").focus()
+        }
+    });
+    var auth_pass = document.getElementById("auth_pass");
+    auth_pass.addEventListener("keypress", function(event){
+        if(event.key === "Enter") {
+            event.preventDefault()
+            document.getElementById("auth_login").click()
+        }
+    });
 }
 function auth_user(response=null) {
     if(response == null) {
@@ -386,8 +402,7 @@ function auth_user_reset() {
     $("#auth_user_menu").html("");
 
     //Reset panels
-    $("#project_title").html("");
-    $("#project_panel").html("");
+    $("#projects").html("");
 
     //Reset Vars
     server_configs = {};
@@ -398,9 +413,6 @@ function auth_user_reset() {
 
     server_paths = {};
     protected_paths = {};
-
-    //Clear the project list
-    ui_build_project_list();
 
     //Clear admin panel
     admin_panel = {};   
@@ -459,7 +471,7 @@ function auth_api_check(permission=null) {
 //Init page
 function init() {
     //Init project page
-    ui_project_panel();
+    ui_projects_page_html();
 
     //Get configs
     get_configs();

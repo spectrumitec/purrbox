@@ -22,7 +22,7 @@ span {
 	position: absolute;
 	width: 280px;
 	height: 200px;
-	background-image: url('images/pinocchio.png');
+	background-image: url('../images/404.png');
 	background-repeat: no-repeat;
 	background-size: contain;
 }
@@ -34,7 +34,22 @@ span {
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 16px;
 }
-
+.maintenance_image {
+	position: absolute;
+	width: 280px;
+	height: 200px;
+	background-image: url('../images/maintenance.jpeg');
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+.maintenance_message {
+	position: absolute;
+	left: 280px;
+	width: calc(100% - 300px);
+	background-color: white;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+}
 
 @media screen and (max-width: 840px) {
 	.content {

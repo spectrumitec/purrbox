@@ -103,6 +103,9 @@ exports.request = async function(params={}) {
 		case "project_set_property":
 			api_response = mgmt.project_set_property(_query)
 		break;
+		case "project_config_fix":
+			api_response = mgmt.project_config_fix(_query)
+		break;
 
 		//Templates
 		case "templates_list":

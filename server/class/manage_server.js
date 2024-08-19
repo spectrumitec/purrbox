@@ -43,6 +43,14 @@ const s = path.sep;
 const class_jwt_auth = path.join(path.dirname(__dirname),"class","jwt_auth.js");
 const jwt_auth = require(class_jwt_auth);
 
+//Set vhost logger
+const vhost_logger = require(path.join(__dirname,"vhost_logger.js"));
+const logger = new vhost_logger()
+
+//Set vhost logger
+const vhost_mapping = require(path.join(__dirname,"vhost_mapping.js"));
+const mapping = new vhost_mapping()
+
 //Manage class
 class manage_server {
     //General settings
@@ -275,7 +283,7 @@ class manage_server {
 
         //Check invalid characters
         str = str.trim();
-        let pattern = /[^a-zA-Z0-9\'\_\-\s]/g;
+        let pattern = /[^a-zA-Z0-9\'\_\-\s\.\,\!\:]/g;
         let found = str.match(pattern);
         if(found == null) {
             return true;
@@ -333,33 +341,21 @@ class manage_server {
     //////////////////////////////////////
 
     //Format functions
-    format_url(this_path) {
-        //Check starts with /
-        if(this_path.startsWith("/") == false) {
-            this_path = "/" + this_path;
-        }
-
-        //Check ends with /
-        if(path.extname(this_path) == "") {
-            if(this_path.endsWith("/") == false) {
-                this_path = this_path + "/";
-            }
-        }
-        
-        //Return path
-        return this_path;
-    }
     format_path(this_path) {
         //Ensure start and end has OS slash
         if(this_path.startsWith("/") == false) {
             this_path = `/${this_path}`;
         }
-        let ext = path.extname(this_path);
-        if(ext == "") {
+
+        //Check ends with /
+        if(path.extname(this_path) == "") {
             if(this_path.endsWith("/") == false) {
                 this_path = `${this_path}/`;
             }
         }
+
+        //Remove multiple '/' in a row
+        this_path = this_path.replaceAll(/\/+/g,"/");
         
         //Return path
         return this_path;
@@ -375,6 +371,25 @@ class manage_server {
             result[this_key] = input[this_key];
         }
         return result;
+    }
+    sort_hash_array_longest_str(hash_array) {
+        //Sort keys
+        let sort_keys = []
+        for(let key in hash_array) {
+            sort_keys.push(key)
+        }
+        sort_keys.sort((a, b) => b.length - a.length);
+
+        //Output to new hash map
+        let new_hash_array = {}
+        for(let i in sort_keys) {
+            new_hash_array[sort_keys[i]] = hash_array[sort_keys[i]];
+        }
+
+        console.log(new_hash_array)
+
+        //Return sort
+        return new_hash_array;
     }
 
     //////////////////////////////////////
@@ -605,8 +620,7 @@ class manage_server {
         if(project_name == null) { return {"error":"Project name is 'null'"}}
 
         //Check if directory
-        let web_source = this.paths["web_source"];
-        let project_conf = `${web_source}${project_name}${s}config.json`;
+        let project_conf = path.join(this.paths.web_source,project_name,"config.json");
         let conf_data = {}
 
         //Check of config file exists
@@ -634,8 +648,7 @@ class manage_server {
         if(template_name == null) { return {"error":"Template name is 'null'"}}
 
         //Check if directory
-        let template_source = this.paths.web_templates;
-        let template_conf = `${template_source}${template_name}${s}template_conf.json`;
+        let template_conf = path.join(this.paths.web_templates, template_name, "template_conf.json");
         let conf_data = {}
 
         //Check of config file exists
@@ -707,11 +720,13 @@ class manage_server {
         let this_dir = fs.readdirSync(dir);
         for(let i in this_dir) {
             //Define properties
-            let prop_id         = `${dir}${s}${this_dir[i]}`;
+            let prop_id         = path.join(dir, this_dir[i]);
             let prop_name       = this_dir[i];
             let prop_map_path   = "";
             let prop_type       = "";
             let prop_ext        = "";
+
+            console.log(prop_id)
 
             //Check if directory
             let is_directory = fs.lstatSync(prop_id).isDirectory()
@@ -1152,8 +1167,7 @@ class manage_server {
         if(Object.keys(conf_data).length === 0) {  return {"error":"Project config is empty"} }
 
         //Conf file
-        let web_source = this.paths.web_source;
-        let conf_file = `${web_source}${project_name}${s}config.json`
+        let conf_file = path.join(this.paths.web_source, project_name, "config.json");
         conf_data = JSON.stringify(conf_data,null,"\t")
         
         //Write config
@@ -1252,6 +1266,25 @@ class manage_server {
     }
 
     //Project management functions
+    project_config_structure() {
+        return {
+            "project_desc":"",
+            "enabled":false,
+            "proxy_map":{
+                "dev": {},
+                "qa": {},
+                "stage": {},
+                "prod": {}
+            },
+            "dns_names":{
+                "dev": {},
+                "qa": {},
+                "stage": {},
+                "prod": {}
+            },
+            "websites":{}
+        }
+    }
     project_new(query=null) {
         //Set configs
         let result = {
@@ -1276,6 +1309,10 @@ class manage_server {
                 result.error = "Project description is invalid";
                 return result;
             }
+        }
+        if(query.project == "devui") {
+            result.error = "Project name is reserved by system";
+            return result;
         }
 
         //Get vars
@@ -1321,18 +1358,9 @@ class manage_server {
             return result;
         }else{
             //Conf file
-            let conf_file = `${web_source}${project_name}${s}config.json`
-            let conf_data = {
-                "project_desc":project_desc,
-                "enabled":false,
-                "dns_names":{
-                    "dev": {},
-                    "qa": {},
-                    "stage": {},
-                    "prod": {}
-                },
-                "websites":{}
-            }
+            let conf_file = `${web_source}${project_name}${s}config.json`;
+            let conf_data = this.project_config_structure()
+            conf_data.project_desc = project_desc;
             conf_data = JSON.stringify(conf_data,null,"\t")
             
             //Write config
@@ -1346,7 +1374,7 @@ class manage_server {
             if(auth_mode == "auth") {
                 if(is_admin == false) {
                     this.class_init(); // Add groups required
-                    let this_group_name = `project::${project_name}::Admin`
+                    let this_group_name = `project::${project_name}::Admin`;
                     this.jwt_auth.group_set_user(this_group_name, this_user, true)
                 }
             }
@@ -1521,6 +1549,256 @@ class manage_server {
             //Return result
             return result;
         }
+    }
+    project_config_fix(query=null) {
+
+        //
+        // Check the configuration file only, doesn't validate to files and folders
+        // 
+        //
+
+        //Set configs
+        let result = {
+            "error":"",
+            "state":"unauthenticated",
+            "authenticated":false,
+            "data":{}
+        }
+
+        // Validate /////////////////
+
+        //Validate
+        if(query == null) {
+            result.error = "Missing parameters";
+            return result;
+        }else{
+            if(this.validate_name(query.project) == false) {
+                result.error = "Project name parameter is invalid";
+                return result;
+            }
+        }
+
+        //Check query parameters
+        let project_name = query.project;
+        
+        // Auth Check ///////////////
+
+        //Define auth check
+        let access={
+            "type":"project",
+            "permission":["project_adm"],
+            "project":project_name
+        }
+        let api_check = this.api_access_check(access)
+        result.error = api_check.error;
+        result.state = api_check.state;
+        result.authenticated = api_check.authenticated;
+
+        //Return on invalid state
+        if(result.error != "") { return result; }
+        if(result.authenticated == false) { return result; }
+
+        // Do command ///////////////
+
+        //Get project config
+        let conf_load = this.load_project_conf(project_name);
+        let conf_data = {}
+        if(conf_load.error != "") {
+            result.error = "Cannot load configuration";
+            return result;
+        }else{
+            //Get config data
+            conf_data = conf_load.data;
+            
+            //Validate and fix configuration data ///////////////////
+
+            //Root level config settings
+            if(conf_data.project_desc == undefined) {
+                conf_data.project_desc = "";
+            }
+            if(conf_data.enabled == undefined || typeof(conf_data.enabled) != "boolean") {
+                conf_data.enabled = false;
+            }
+
+            //Check proxy map
+            if(conf_data.proxy_map == undefined || typeof(conf_data.proxy_map) != "object") {
+                conf_data.proxy_map = {
+                    "dev": {},
+                    "qa": {},
+                    "stage": {},
+                    "prod": {}
+                }
+            }else{
+                if(conf_data.proxy_map.dev == undefined || typeof(conf_data.proxy_map.dev) != "object") {
+                    conf_data.proxy_map.dev = {}
+                }
+                if(conf_data.proxy_map.qa == undefined || typeof(conf_data.proxy_map.qa) != "object") {
+                    conf_data.proxy_map.qa = {}
+                }
+                if(conf_data.proxy_map.stage == undefined || typeof(conf_data.proxy_map.stage) != "object") {
+                    conf_data.proxy_map.stage = {}
+                }
+                if(conf_data.proxy_map.prod == undefined || typeof(conf_data.proxy_map.prod) != "object") {
+                    conf_data.proxy_map.prod = {}
+                }
+            }
+
+            //Check DNS map
+            if(conf_data.dns_names == undefined || typeof(conf_data.dns_names) != "object") {
+                conf_data.dns_names = {
+                    "dev": {},
+                    "qa": {},
+                    "stage": {},
+                    "prod": {}
+                }
+            }else{
+                if(conf_data.dns_names.dev == undefined || typeof(conf_data.dns_names.dev) != "object") {
+                    conf_data.dns_names.dev = {}
+                }
+                if(conf_data.dns_names.qa == undefined || typeof(conf_data.dns_names.qa) != "object") {
+                    conf_data.dns_names.qa = {}
+                }
+                if(conf_data.dns_names.stage == undefined || typeof(conf_data.dns_names.stage) != "object") {
+                    conf_data.dns_names.stage = {}
+                }
+                if(conf_data.dns_names.prod == undefined || typeof(conf_data.dns_names.prod) != "object") {
+                    conf_data.dns_names.prod = {}
+                }
+            }
+
+            //Validate any website configurations
+            if(conf_data.websites == undefined) {
+                conf_data.websites = {}
+            }else{
+                for(let website in conf_data.websites) {
+                    //Check website SSL redirect
+                    if(conf_data.websites[website]["ssl_redirect"] == undefined || typeof(conf_data.websites[website]["ssl_redirect"]) != "boolean") {
+                        conf_data.websites[website]["ssl_redirect"] = true;
+                    }
+
+                    //Check maintenance mode
+                    if(conf_data.websites[website]["maintenance"] == undefined || typeof(conf_data.websites[website]["maintenance"]) != "object") {
+                        conf_data.websites[website]["maintenance"] = {
+                            "dev": false,
+                            "qa": false,
+                            "stage": false,
+                            "prod": false
+                        }
+                    }else{
+                        if(conf_data.websites[website]["maintenance"]["dev"] == undefined || typeof(conf_data.websites[website]["maintenance"]["dev"]) != "boolean") {
+                            conf_data.websites[website]["maintenance"]["dev"] = false;
+                        }
+                        if(conf_data.websites[website]["maintenance"]["qa"] == undefined || typeof(conf_data.websites[website]["maintenance"]["qa"]) != "boolean") {
+                            conf_data.websites[website]["maintenance"]["qa"] = false;
+                        }
+                        if(conf_data.websites[website]["maintenance"]["stage"] == undefined || typeof(conf_data.websites[website]["maintenance"]["stage"]) != "boolean") {
+                            conf_data.websites[website]["maintenance"]["stage"] = false;
+                        }
+                        if(conf_data.websites[website]["maintenance"]["prod"] == undefined || typeof(conf_data.websites[website]["maintenance"]["prod"]) != "boolean") {
+                            conf_data.websites[website]["maintenance"]["prod"] = false;
+                        }
+                    }
+
+                    //Check default maintenance page
+                    if(conf_data.websites[website]["maintenance_page"] == undefined) {
+                        conf_data.websites[website]["maintenance_page"] = "";
+                    }
+
+                    //Check default maintenance page
+                    if(conf_data.websites[website]["default_doc"] == undefined) {
+                        conf_data.websites[website]["default_doc"] = "";
+                    }
+    
+                    //Check error pages
+                    if(conf_data.websites[website]["default_errors"] == undefined || typeof(conf_data.websites[website]["default_errors"]) != "object") {
+                        conf_data.websites[website]["default_errors"] = {
+                            //"401": "",      // Unauthorized
+                            //"403": "",      // Forbidden
+                            "404": "",      // Not Found
+                            //"405": "",      // Method not allowed
+                            //"408": "",      // Request Timeout
+                            //"414": "",      // URI Too Long
+                            "500": ""       // Internal Server Error
+                        }
+                    }else{
+                        /*
+                        if(conf_data.websites[website]["default_errors"]["401"] == undefined) {
+                            conf_data.websites[website]["default_errors"]["401"] = "";
+                        }
+                        if(conf_data.websites[website]["default_errors"]["403"] == undefined) {
+                            conf_data.websites[website]["default_errors"]["403"] = "";
+                        }
+                        */
+                        if(conf_data.websites[website]["default_errors"]["404"] == undefined) {
+                            conf_data.websites[website]["default_errors"]["404"] = "";
+                        }
+                        /*
+                        if(conf_data.websites[website]["default_errors"]["405"] == undefined) {
+                            conf_data.websites[website]["default_errors"]["405"] = "";
+                        }
+                        if(conf_data.websites[website]["default_errors"]["408"] == undefined) {
+                            conf_data.websites[website]["default_errors"]["408"] = "";
+                        }
+                        if(conf_data.websites[website]["default_errors"]["414"] == undefined) {
+                            conf_data.websites[website]["default_errors"]["414"] = "";
+                        }
+                        */
+                        if(conf_data.websites[website]["default_errors"]["500"] == undefined) {
+                            conf_data.websites[website]["default_errors"]["500"] = "";
+                        }
+                    }
+
+                    //Check sections exists
+                    if(conf_data.websites[website]["apis_fixed_path"] == undefined) {
+                        conf_data.websites[website]["apis_fixed_path"] = {}
+                    }
+                    if(conf_data.websites[website]["apis_dynamic_path"] == undefined) {
+                        conf_data.websites[website]["apis_dynamic_path"] = {}
+                    }
+                    if(conf_data.websites[website]["path_static"] == undefined) {
+                        conf_data.websites[website]["path_static"] = {}
+                    }
+                    if(conf_data.websites[website]["path_static_server_exec"] == undefined) {
+                        conf_data.websites[website]["path_static_server_exec"] = {}
+                    }
+                    if(conf_data.websites[website]["sub_map"] == undefined) {
+                        conf_data.websites[website]["sub_map"] = {}
+                    }
+                }
+            }
+
+            //Validate configuration aligns with folders and files ///////////////////
+
+
+            //Align old config to new config structure ///////////////////
+
+            let new_config = this.project_config_structure()
+            new_config.project_desc =   conf_data.project_desc
+            new_config.enabled =        conf_data.enabled
+            new_config.proxy_map =      conf_data.proxy_map
+            new_config.dns_names =      conf_data.dns_names
+            new_config.websites =       conf_data.websites
+
+            //Write updated config ///////////////////
+
+            //Update config file
+            let is_updated = this.update_project_conf_file(project_name, new_config);
+            if(is_updated.error != "") {
+                result.error = "Configuration data is empty";
+            }
+
+            //Return result
+            return result;
+        }
+    }
+    project_config_validate_websites(project=null, website=null) {
+
+    }
+    project_config_validate_error_pages(project=null, website=null) {
+
+    }
+    project_config_validate_maintenance_page(project=null, website=null) {
+
     }
 
     //Manage project tempaltes
@@ -1893,7 +2171,12 @@ class manage_server {
         //Create blank conf
         new_conf = {
             "ssl_redirect": false,
-            "maintenance": false,
+            "maintenance": {
+                "dev": false,
+                "qa": false,
+                "stage": false,
+                "prod": false
+            },
             "maintenance_page": "",
             "default_doc": "",
             "default_errors": {
@@ -1947,19 +2230,25 @@ class manage_server {
         //Create blank conf
         new_conf = {
             "ssl_redirect": true,
-            "maintenance": false,
+            "maintenance": {
+                "dev": false,
+                "qa": false,
+                "stage": false,
+                "prod": false
+            },
             "maintenance_page": "maintenance.html",
             "default_doc": "index.html",
             "default_errors": {
-                "404":"404.js",
-                "500":"500.js"
+                "404":"404.html",
+                "500":"500.html"
             },
             "apis_fixed_path": {},
             "apis_dynamic_path": {},
             "path_static": {
                 "/": `/${site_name}/`
             },
-            "path_static_server_exec": {}
+            "path_static_server_exec": {},
+            "sub_map": {}
         }
 
         //Add to config
@@ -2383,6 +2672,12 @@ class manage_server {
                 result.error = "Property name is invalid";
                 return result;
             }
+            if(query.property == "maintenance_enabled") {
+                if(this.validate_name(query.env) == false) {
+                    result.error = "Environment name is invalid";
+                    return result;
+                }
+            }
             if(query.value == undefined) {
                 result.error = "Value is invalid";
                 return result;
@@ -2394,6 +2689,12 @@ class manage_server {
         let site_name = query.site;
         let property = query.property;
         let value = query.value;
+
+        //Get environment (maintenance mode)
+        let env = "";
+        if(query.property == "maintenance_enabled") {
+            env = query.env;
+        }
 
         //Validate property
         if(!(property === "ssl_redirect" ||
@@ -2407,11 +2708,20 @@ class manage_server {
         }
 
         //Validate value
-        if(property === "ssl_redirect" || property === "maintenance_enabled") {
+        if(property === "ssl_redirect") {
             if(!(value == true || value == false)) {
                 result.error = `Invalid checkbox state[${value}]`;
                 return result;
-                }
+            }
+        }else if(property === "maintenance_enabled") {
+            if(env != "dev" && env != "qa" && env != "stage" && env != "prod") {
+                result.error = `Invalid maintenance checkbox environment[${env}]`;
+                return result;
+            }
+            if(!(value == true || value == false)) {
+                result.error = `Invalid checkbox state[${value}]`;
+                return result;
+            }
         }else{
             //Validate value has a file extension
             if(!(path.extname(value) == ".html" || path.extname(value) == ".js")) {
@@ -2473,7 +2783,7 @@ class manage_server {
                     conf_data["websites"][site_name]["ssl_redirect"] = value;
                 break;
                 case "maintenance_enabled":
-                    conf_data["websites"][site_name]["maintenance"] = value;
+                    conf_data["websites"][site_name]["maintenance"][env] = value;
                 break;
                 case "maintenance_page":
                     conf_data["websites"][site_name]["maintenance_page"] = value;
@@ -2516,6 +2826,21 @@ class manage_server {
             result.error = "Missing parameters";
             return result;
         }else{
+            //Validate query type
+            if(query.type == undefined) {
+                result.error = "Parameter missing";
+                return result;
+            }
+            if(!(query.type === "apis_fixed_path" ||
+                query.type === "apis_dynamic_path" ||
+                query.type === "path_static" ||
+                query.type === "path_static_server_exec" ||
+                query.type === "sub_map"
+            )) {
+                result.error = `Invalid type[${query.type}]`;
+                return result;
+            }
+
             //Validate common parameters
             if(this.validate_name(query.project) == false) {
                 result.error = "Project name is invalid";
@@ -2529,29 +2854,23 @@ class manage_server {
                 result.error = "Web path has invalid charaters";
                 return result;
             }
-            if(this.validate_map_path(query.map_path) == false) {
-                result.error = "Map path has invalid charaters";
-                return result;
-            }
-            if(query.type == undefined) {
-                result.error = "Parameter missing";
-                return result;
-            }
-
-            //Validate types
-            if(!(query.type === "apis_fixed_path" ||
-                query.type === "apis_dynamic_path" ||
-                query.type === "path_static" ||
-                query.type === "path_static_server_exec")) {
-                result.error = `Invalid type[${query.type}]`;
-                return result;
+            if(query.type == "sub_map") {
+                if(this.validate_name(query.map_path) == false) {
+                    result.error = "Map website has invalid charaters";
+                    return result;
+                }
+            }else{
+                if(this.validate_map_path(query.map_path) == false) {
+                    result.error = "Map path has invalid charaters";
+                    return result;
+                }
             }
         }
 
         //Get vars
         let project_name = query.project;
         let site_name = query.site;
-        let type = query.type;
+        let map_type = query.type;
         let web_path = decodeURIComponent(query.web_path);
         let map_path = decodeURIComponent(query.map_path);
 
@@ -2575,14 +2894,10 @@ class manage_server {
         // Do command ///////////////        
 
         //Make sure beginning and training slash are present
-        web_path = this.format_url(web_path);
-        map_path = this.format_path(map_path)
-
-        //Make sure no double slash
-        let pattern = new RegExp("//", "g")
-        web_path = web_path.replace(pattern, "/")
-        pattern = new RegExp(`${s}${s}`, "g")
-        web_path = web_path.replace(pattern, s)
+        web_path = this.format_path(web_path);
+        if(map_type != "sub_map") {
+            map_path = this.format_path(map_path);
+        }
 
         //Get project config
         let conf_load = this.load_project_conf(project_name);
@@ -2610,41 +2925,30 @@ class manage_server {
             let this_site = conf_data["websites"][site_name]
             
             //Add any missing sections
-            if(this_site["apis_fixed_path"] == undefined) {
-                conf_data["websites"][site_name]["apis_fixed_path"] = {}
-            }
-            if(this_site["apis_dynamic_path"] == undefined) {
-                conf_data["websites"][site_name]["apis_dynamic_path"] = {}
-            }
-            if(this_site["path_static"] == undefined) {
-                conf_data["websites"][site_name]["path_static"] = {}
-            }
-            if(this_site["path_static_server_exec"] == undefined) {
-                conf_data["websites"][site_name]["path_static_server_exec"] = {}
+            if(this_site[map_type] == undefined) {
+                conf_data["websites"][site_name][map_type] = {}
             }
 
             //Check for conflicts
-            for(let this_web_path in conf_data["websites"][site_name]["apis_fixed_path"]) {
+            for(let this_web_path in conf_data["websites"][site_name][map_type]) {
                 if(this_web_path == web_path) {
-                    result.error = "Web path is already defined in 'API fixed mapping'";
-                    return result;
-                }
-            }
-            for(let this_web_path in conf_data["websites"][site_name]["apis_dynamic_path"]) {
-                if(this_web_path == web_path) {
-                    result.error = "Web path is already defined in 'API dynamic mapping'";
-                    return result;
-                }
-            }
-            for(let this_web_path in conf_data["websites"][site_name]["path_static"]) {
-                if(this_web_path == web_path) {
-                    result.error = "Web path is already defined in 'Static content mapping'";
-                    return result;
-                }
-            }
-            for(let this_web_path in conf_data["websites"][site_name]["path_static_server_exec"]) {
-                if(this_web_path == web_path) {
-                    result.error = "Map path is already defined in 'Static content server execute override mapping'";
+                    switch(map_type) {
+                        case "apis_fixed_path":
+                            result.error = "Web path is already defined in 'API fixed mapping'";
+                        break;
+                        case "apis_dynamic_path":
+                            result.error = "Web path is already defined in 'API dynamic mapping'";
+                        break;
+                        case "path_static":
+                            result.error = "Web path is already defined in 'Static content mapping'";
+                        break;
+                        case "path_static_server_exec":
+                            result.error = "Map path is already defined in 'Static content server execute override mapping'";
+                        break;
+                        case "sub_map":
+                            result.error = "Web path is already defined in 'Project Website Sub Mapping'";
+                        break;
+                    }
                     return result;
                 }
             }
@@ -2652,35 +2956,11 @@ class manage_server {
             //Add setting
             let this_config = "";
             let sort_config = "";
-            switch(type) {
-                case "apis_fixed_path":
-                    this_config = conf_data["websites"][site_name]["apis_fixed_path"];
-                    this_config[web_path] = map_path;
-                    sort_config = this.sort_hash_array(this_config);
-                    conf_data["websites"][site_name]["apis_fixed_path"] = sort_config;
-                break;
-                case "apis_dynamic_path":
-                    this_config = conf_data["websites"][site_name]["apis_dynamic_path"];
-                    this_config[web_path] = map_path;
-                    sort_config = this.sort_hash_array(this_config);
-                    conf_data["websites"][site_name]["apis_dynamic_path"] = sort_config;
-                break;
-                case "path_static":
-                    this_config = conf_data["websites"][site_name]["path_static"];
-                    this_config[web_path] = map_path;
-                    sort_config = this.sort_hash_array(this_config);
-                    conf_data["websites"][site_name]["path_static"] = sort_config;
-                break;
-                case "path_static_server_exec":
-                    this_config = conf_data["websites"][site_name]["path_static_server_exec"];
-                    this_config[web_path] = map_path;
-                    sort_config = this.sort_hash_array(this_config);
-                    conf_data["websites"][site_name]["path_static_server_exec"] = sort_config;
-                break;
-                default:
-                    result.error = "Invalid configuration";
-                    return result;
-            }
+
+            this_config = conf_data["websites"][site_name][map_type];
+            this_config[web_path] = map_path;
+            sort_config = this.sort_hash_array_longest_str(this_config);
+            conf_data["websites"][site_name][map_type] = sort_config;
 
             //Update config file
             let is_updated = this.update_project_conf_file(project_name, conf_data);
@@ -2730,7 +3010,9 @@ class manage_server {
             if(!(query.type === "apis_fixed_path" ||
                 query.type === "apis_dynamic_path" ||
                 query.type === "path_static" ||
-                query.type === "path_static_server_exec")) {
+                query.type === "path_static_server_exec" ||
+                query.type === "sub_map")
+            ) {
                 result.error = `Invalid type[${query.type}]`;
                 return result;
             }
@@ -2739,7 +3021,7 @@ class manage_server {
         //Get vars
         let project_name = query.project;
         let site_name = query.site;
-        let type = query.type;
+        let map_type = query.type;
         let web_path = decodeURIComponent(query.web_path);
 
         // Auth Check ///////////////
@@ -2784,13 +3066,13 @@ class manage_server {
                 result.error = `Error accessing site name[${site_name}] in configuration`;
                 return result;
             }
-            if(conf_data["websites"][site_name][type] == undefined) {
-                result.error = `Error accessing site name[${site_name}] type[${type}] in configuration`;
+            if(conf_data["websites"][site_name][map_type] == undefined) {
+                result.error = `Error accessing site name[${site_name}] map_type[${map_type}] in configuration`;
                 return result;
             }
 
             //Delete the item
-            delete conf_data["websites"][site_name][type][web_path];
+            delete conf_data["websites"][site_name][map_type][web_path];
 
             //Update config file
             let is_updated = this.update_project_conf_file(project_name, conf_data);
@@ -3752,6 +4034,85 @@ class manage_server {
             //Return results
             return result;
         }
+    }
+
+    admin_get_server_url_mapping(query) {
+        //Set results
+        let result = this.admin_check();
+
+        //Check state
+        if(result.error != "" || result.authenticated == false) {
+            return result;
+        }else if(result.admin == false) {
+            result.error = "Access Denied";
+            return result;
+        }
+
+        //Validate
+        if(query.mgmt == undefined) {
+            result.error = "Management Mode parameter is invalid";
+            return result;
+        }
+        if(query.env == undefined) {
+            result.error = "Environment parameter is invalid";
+            return result;
+        }
+
+        //Generate mapping
+        mapping.mgmt_mode = query.mgmt;
+        mapping.set_environment(query.env);
+        mapping.map_generate();
+
+        //Check error
+        if(mapping.error != "") {
+            result.error = mapping.error;
+            return result;
+        }
+        
+        //Get data
+        result.error = mapping.error;
+        result.data["web_configs"] = mapping.web_configs;
+
+        //Return
+        return result;
+    }
+    admin_test_server_url_mapping(query) {
+        //Set results
+        let result = this.admin_check();
+
+        //Check state
+        if(result.error != "" || result.authenticated == false) {
+            return result;
+        }else if(result.admin == false) {
+            result.error = "Access Denied";
+            return result;
+        }
+
+        //Validate
+        if(query.mgmt == undefined) {
+            result.error = "Management Mode parameter is invalid";
+            return result;
+        }
+        if(query.env == undefined) {
+            result.error = "Environment parameter is invalid";
+            return result;
+        }
+        if(query.url == undefined) {
+            result.error = "URL parameter is invalid";
+            return result;
+        }
+
+        //Test URL match
+        mapping.mgmt_mode = query.mgmt;
+        mapping.set_environment(query.env);
+        mapping.map_generate();
+        result.data = mapping.match_url(query.url);
+
+        //Get results
+        result.error = mapping.error;
+
+        //Return
+        return result;
     }
 
     admin_users_get() {

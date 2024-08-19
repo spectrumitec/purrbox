@@ -68,6 +68,28 @@ body {
 	text-align: center;
 }
 
+.message {
+	width: 100%;
+	text-align: left;
+	min-height: 200px;
+	font-size: 12px;
+    border: none;	
+}
+
+.maintenance_tbl_headline {
+	width: 100%;
+	text-align: center;
+}
+.maintenance_frame {
+	width: 800px;
+}
+.maintenance_img {
+	height: 100px;
+	width: 175px;
+	background-image: url("images/maintenance.jpeg");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
 
 /* 
 

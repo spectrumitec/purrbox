@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Wonderbox</title>
+        <meta name="description" content="Node.js Wonderbox">
+        <meta name="author" content="Cliff Sandford">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+
+        <link rel="stylesheet" href="/css/common.css">
+
+    </head>
+    <body>
+        <!-- Page Header -->
+        <div class="header" id="header">
+            <div class="header_logo"></div>
+            <div class="header_title">Node.js Wonderbox</div>
+        </div>
+        
+        <!-- Page Content -->
+        <div class="content" id="content">
+            <p>
+                <b>VHost Preview Site not Found.</b><br /><br />
+				This can take a bit of time for the server to refresh the configurations. Please note if your server is not<br />
+				configured to auto refresh, the VHost preview will not display. This page will refresh in 5 seconds.<br />
+				<br />
+				If not the above, and loaded from a prior link:<br />
+                Did you rename or delete your project?<br />
+                Did you rename or delete your website?<br />
+				Perhaps on a different server?<br /><br />
+				If any changes to the project name or website name, the VHost link will match the naming.
+            </p>
+        </div>
+		
+		<!-- Reload Page 5 seconds -->
+		<script>
+			setTimeout(function(){
+			   window.location.reload(1);
+			}, 5000);
+		</script>
+    </body>
+</html>

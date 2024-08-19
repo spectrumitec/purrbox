@@ -85,6 +85,14 @@ exports.request = async function(params={}) {
 
 	//Do action
 	switch(_query.action) {
+		//Get server mapping
+		case "get_server_url_mapping":
+			api_response = mgmt.admin_get_server_url_mapping(params.query);
+		break;
+		case "test_server_url_mapping":
+			api_response = mgmt.admin_test_server_url_mapping(params.query);
+		break;
+
 		//Get configs
 		case "users_get":
 			api_response = mgmt.admin_users_get();

@@ -17,29 +17,58 @@ span{
 input[type=text], input[type=password]{
     font-size: 13px;
     background-color: rgb(218, 241, 255);
+    border: 1px solid gray;
 }
-
+textarea{
+    font-size: 13px;
+    background-color: rgb(218, 241, 255);
+    height: 100px;
+    width: 400px;
+    text-align: left;
+    vertical-align: top;
+}
 input[type=button]{
     margin: 2px auto;
     border: 1px solid #aaaaaa;
     font-size: 13px;
-    background-color: white;
     cursor: pointer;
     transition: background-color 0.25s;
-}
-input[type=button]:hover{
     background-color: rgb(218, 241, 255);
 }
+input[type=button]:hover{
+    background-color: rgb(150, 215, 255);
+}
 input[type=checkbox]{
-    width: 14px;
-    height: 14px;
     cursor: pointer;
+}
+option{
+    font-size: 13px;
+    background-color: rgb(218, 241, 255);
+    border: 1px solid gray;
+    cursor: pointer;
+}
+.hidden_field {
+    visibility: hidden;
 }
 
 p {
 	margin-top: 8px;
 	margin-bottom: 8px;
     font-size: 14px;
+}
+
+/* Standard Font Colours */
+.font_green {
+    color: green;
+}
+.font_orange {
+    color: orange;
+}
+.font_red {
+    color: red;
+}
+.font_gray {
+    color: gray;
 }
 
 @media screen and (max-width: 840px) {
@@ -53,7 +82,11 @@ p {
         width: 9px;
         height: 9px;
     }
-    
+    textarea{
+        font-size: 10px;
+        height: 50px;
+        width: 200px;
+    }
 	p {
 		margin-top: 5px;
 		margin-bottom: 5px;
@@ -62,7 +95,6 @@ p {
 }
 
 /* Tool Tip */
-
 .tooltip {
     position: absolute;
     width: auto;
@@ -78,7 +110,6 @@ p {
 }
 
 /* User auth */
-
 .authenticated_user {
     position: absolute;
     right: 5px;
@@ -118,7 +149,7 @@ p {
 }
 
 /* Mobile page formatting */
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
     .authenticated_user {
         right: 2px;
         top: 0px;
@@ -150,7 +181,6 @@ p {
 }
 
 /* Main page */
-
 .header {
     position: absolute;
     margin-left: 10px;
@@ -204,14 +234,14 @@ p {
 }
 
 /* Mobile page formatting */
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
 	.header {
 		height: 51px;
 		min-width: 200px;
-		margin-left: 5px;
-		margin-right: 5px;
-		top: 5px;
-		width: calc(100% - 10px);
+		margin-left: 0px;
+		margin-right: 0px;
+		top: 0px;
+		width: calc(100% - 0px);
 	}
 	.header_logo {
 		height: 50px;
@@ -226,12 +256,12 @@ p {
 		font-size: 18px;
 	}
 	.content {
-		top: 56px;
-		height: calc(100% - 61px);
-		width: calc(100% - 10px);
+		top: 51px;
+		height: calc(100% - 51px);
+		width: calc(100% - 0px);
 		min-width: 200px;
-		margin-left: 5px;
-		margin-right: 5px;
+		margin-left: 0px;
+		margin-right: 0px;
 		padding: 2px;
 	}
 	
@@ -269,7 +299,6 @@ p {
 }
 
 /* Icons */
-
 .icon {
     cursor: pointer;
 }
@@ -278,11 +307,38 @@ p {
 	width: 18px;
 }
 
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
     .icon_size {
         height: 16px;
         width: 16px;
     }    
+}
+
+/* Read Access */
+.panel_read_access_image {
+    margin-left: 10px;
+	height: 20px;
+	width: 20px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url("../images/warning_icon.png");
+
+}
+.panel_read_access_text {
+    padding-top: 2px;
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Project index */
+.project_index_desc {
+    font-size: 13px;
+    background-color: white;
+    height: auto;
+    width: 100%;
+    text-align: left;
+    vertical-align: top;
 }
 
 /* Project tree list view */
@@ -290,7 +346,7 @@ p {
     position: absolute;
 	top: 47px;
     left: 7px;
-    width: 215px;
+    width: 245px;
     height: calc(100% - 47px);
     display: block;
 }
@@ -341,19 +397,38 @@ p {
     position: absolute;
     top: 37px;
     height: calc(100% - 40px);
-    width: 215px;
+    width: 245px;
     display: block;
 	overflow: auto;
 	
 	/* background-color: #bbbbbb; */
+}
+.project_config_state {
+    display: inline-block;
+	height: 18px;
+	width: 18px;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+.project_config_state_good {
+	background-image: url("../images/good_icon.png");
+}
+.project_config_state_warning {
+	background-image: url("../images/warning_icon.png");
+}
+.project_config_state_error {
+	background-image: url("../images/error_icon.png");
+}
+.project_config_state_text {
+    font: 16px;
 }
 
 /* Project tree list view */
 .project_manage {
     position: absolute;
 	top: 52px;
-    left: 222px;
-    width: calc(100% - 225px);
+    left: 252px;
+    width: calc(100% - 255px);
     height: calc(100% - 55px);
     border-left: 1px solid #aaaaaa;
     display: block;
@@ -391,7 +466,7 @@ p {
 }
 
 /* Mobile page formatting */
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
 	.project_list {
 		position: absolute;
 		top: 26px;
@@ -437,7 +512,6 @@ p {
 }
 
 /* Project mapping policies */
-
 .project_site_new_btn {
     height: 30px;
     font-weight: bold;
@@ -449,16 +523,16 @@ p {
 }
 
 .project_site_rename {
-	height: 20px;
-	width: 20px;
+	height: 16px;
+	width: 16px;
 }
 .project_site_clone {
-	height: 20px;
-	width: 30px;
+	height: 16px;
+	width: 22px;
 }
 .project_site_trash {
-	height: 20px;
-	width: 20px;
+	height: 16px;
+	width: 16px;
 }
 
 .project_site_map_select {
@@ -468,16 +542,16 @@ p {
     overflow: auto;
 }
 .project_site_map_add {
-	height: 20px;
-	width: 20px;
+	height: 16px;
+	width: 16px;
 }
 .project_site_map_delete {
-	height: 20px;
-	width: 20px;
+	height: 16px;
+	width: 16px;
 }
 
 /* Mobile page formatting */
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
 	.project_site_create_btn{
 		width: 100px;
 		height: 40px;
@@ -512,6 +586,13 @@ p {
     font-size: 14px;
     font-weight: bold;
 }
+.project_file_read_access {
+    position: absolute;
+    top: 8px;
+    left: 100px;
+    height: 25px;
+    width: 300px;
+}
 .project_file_menu {
     position: absolute;
     top: 20px;
@@ -534,14 +615,23 @@ p {
 .project_files_menu_btn:hover {
     background-color: rgb(218, 241, 255);
 }
-.project_files_menu_add_file {
-    background-image: url("../images/file_add_icon.png");
-}
 .project_files_menu_add_folder {
     background-image: url("../images/folder_add_icon.png");
 }
+.project_files_menu_add_folder_disabled {
+    background-image: url("../images/folder_add_disabled_icon.png");
+}
+.project_files_menu_add_file {
+    background-image: url("../images/file_add_icon.png");
+}
+.project_files_menu_add_file_disabled {
+    background-image: url("../images/file_add_disabled_icon.png");
+}
 .project_files_menu_delete {
     background-image: url("../images/folder_file_delete_icon.png");
+}
+.project_files_menu_delete_disabled {
+    background-image: url("../images/folder_file_delete_disabled_icon.png");
 }
 .project_file_list {
     position: absolute;
@@ -620,7 +710,7 @@ p {
 }
 
 /* Mobile page formatting */
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
     .project_dns_add {
         height: 14px;
         width: 14px;
@@ -641,7 +731,7 @@ p {
     overflow: auto;
     display: block;
 }
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
     .vhost_panel {
         top: 30px;
         left: 4px;
@@ -660,7 +750,6 @@ p {
     overflow: auto;
     display: block;
 }
-
 .admin_nav {
     position: absolute;
     left: 0px;
@@ -690,6 +779,7 @@ p {
     top: 0px;
     width: calc(100% - 155px);
     height: 100%;
+    overflow: auto;
 }
 .admin_list_user {
     cursor: pointer;
@@ -699,7 +789,37 @@ p {
 	width: 18px;
 }
 
-@media screen and (max-width: 840px) {
+.admin_map_btn {
+    display: block;
+    height: 25px;
+    width: 50px;
+    margin-top: 5px;
+    margin-left: 20px;
+    padding-top: 3px;
+    border: 1px solid #aaaaaa;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.25s;
+}
+.admin_map_btn_select {
+    background-color: rgb(218, 241, 255);
+}
+.admin_map_test_box {
+    width: 400px;
+}
+.admin_map_test_pre {
+    margin: 0px auto;
+    height: 300px;
+    width: 750px;
+    font-size: 12px;
+    background-color: #eeeeee;
+    overflow: auto;
+}
+
+@media screen and (max-width: 950px) {
     .admin_mgmt {
         top: 30px;
         left: 4px;
@@ -716,9 +836,8 @@ p {
     }
 }
 
-
 /* Grid table formatting */
-.grid1, .grid2, .grid3, .grid4, .grid5, .grid6, .grid7, .grid8{
+.grid1, .grid2, .grid3, .grid4, .grid5, .grid6, .grid7, .grid8, .grid9, .grid10, .grid11, .grid12, .grid13, .grid14, .grid15, .grid16, .grid17, .grid18, .grid19, .grid20 {
     display: inline-grid;
     grid-gap: 1px;
     padding: 0px;
@@ -726,33 +845,78 @@ p {
     margin-bottom: 10px;
     background-color: #aaaaaa;
 }
-.grid1 {
-    grid-template-columns: max-content;
-}
-.grid2 {
-    grid-template-columns: max-content max-content;
-}
-.grid3 {
-    grid-template-columns: max-content max-content max-content;
-}
-.grid4 {
-    grid-template-columns: max-content max-content max-content max-content;
-}
-.grid5 {
-    grid-template-columns: max-content max-content max-content max-content max-content;
-}
-.grid6 {
-    grid-template-columns: max-content max-content max-content max-content max-content max-content;
-}
-.grid7 {
-    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content;
-}
-.grid8 {
-    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content;
+.grid1_inner, .grid2_inner, .grid3_inner, .grid4_inner, .grid5_inner, .grid6_inner, .grid7_inner, .grid8_inner, .grid9_inner, .grid10_inner, .grid11_inner, .grid12_inner, .grid13_inner, .grid14_inner, .grid15_inner, .grid16_inner, .grid17_inner, .grid18_inner, .grid19_inner, .grid20_inner {
+    display: inline-grid;
+    grid-gap: 0px;
+    padding: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
+.grid1, .grid1_inner {
+    grid-template-columns: max-content;
+}
+.grid2, .grid2_inner {
+    grid-template-columns: max-content max-content;
+}
+.grid3, .grid3_inner {
+    grid-template-columns: max-content max-content max-content;
+}
+.grid4, .grid4_inner {
+    grid-template-columns: max-content max-content max-content max-content;
+}
+.grid5, .grid5_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content;
+}
+.grid6, .grid6_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content;
+}
+.grid7, .grid7_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid8, .grid8_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid9, .grid9_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid10, .grid10_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid11, .grid11_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid12, .grid12_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid13, .grid13_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid14, .grid14_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid15, .grid15_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid16, .grid16_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid17, .grid17_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid18, .grid18_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid19, .grid19_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+.grid20, .grid20_inner {
+    grid-template-columns: max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content;
+}
+
+
 /* Header formatting */
-.grid1_head, .grid2_head, .grid3_head, .grid4_head, .grid5_head, .grid6_head, .grid7_head, .grid8_head {
+.grid1_head, .grid2_head, .grid3_head, .grid4_head, .grid5_head, .grid6_head, .grid7_head, .grid8_head, .grid9_head, .grid10_head, .grid11_head, .grid12_head, .grid13_head, .grid14_head, .grid15_head, .grid16_head, .grid17_head, .grid18_head, .grid19_head, .grid20_head {
     background-color: #beebff;
     padding: 5px;
     text-align: left;
@@ -761,8 +925,8 @@ p {
 }
 
 /* Sub Header formatting */
-.grid1_sub_head, .grid2_sub_head, .grid3_sub_head, .grid4_sub_head, .grid5_sub_head, .grid6_sub_head, .grid7_sub_head, .grid8_sub_head {
-    background-color: white;
+.grid1_sub_head, .grid2_sub_head, .grid3_sub_head, .grid4_sub_head, .grid5_sub_head, .grid6_sub_head, .grid7_sub_head, .grid8_sub_head, .grid9_sub_head, .grid10_sub_head, .grid11_sub_head, .grid12_sub_head, .grid13_sub_head, .grid14_sub_head, .grid15_sub_head, .grid16_sub_head, .grid17_sub_head, .grid18_sub_head, .grid19_sub_head, .grid20_sub_head {
+    background-color: #f3fbff;
     padding: 5px;
     text-align: left;
     font-weight: bold;
@@ -770,7 +934,7 @@ p {
 }
 
 /* Column formatting */
-.grid1_col, .grid2_col, .grid3_col, .grid4_col, .grid5_col, .grid6_col, .grid7_col, .grid8_col {
+.grid1_col, .grid2_col, .grid3_col, .grid4_col, .grid5_col, .grid6_col, .grid7_col, .grid8_col, .grid9_col, .grid10_col, .grid11_col, .grid12_col, .grid13_col, .grid14_col, .grid15_col, .grid16_col, .grid17_col, .grid18_col, .grid19_col, .grid20_col {
     background-color: white;
     padding: 5px;
     text-align: left;
@@ -778,37 +942,80 @@ p {
     font-size: 14px;
 }
 
+/* Grid Inner Column */
+.grid1_inner_col, .grid2_inner_col, .grid3_inner_col, .grid4_inner_col, .grid5_inner_col, .grid6_inner_col, .grid7_inner_col, .grid8_inner_col, .grid9_inner_col, .grid10_inner_col, .grid11_inner_col, .grid12_inner_col, .grid13_inner_col, .grid14_inner_col, .grid15_inner_col, .grid16_inner_col, .grid17_inner_col, .grid18_inner_col, .grid19_inner_col, .grid20_inner_col {
+    padding: 1px;
+    text-align: left;
+    font-weight: normal;
+    font-size: 14px;
+}
+
 /* Column span */
-.grid2_head, .grid2_sub_head, .grid2_col {
-    grid-column-start: 1;
-    grid-column-end: 3;
+.grid1_head, .grid1_sub_head, .grid1_col, .grid1_inner_col {
+    grid-column: span 1;
 }
-.grid3_head, .grid3_sub_head, .grid3_col {
-    grid-column-start: 1;
-    grid-column-end: 4;
+.grid2_head, .grid2_sub_head, .grid2_col, .grid2_inner_col {
+    grid-column: span 2;
 }
-.grid4_head, .grid4_sub_head, .grid4_col {
-    grid-column-start: 1;
-    grid-column-end: 5;
+.grid3_head, .grid3_sub_head, .grid3_col, .grid3_inner_col {
+    grid-column: span 3;
 }
-.grid5_head, .grid5_sub_head, .grid5_col {
-    grid-column-start: 1;
-    grid-column-end: 6;
+.grid4_head, .grid4_sub_head, .grid4_col, .grid4_inner_col {
+    grid-column: span 4;
 }
-.grid6_head, .grid6_sub_head, .grid6_col {
-    grid-column-start: 1;
-    grid-column-end: 7;
+.grid5_head, .grid5_sub_head, .grid5_col, .grid5_inner_col {
+    grid-column: span 5;
 }
-.grid7_head, .grid7_sub_head, .grid7_col {
-    grid-column-start: 1;
-    grid-column-end: 8;
+.grid6_head, .grid6_sub_head, .grid6_col, .grid6_inner_col {
+    grid-column: span 6;
 }
-.grid8_head, .grid8_sub_head, .grid8_col {
-    grid-column-start: 1;
-    grid-column-end: 9;
+.grid7_head, .grid7_sub_head, .grid7_col, .grid7_inner_col {
+    grid-column: span 7;
+}
+.grid8_head, .grid8_sub_head, .grid8_col, .grid8_inner_col {
+    grid-column: span 8;
+}
+.grid9_head, .grid9_sub_head, .grid9_col, .grid9_inner_col {
+    grid-column: span 9;
+}
+.grid10_head, .grid10_sub_head, .grid10_col, .grid10_inner_col {
+    grid-column: span 10;
+}
+.grid11_head, .grid11_sub_head, .grid11_col, .grid11_inner_col {
+    grid-column: span 11;
+}
+.grid12_head, .grid12_sub_head, .grid12_col, .grid12_inner_col {
+    grid-column: span 12;
+}
+.grid13_head, .grid13_sub_head, .grid13_col, .grid13_inner_col {
+    grid-column: span 13;
+}
+.grid14_head, .grid14_sub_head, .grid14_col, .grid14_inner_col {
+    grid-column: span 14;
+}
+.grid15_head, .grid15_sub_head, .grid15_col, .grid15_inner_col {
+    grid-column: span 15;
+}
+.grid16_head, .grid16_sub_head, .grid16_col, .grid16_inner_col {
+    grid-column: span 16;
+}
+.grid17_head, .grid17_sub_head, .grid17_col, .grid17_inner_col {
+    grid-column: span 17;
+}
+.grid18_head, .grid18_sub_head, .grid18_col, .grid18_inner_col {
+    grid-column: span 18;
+}
+.grid19_head, .grid19_sub_head, .grid19_col, .grid19_inner_col {
+    grid-column: span 19;
+}
+.grid20_head, .grid20_sub_head, .grid20_col, .grid20_inner_col {
+    grid-column: span 20;
 }
 
 /* Custom Grids */
+.grid2_auth_user_dialog {
+    grid-gap: 0px;
+}
 .grid2_auth_user {
     grid-gap: 0px;
     padding: 0px;
@@ -817,6 +1024,12 @@ p {
 }
 .grid1_auth_user_select {
     padding: 1px;
+}
+.grid7_project_index{
+    grid-template-columns: max-content max-content max-content 500px max-content max-content max-content;
+}
+.grid2_project_settings{
+    grid-template-columns: 150px 420px;
 }
 .grid3_project_websites {
     grid-gap: 0px;
@@ -827,11 +1040,17 @@ p {
 .grid3_project_dns {
     grid-template-columns: 150px 250px max-content;
 }
-.grid4_site_list {
-    grid-template-columns: 225px max-content max-content max-content;
+.grid4_site_name_edit {
+    grid-template-columns: 200px 28px 28px 28px;
+}
+.grid2_site_mapping {
+    grid-template-columns: minmax(250px, max-content) minmax(225px, max-content);
 }
 .grid3_site_mapping {
-    grid-template-columns: 225px 225px max-content;
+    grid-template-columns: 25px minmax(225px, max-content) minmax(225px, max-content);
+}
+.grid4_site_mapping {
+    grid-template-columns: 25px minmax(225px, max-content) minmax(225px, max-content) max-content;
 }
 .grid4_vhost_panel {
     grid-template-columns: 235px max-content max-content max-content;
@@ -870,9 +1089,12 @@ p {
     margin-top: 0px;
     margin-bottom: 0px;
 }
+.grid1_col_divider{
+    border-top: 1px solid #aaaaaa;;
+}
 
 /* Mobile page formatting */
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 950px) {
 	.grid1, .grid2, .grid3, .grid4, .grid5, .grid6, .grid7, .grid8 {
 		margin-top: 5px;
 		margin-bottom: 5px;
