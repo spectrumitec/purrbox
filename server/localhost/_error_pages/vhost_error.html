@@ -19,24 +19,51 @@
         
         <!-- Page Content -->
         <div class="content" id="content">
-            <p>
-                <b>VHost Preview Site not Found.</b><br /><br />
-				This can take a bit of time for the server to refresh the configurations. Please note if your server is not<br />
-				configured to auto refresh, the VHost preview will not display. This page will refresh in 5 seconds.<br />
-				<br />
-				If not the above, and loaded from a prior link:<br />
-                Did you rename or delete your project?<br />
-                Did you rename or delete your website?<br />
-				Perhaps on a different server?<br /><br />
-				If any changes to the project name or website name, the VHost link will match the naming.
-            </p>
+
+            <div class="error_page">
+                <div class="error_image"></div>
+                <div class="error_message">
+                    <p><b>404 Not Found</b></p>
+                    <p>
+                        Uh. Hmm, well, uh, I don't know where the page is not. It wouldn't be inaccurate to assume that I couldn't exactly not say that it is or isn't almost partially incorrect.
+                        On the contrary, I'm possibly more or less not definitely rejecting the idea that in no way with any amount of uncertainty that I undeniably do or do not know where 
+                        the page shouldn't probably be, if that indeed wasn't where it isn't. Even if the page wasn't at where I knew it was, that'd mean I'd really have to know where it wasn't.
+                    </p>
+                </div>
+                <div class="error_sub_message">
+                    <p>
+                        <b>VHost Preview Site not Found.</b><br />
+                        This can take a bit of time for the server to refresh the configurations. Please note if your server is not
+                        configured to auto refresh, the VHost preview will not display. This page will auto refresh 
+                        <b id="timer" class="font_green">#</b>.<br />
+                        <br />
+                        If not the above, and loaded from a prior link:<br />
+                        Did you rename or delete your project?<br />
+                        Did you rename or delete your website?<br />
+                        Perhaps on a different server?<br /><br />
+                        If any changes to the project name or website name, the VHost link will match the naming.
+                    </p>
+                </div>
+            </div>
         </div>
 		
 		<!-- Reload Page 5 seconds -->
 		<script>
-			setTimeout(function(){
-			   window.location.reload(1);
-			}, 5000);
+            var total = 10;
+            var count = 10
+
+            //Refresh
+            setTimeout(function(){
+                location.reload();
+			}, (total * 1000));
+
+            //Counter
+            function counter() {
+                document.getElementById("timer").innerHTML = count;
+                setTimeout(counter, 1000);
+                count = count - 1
+            }
+            counter()
 		</script>
     </body>
 </html>

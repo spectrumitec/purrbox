@@ -178,6 +178,83 @@ p {
     }
 }
 
+/* Error Pages */
+.error_page {
+	position: absolute;
+	top: 40px;
+    left: calc(50% - 325px);
+	height: 200px;
+	width: 650px;
+	background-color: white;
+	-webkit-box-shadow: 0px 5px 15px 5px rgba(0,0,0,0.5); 
+	box-shadow: 0px 5px 15px 5px rgba(0,0,0,0.5);
+}
+.error_image {
+	position: absolute;
+	width: 280px;
+	height: 200px;
+	background-image: url('images/404.png');
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+.error_message {
+	position: absolute;
+	left: 280px;
+	width: calc(100% - 300px);
+}
+.error_sub_message {
+	position: absolute;
+	top: 220px;
+	width: 100%;
+}
+
+@media screen and (max-width:1200px) {
+    .error_page {
+        top: 10px;
+        left: 10px;
+        height: 148px;
+        width: calc(100% - 20px);
+    }
+    .error_image {
+        width: 201px;
+        height: 148px;
+    }
+    .error_message {
+        left: 200px;
+        width: calc(100% - 210px);
+        padding: 10px;
+    }
+    .error_sub_message {
+        top: 160px;
+        width: 100%;
+    }
+}
+@media screen and (max-width:480px) {
+    .error_page {
+        top: 10px;
+        left: calc(50% - 175px);
+        height: calc(100% - 20px);
+        width: 350px;
+        border: 1px solid black;
+    }
+    .error_image {
+        width: 350px;
+        height: 256px;
+    }
+    .error_message {
+        top: 256px;
+        left: 0px;
+        width: 350px;
+        padding: 5px;
+    }
+    .error_sub_message {
+        top: 420px;
+        width: 100%;
+        padding: 5px;
+        border-top: 1px solid black;
+    }
+}
+
 /* Tool Tip */
 .tooltip {
     position: absolute;
@@ -311,6 +388,7 @@ p {
     background-color: white;
     padding: 5px;
     z-index: 1;
+    overflow: auto;
 }
 .content_tabs {
     height: 100%;
@@ -381,6 +459,7 @@ p {
 		font-size: 14px;
 	}
 }
+
 
 /* Read Access */
 .panel_read_access_image {

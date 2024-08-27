@@ -1230,8 +1230,9 @@ class manage_server {
                     if(allow_true == true) {
                         result.data["projects"][project] = this_project;
                     }else{
-                        result.data["projects"][project] = this_project
-                        result.data["projects"][project]["state"] = "disabled";
+                        //Removed showing project as disabled -- decide later if keeping
+                        //result.data["projects"][project] = this_project
+                        //result.data["projects"][project]["state"] = "disabled";
                     }
                 }
             }
