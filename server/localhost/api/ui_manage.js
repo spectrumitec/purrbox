@@ -94,11 +94,8 @@ exports.request = async function(params={}) {
 		break;
 
 		//Projects
-		case "project_new":
-			api_response = mgmt.project_new(_query);
-		break;
-		case "project_delete":
-			api_response = mgmt.project_delete(_query);
+		case "project_new": case "project_clone": case "project_rename": case "project_delete":
+			api_response = mgmt.project_manage(_query);
 		break;
 		case "project_set_property":
 			api_response = mgmt.project_set_property(_query)
@@ -125,10 +122,7 @@ exports.request = async function(params={}) {
 		case "website_new":
 			api_response = mgmt.website_new(_query);
 		break;
-		case "website_rename":
-			api_response = mgmt.website_rename_clone(_query);
-		break;
-		case "website_clone":
+		case "website_rename": case "website_clone":
 			api_response = mgmt.website_rename_clone(_query);
 		break;
 		case "website_delete":
@@ -169,15 +163,9 @@ exports.request = async function(params={}) {
 			api_response = mgmt.files_delete(_query);
 		break;
 
-		//DNS Manage
-		case "dns_add":
-			api_response = mgmt.dns_add(_query);
-		break;
-		case "dns_delete":
-			api_response = mgmt.dns_delete(_query);
-		break;
-		case "dns_update":
-			api_response = mgmt.dns_update(_query);
+		//Mapping updates
+		case "resolve_add": case "resolve_update": case "resolve_delete":
+			api_response = mgmt.resolve_add_update_delete(_query);
 		break;
 
 		//Default mismatch action

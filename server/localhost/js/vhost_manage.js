@@ -26,13 +26,15 @@ SOFTWARE.
 
 //Vars
 var server_configs = {};
+var server_paths = {};
+var protected_paths = {};
+
 var website_projects = {};
+var website_project_errors = {}
+
 var focused_project = "";
 var focused_panel = "";
 var focused_site = "";
-
-var server_paths = {};
-var protected_paths = {};
 
 //Project files (caller)
 var project_files_folder_open = [];
@@ -257,334 +259,6 @@ function get_configs() {
     web_calls(params)
 }
 
-//Validate project configuration
-function project_config_validate() {
-    log("project_config_validate");
-
-    //
-    // Valid flag
-    //   valid = 0      Good
-    //   valid = 1      Warning
-    //   valid = 2      Error
-    //
-
-    //Loop project structure
-    for(project in website_projects) {
-        //Default
-        website_projects[project]["valid"] = 0;
-        website_projects[project]["valid_notes"] = "";
-
-        //Check project description
-        if(website_projects[project]["project_desc"] == undefined) { 
-            website_projects[project]["valid"] = 2;
-            website_projects[project]["valid_notes"] += "Missing [project_desc] field<br />";
-            website_projects[project]["project_desc"] = "";
-        }
-
-        //Check project enabled setting
-        if(website_projects[project]["enabled"] == undefined) { 
-            website_projects[project]["valid"] = 2;
-            website_projects[project]["valid_notes"] += "Missing [enabled] field<br />";
-            website_projects[project]["enabled"] = false;
-        }else if(typeof(website_projects[project]["enabled"]) != "boolean") { 
-            website_projects[project]["valid"] = 2;
-            website_projects[project]["valid_notes"] += "field [enabled] is not a boolean type<br />";
-            website_projects[project]["enabled"] = false;
-        }
-
-        //Proxy map check
-        if(website_projects[project]["proxy_map"] == undefined || typeof(website_projects[project]["proxy_map"]) != "object") { 
-            website_projects[project]["valid"] = 2;
-            website_projects[project]["valid_notes"] += "Missing or Invalid [proxy_map] configuration section<br />";
-            website_projects[project]["proxy_map"] = {
-                "dev": {},
-                "qa": {},
-                "stage": {},
-                "prod": {}
-            }
-        }else{ 
-            if(website_projects[project]["proxy_map"]["dev"] == undefined || typeof(website_projects[project]["proxy_map"]["dev"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [proxy_map][dev] configuration section<br />";
-                website_projects[project]["proxy_map"]["dev"] = {}
-            }else{
-                for(let proxy in website_projects[project]["proxy_map"]["dev"]) {
-                    if(website_projects[project]["proxy_map"]["dev"][proxy] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `Proxy Map [proxy_map][dev][${proxy}] is not linked to a website<br />`;
-                    }
-                }
-            }
-            if(website_projects[project]["proxy_map"]["qa"] == undefined || typeof(website_projects[project]["proxy_map"]["qa"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [proxy_map][qa] configuration section<br />";
-                website_projects[project]["proxy_map"]["qa"] = {}
-            }else{
-                for(let proxy in website_projects[project]["proxy_map"]["qa"]) {
-                    if(website_projects[project]["proxy_map"]["qa"][proxy] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `Proxy Map [proxy_map][qa][${proxy}] is not linked to a website<br />`;
-                    }
-                }
-            }
-            if(website_projects[project]["proxy_map"]["stage"] == undefined || typeof(website_projects[project]["proxy_map"]["stage"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [proxy_map][stage] configuration section<br />";
-                website_projects[project]["proxy_map"]["stage"] = {}
-            }else{
-                for(let proxy in website_projects[project]["proxy_map"]["stage"]) {
-                    if(website_projects[project]["proxy_map"]["stage"][proxy] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `Proxy Map [proxy_map][stage][${proxy}] is not linked to a website<br />`;
-                    }
-                }
-            }
-            if(website_projects[project]["proxy_map"]["prod"] == undefined || typeof(website_projects[project]["proxy_map"]["prod"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [proxy_map][prod] configuration section<br />";
-                website_projects[project]["proxy_map"]["prod"] = {}
-            }else{
-                for(let proxy in website_projects[project]["proxy_map"]["prod"]) {
-                    if(website_projects[project]["proxy_map"]["prod"][proxy] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `Proxy Map [proxy_map][prod][${proxy}] is not linked to a website<br />`;
-                    }
-                }
-            }
-        }
-
-        //DNS map check
-        if(website_projects[project]["dns_names"] == undefined || typeof(website_projects[project]["dns_names"]) != "object") { 
-            website_projects[project]["valid"] = 2;
-            website_projects[project]["valid_notes"] += "Missing or Invalid [dns_names] configuration section<br />";
-            website_projects[project]["dns_names"] = {
-                "dev": {},
-                "qa": {},
-                "stage": {},
-                "prod": {}
-            }
-        }else{ 
-            if(website_projects[project]["dns_names"]["dev"] == undefined || typeof(website_projects[project]["dns_names"]["dev"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [dns_names][dev] configuration section<br />";
-                website_projects[project]["dns_names"]["dev"] = {}
-            }else{
-                for(let dns_name in website_projects[project]["dns_names"]["dev"]) {
-                    if(website_projects[project]["dns_names"]["dev"][dns_name] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `DNS Name [dns_names][dev][${dns_name}] is not linked to a website<br />`;
-                    }
-                }
-            }
-            if(website_projects[project]["dns_names"]["qa"] == undefined || typeof(website_projects[project]["dns_names"]["qa"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [dns_names][qa] configuration section<br />";
-                website_projects[project]["dns_names"]["qa"] = {}
-            }else{
-                for(let dns_name in website_projects[project]["dns_names"]["qa"]) {
-                    if(website_projects[project]["dns_names"]["qa"][dns_name] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `DNS Name [dns_names][qa][${dns_name}] is not linked to a website<br />`;
-                    }
-                }
-            }
-            if(website_projects[project]["dns_names"]["stage"] == undefined || typeof(website_projects[project]["dns_names"]["stage"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [dns_names][stage] configuration section<br />";
-                website_projects[project]["dns_names"]["stage"] = {}
-            }else{
-                for(let dns_name in website_projects[project]["dns_names"]["stage"]) {
-                    if(website_projects[project]["dns_names"]["stage"][dns_name] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `DNS Name [dns_names][stage][${dns_name}] is not linked to a website<br />`;
-                    }
-                }
-            }
-            if(website_projects[project]["dns_names"]["prod"] == undefined || typeof(website_projects[project]["dns_names"]["prod"]) != "object") {
-                website_projects[project]["valid"] = 2;
-                website_projects[project]["valid_notes"] += "Missing or Invalid [dns_names][prod] configuration section<br />";
-                website_projects[project]["dns_names"]["prod"] = {}
-            }else{
-                for(let dns_name in website_projects[project]["dns_names"]["prod"]) {
-                    if(website_projects[project]["dns_names"]["prod"][dns_name] == "") {
-                        if(website_projects[project]["valid"] == 0) {
-                            website_projects[project]["valid"] = 1;
-                        }
-                        website_projects[project]["valid_notes"] += `DNS Name [dns_names][prod][${dns_name}] is not linked to a website<br />`;
-                    }
-                }
-            }
-        }
-
-        //Check project websites structure
-        if(website_projects[project]["websites"] != undefined) { 
-            for(website in website_projects[project]["websites"]) {
-                //Check website config structure
-                if(website_projects[project]["websites"][website]["ssl_redirect"] == undefined) {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["websites"][website]["ssl_redirect"] = true;
-                }
-
-                //Check if maintenance mode is an object (dev, qa, stage and prod)
-                if(website_projects[project]["websites"][website]["maintenance"] == undefined || typeof(website_projects[project]["websites"][website]["maintenance"]) != "object") {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Missing or Invalid [${website}][maintenance] configuration section<br />`;
-                    website_projects[project]["websites"][website]["maintenance"] = {
-                        "dev": false,
-                        "qa": false,
-                        "stage": false,
-                        "prod": false
-                    }
-                }else{
-                    if(website_projects[project]["websites"][website]["maintenance"]["dev"] == undefined || typeof(website_projects[project]["websites"][website]["maintenance"]["dev"]) != "boolean") {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing or Invalid [${website}][maintenance][dev] configuration section<br />`;
-                        website_projects[project]["websites"][website]["maintenance"]["dev"] = false;
-                    }
-                    if(website_projects[project]["websites"][website]["maintenance"]["qa"] == undefined || typeof(website_projects[project]["websites"][website]["maintenance"]["dev"]) != "boolean") {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing or Invalid [${website}][maintenance][qa] configuration section<br />`;
-                        website_projects[project]["websites"][website]["maintenance"]["qa"] = false;
-                    }
-                    if(website_projects[project]["websites"][website]["maintenance"]["stage"] == undefined || typeof(website_projects[project]["websites"][website]["maintenance"]["dev"]) != "boolean") {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing or Invalid [${website}][maintenance][stage] configuration section<br />`;
-                        website_projects[project]["websites"][website]["maintenance"]["stage"] = false;
-                    }
-                    if(website_projects[project]["websites"][website]["maintenance"]["prod"] == undefined || typeof(website_projects[project]["websites"][website]["maintenance"]["dev"]) != "boolean") {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing or Invalid [${website}][maintenance][prod] configuration section<br />`;
-                        website_projects[project]["websites"][website]["maintenance"]["prod"] = false;
-                    }
-                }
-
-                //Check default maintenance page
-                if(website_projects[project]["websites"][website]["maintenance_page"] == undefined) {   
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Missing [${website}][maintenance_page] field<br />`;
-                    website_projects[project]["websites"][website]["maintenance_page"] = "";
-                }
-
-                //Check default document
-                if(website_projects[project]["websites"][website]["default_doc"] == undefined) {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Missing [${website}][default_doc] field<br />`;
-                    website_projects[project]["websites"][website]["default_doc"] = "";
-                }
-
-                //Check error pages
-                if(website_projects[project]["websites"][website]["default_errors"] == undefined || typeof(website_projects[project]["websites"][website]["default_errors"]) != "object") {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Missing or Invalid [${website}][default_errors] configuration section<br />`;
-                    website_projects[project]["websites"][website]["default_errors"] = {
-                        //"401": "",      // Unauthorized
-                        //"403": "",      // Forbidden
-                        "404": "",      // Not Found
-                        //"405": "",      // Method not allowed
-                        //"408": "",      // Request Timeout
-                        //"414": "",      // URI Too Long
-                        "500": ""       // Internal Server Error
-                    }
-                }else{
-                    /*
-                    if(website_projects[project]["websites"][website]["default_errors"]["401"] == undefined) {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing [${website}][default_errors][401] field<br />`;
-                        website_projects[project]["websites"][website]["default_errors"]["401"] = "";
-                    }
-                    if(website_projects[project]["websites"][website]["default_errors"]["403"] == undefined) {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing [${website}][default_errors][403] field<br />`;
-                        website_projects[project]["websites"][website]["default_errors"]["403"] = "";
-                    }
-                    */
-                    if(website_projects[project]["websites"][website]["default_errors"]["404"] == undefined) {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing [${website}][default_errors][404] field<br />`;
-                        website_projects[project]["websites"][website]["default_errors"]["404"] = "";
-                    }
-                    /*
-                    if(website_projects[project]["websites"][website]["default_errors"]["405"] == undefined) {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing [${website}][default_errors][405] field<br />`;
-                        website_projects[project]["websites"][website]["default_errors"]["405"] = "";
-                    }
-                    if(website_projects[project]["websites"][website]["default_errors"]["408"] == undefined) {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing [${website}][default_errors][408] field<br />`;
-                        website_projects[project]["websites"][website]["default_errors"]["408"] = "";
-                    }
-                    if(website_projects[project]["websites"][website]["default_errors"]["414"] == undefined) {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing [${website}][default_errors][414] field<br />`;
-                        website_projects[project]["websites"][website]["default_errors"]["414"] = "";
-                    }
-                    */
-                    if(website_projects[project]["websites"][website]["default_errors"]["500"] == undefined) {
-                        website_projects[project]["valid"] = 2;
-                        website_projects[project]["valid_notes"] += `Missing [${website}][default_errors][500] field<br />`;
-                        website_projects[project]["websites"][website]["default_errors"]["500"] = "";
-                    }
-                }
-
-                //Check apis_fixed_path
-                if(website_projects[project]["websites"][website]["apis_fixed_path"] == undefined || typeof(website_projects[project]["websites"][website]["apis_fixed_path"]) != "object") {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Invalid [${website}][apis_fixed_path] configuration section<br />`;
-                    website_projects[project]["websites"][website]["apis_fixed_path"] = {}
-                }
-                if(website_projects[project]["websites"][website]["apis_dynamic_path"] == undefined || typeof(website_projects[project]["websites"][website]["apis_dynamic_path"]) != "object") {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Invalid [${website}][apis_dynamic_path] configuration section<br />`;
-                    website_projects[project]["websites"][website]["apis_dynamic_path"] = {}
-                }
-                if(website_projects[project]["websites"][website]["path_static"] == undefined || typeof(website_projects[project]["websites"][website]["path_static"]) != "object") {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Invalid [${website}][path_static] configuration section<br />`;
-                    website_projects[project]["websites"][website]["path_static"] = {}
-                }
-                if(website_projects[project]["websites"][website]["path_static_server_exec"] == undefined || typeof(website_projects[project]["websites"][website]["path_static_server_exec"]) != "object") {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Invalid [${website}][path_static_server_exec] configuration section<br />`;
-                    website_projects[project]["websites"][website]["path_static_server_exec"] = {}
-                }
-                if(website_projects[project]["websites"][website]["sub_map"] == undefined || typeof(website_projects[project]["websites"][website]["sub_map"]) != "object") {
-                    website_projects[project]["valid"] = 2;
-                    website_projects[project]["valid_notes"] += `Invalid [${website}][sub_map] configuration section<br />`;
-                    website_projects[project]["websites"][website]["sub_map"] = {}
-                }
-            }
-        }
-
-        //Log invalid
-        let log_msg = "good";
-        if(website_projects[project]["valid"] > 0) {
-            if(website_projects[project]["valid"] == 1) {
-                log_msg = "warning";
-            }else if(website_projects[project]["valid"] == 2) {
-                log_msg = "error";
-            }
-
-            log(`project_config_validate :: invalid config for project[${project}] state[${log_msg}]`);
-        }
-
-    }
-}
-
 //Manage projects
 function project_new() {
     log("project_new");
@@ -604,8 +278,8 @@ function project_new() {
     let url = "api/ui_manage";
     let json = {
         "action":"project_new",
-        "project":this_project,
-        "desc":this_desc
+        "project_name":this_project,
+        "project_desc":this_desc
     }
 
     //Set call parameters
@@ -620,6 +294,76 @@ function project_new() {
     //Execute call
     web_calls(params)
 }
+function project_clone() {
+    log("project_clone");
+
+    //Get fields
+    let project_name = $("#project_name").val();
+    $("#dialog").dialog("close");
+
+    //Validate field
+    if(project_name == "") {
+        dialog("Error","Project Name cannot be blank")
+        return;
+    }
+
+    //Set URL
+    let url = "api/ui_manage";
+    let json = {
+        "action":"project_clone",
+        "project_selected":focused_project,
+        "project_name":project_name
+    }
+
+    //Set call parameters
+    let params = {
+        "id":"project_clone",
+        "func_call":get_configs,
+        "method":"GET",
+        "url":url,
+        "query":json
+    }
+
+    console.log(json)
+
+    //Execute call
+    web_calls(params)
+}
+function project_rename() {
+    log("project_rename");
+
+    //Get fields
+    let project_name = $("#project_name").val();
+    $("#dialog").dialog("close");
+
+    //Validate field
+    if(project_name == "") {
+        dialog("Error","Project Name cannot be blank")
+        return;
+    }
+
+    //Set URL
+    let url = "api/ui_manage";
+    let json = {
+        "action":"project_rename",
+        "project_selected":focused_project,
+        "project_name":project_name
+    }
+
+    //Set call parameters
+    let params = {
+        "id":"project_rename",
+        "func_call":project_focus_reset,
+        "method":"GET",
+        "url":url,
+        "query":json
+    }
+
+    console.log(json)
+
+    //Execute call
+    web_calls(params)
+}
 function project_delete() {
     log("project_delete");
 
@@ -630,22 +374,24 @@ function project_delete() {
     let url = "api/ui_manage";
     let json = {
         "action":"project_delete",
-        "project":focused_project
+        "project_selected":focused_project
     }
 
     //Set call parameters
     let params = {
         "id":"project_delete",
-        "func_call":project_delete_reset,
+        "func_call":project_focus_reset,
         "method":"GET",
         "url":url,
         "query":json
     }
 
+    console.log(json)
+
     //Execute call
     web_calls(params)
 }
-function project_delete_reset() {
+function project_focus_reset() {
     //Clear management page
     $("#project_title").html("");
     $("#project_panel").html("");
@@ -1005,8 +751,6 @@ function website_set_property(property, value, env=null) {
         "query":json
     }
 
-    console.log(json)
-
     //Execute call
     web_calls(params)
 }
@@ -1243,29 +987,45 @@ function files_delete() {
     web_calls(params)
 }
 
-//Manage Porject DNS
-function dns_add() {
-    log("dns_add");
+//Manage Porject Mapping
+function resolve_add_map() {
+    log("resolve_add_map");
 
     //Get fields
-    let this_env = $("#dns_env").val();
-    let this_dns = $("#dns_name").val();
-    let this_site = $("#site_name").val();
-    $("#dialog").dialog("close");
+    let this_proj = $("#resolve_add_project").val();
+    let this_type = $("#resolve_add_type").val();
+    let this_env = $("#resolve_add_env").val();
+    let this_url = $("#resolve_add_url").val();
+    let this_site = $("#resolve_add_site").val();
+
+    //Strip out any 'http://' or 'https://'
+    if(this_url.startsWith("http://")) {
+        this_url = this_url.replace("http://", "");
+    }
+    if(this_url.startsWith("https://")) {
+        this_url = this_url.replace("https://", "");
+    }
+
+    //Check type dns_names, make sure only hostname
+    if(this_type == "dns_names") {
+        let parse_url = this_url.split("/");
+        this_url = parse_url[0];
+    }
 
     // Set URL
     let url = "api/ui_manage";
     let json = {
-        "action":"dns_add",
-        "project":focused_project,
+        "action":"resolve_add",
+        "project":this_proj,
+        "type":this_type,
         "env": this_env,
-        "dns": this_dns,
+        "url": this_url,
         "site": this_site
     }
 
     //Set call parameters
     let params = {
-        "id":"dns_add",
+        "id":"resolve_add",
         "func_call":get_configs,
         "method":"GET",
         "url":url,
@@ -1275,59 +1035,80 @@ function dns_add() {
     //Execute call
     web_calls(params)
 }
-function dns_delete() {
-    log("dns_delete");
+function resolve_update_map(value) {
+    log("resolve_update_map");
 
-    //Get fields
-    let this_env = $("#dns_env").val();
-    let this_dns = $("#dns_name").val();
-    $("#dialog").dialog("close");
+    //Set vars
+    let this_update = "";
+    let this_proj = "";
+    let this_type = "";
+    let this_env = "";
+    let this_url = "";
+    let this_change = "";
+
+    //Parse values
+    try {
+        let parse_value = value.split("::");
+        this_update = parse_value[0];
+        this_proj = parse_value[1];
+        this_type = parse_value[2];
+        this_env = parse_value[3];
+        this_url = parse_value[4];
+        this_change = parse_value[5];
+    }catch(e) {
+        dialog("Error", "Function caused an invalid call");
+        return;
+    }
 
     // Set URL
     let url = "api/ui_manage";
     let json = {
-        "action":"dns_delete",
-        "project":focused_project,
+        "action":"resolve_update",
+        "update":this_update,
+        "project":this_proj,
+        "type":this_type,
         "env": this_env,
-        "dns": this_dns
+        "url": this_url,
+        "change": this_change
     }
 
     //Set call parameters
     let params = {
-        "id":"dns_delete",
+        "id":"resolve_update",
         "func_call":get_configs,
         "method":"GET",
         "url":url,
         "query":json
     }
 
+    console.log(json)
+
     //Execute call
     web_calls(params)
 }
-function dns_update(env, dns_site) {
-    log("dns_update");
+function resolve_delete_map() {
+    log("resolve_delete_map");
 
-    //API pre-check
-    if(api_check_project(["dns_adm"]) == false) { return }
+    //Get fields
+    let this_proj = $("#resolve_delete_proj").val();
+    let this_type = $("#resolve_delete_type").val();
+    let this_env = $("#resolve_delete_env").val();
+    let this_url = $("#resolve_delete_url").val();
+    $("#dialog").dialog("close");
 
-    //Parse dns_site
-    let this_change = dns_site.split(":");
-    let this_dns = this_change[0];
-    let this_site = this_change[1];
-    
     // Set URL
     let url = "api/ui_manage";
     let json = {
-        "action":"dns_update",
-        "project":focused_project,
-        "env": env,
-        "dns": this_dns,
-        "site": this_site
+        "action":"resolve_delete",
+        "project":this_proj,
+        "type":this_type,
+        "env": this_env,
+        "url": this_url
     }
 
     //Set call parameters
     let params = {
-        "id":"dns_update",
+        "id":"resolve_delete",
         "func_call":get_configs,
         "method":"GET",
         "url":url,
@@ -1372,12 +1153,7 @@ function ui_projects_page_html() {
     //Set HTML
     let html = `
         <div class="project_list">
-            <div class="project_menu">
-                <div id="project_new" class="project_menu_btn project_menu_btn_new" onClick="ui_project_new();" title="New Project"></div>
-                <div id="template_new" class="project_menu_btn project_menu_btn_template" onClick="ui_template_create();" title="New Template"></div>
-                <div id="project_refresh" class="project_menu_btn project_menu_btn_refresh" onClick="get_configs();" title="Refresh Projects"></div>
-                <div id="project_delete" class="project_menu_btn project_menu_btn_trash" onClick="ui_project_delete();" title="Delete Project"></div>
-            </div>
+            <div id="project_menu" class="project_menu"></div>
             <div class="project_tree" id="project_tree"></div>
         </div>
         <div class="project_manage" id="project_manage">
@@ -1396,14 +1172,14 @@ function ui_build_page_content(data) {
 
     //Store configs
     server_configs = data.server;
-    website_projects = data.projects;
 
     //Paths
     server_paths = data.paths;
     protected_paths = data.protected_paths;
 
-    //Validate project configuration files
-    project_config_validate()
+    //Project Data
+    website_projects = data.projects;
+    website_project_errors = data.project_error;
 
     //Get user settings
     if(data.user_authorize != undefined) {
@@ -1424,7 +1200,10 @@ function ui_build_page_content(data) {
         });
     }
 
-    //Build Website Projects Page
+    //Build button bar over tree navigation
+    ui_build_nav_menu_buttons();
+
+    //Build navigation tree
     ui_build_tree_nav();
 
     //Build panel window
@@ -1527,6 +1306,70 @@ function ui_dir_jstree_state(dir) {
     return dir;
 }
 
+//Project nav buttons above tree
+function ui_build_nav_menu_buttons() {
+    log("ui_build_nav_menu_buttons")
+
+    //Check sites and settings permissions
+    let admin_access = api_check_global(["project_adm"]);
+    let create_access = api_check_global(["project_create"]);
+    let no_admin = " project_menu_btn_transparent";
+    let no_create = " project_menu_btn_transparent";
+
+    //Unhide certain buttons
+    if(admin_access == true) {
+        no_admin = "";
+        no_create = "";
+    }else if(create_access == true) {
+        no_create = "";
+    }
+
+    //HTML buttons
+    let html = `
+        <div id="project_new" class="project_menu_btn icon_box${no_create}" title="New Project"></div>
+        <div id="project_clone" class="project_menu_btn icon_box_clone${no_create}" title="Clone Project"></div>
+        <div id="project_rename" class="project_menu_btn icon_write${no_create}" title="Rename Project"></div>
+        <div id="template_new" class="project_menu_btn icon_template${no_admin}" title="Create Website Template"></div>
+        <div id="project_delete" class="project_menu_btn icon_trash${no_create}" title="Delete Project"></div>
+        <div id="project_reload" class="project_menu_btn icon_reload" title="Reload Projects"></div>
+    `;
+
+    //Update buttons
+    $("#project_menu").html(html);
+
+    //All access listeners
+    var lis_project_reload = document.getElementById("project_reload");
+    lis_project_reload.addEventListener("click", function(event){
+        get_configs();
+    });
+
+    //Set listeners
+    if(admin_access == true || create_access == true) {
+        var lis_project_new = document.getElementById("project_new");
+        var lis_project_clone = document.getElementById("project_clone");
+        var lis_project_rename = document.getElementById("project_rename");
+        var lis_project_delete = document.getElementById("project_delete");
+        lis_project_new.addEventListener("click", function(event){
+            ui_project_new();
+        });
+        lis_project_clone.addEventListener("click", function(event){
+            ui_project_clone();
+        });
+        lis_project_rename.addEventListener("click", function(event){
+            ui_project_rename();
+        });
+        lis_project_delete.addEventListener("click", function(event){
+            ui_project_delete();
+        });
+    }
+    if(admin_access == true) {
+        var lis_template_new = document.getElementById("template_new");
+        lis_template_new.addEventListener("click", function(event){
+            ui_template_create();
+        });
+    }
+}
+
 //Project tree list
 function ui_build_tree_nav() {
     log("ui_build_tree_nav");
@@ -1591,39 +1434,14 @@ function ui_build_tree_nav() {
                 "children": project_all
             },
             {
-                "id" : "mapping",
-                "text" : "Mapping",
-                "icon" : "images/mapping_icon.png",
+                "id" : "resolve",
+                "text" : "Resolve",
+                "icon" : "images/resolve_icon.png",
                 "state" : {
                     "opened" : true,
                     "selected" : false
                 },
-                "children": [
-                    {
-                        "id" : "mapping_proxy",
-                        "text" : "Proxy Map (future)",
-                        "icon" : "images/world_icon.png",
-                        "state" : {
-                            "opened" : true,
-                            "selected" : false
-                        },
-                        "children": [
-                            
-                        ]
-                    },
-                    {
-                        "id" : "mapping_dns",
-                        "text" : "DNS FQDN",
-                        "icon" : "images/world_icon.png",
-                        "state" : {
-                            "opened" : true,
-                            "selected" : false
-                        },
-                        "children": [
-                            
-                        ]
-                    }
-                ]
+                "children": []
             }
         ]
     }};
@@ -1671,11 +1489,6 @@ function ui_build_project_tree(project_name, project_data) {
             "id" : `project_files::${project_name}`,
             "text" : "Project Files",
             "icon" : "images/folder_icon.png"
-        },
-        {
-            "id" : `project_dns::${project_name}`,
-            "text" : "DNS Resolution",
-            "icon" : "images/world_icon.png"
         }
     ];
 
@@ -1685,7 +1498,7 @@ function ui_build_project_tree(project_name, project_data) {
                 "id":`project_site::${project_name}::${site}`,
                 "parent":"project_websites",
                 "text":`${site}`,
-                "icon" : "images/gear_icon.png"
+                "icon" : "images/world_icon.png"
             };
         
         //Add to tree
@@ -1751,23 +1564,9 @@ function ui_project_tree_click(data) {
                     focused_panel = "project_panel_files";
                     focused_site = "";
                     break;
-                case "project_dns":
-                    focused_panel = "project_panel_dns";
-                    focused_site = "";
-                    break;
 
-                case "mapping":
-                    focused_panel = "mapping_panel";
-                    focused_project = "";
-                    focused_site = "";
-                    break;
-                case "mapping_proxy":
-                    focused_panel = "mapping_panel_proxy";
-                    focused_project = "";
-                    focused_site = "";
-                    break;
-                case "mapping_dns":
-                    focused_panel = "mapping_panel_dns";
+                case "resolve":
+                    focused_panel = "resolve_panel";
                     focused_project = "";
                     focused_site = "";
                     break;
@@ -1795,18 +1594,18 @@ function ui_project_new() {
     log("ui_project_new");
 
     //API pre-check
-    if(api_check_global(["project_adm"]) == false) { return }
+    if(api_check_global(["project_adm", "project_create"]) == false) { return }
 
     //Create dialog HTML
     html = `
-        <div class="grid2">
+        <div class="grid2_inner">
             <div class="grid1_col">Project Name:</div>
             <div class="grid1_col">
                 <input type="text" id="project_new_name" value="" autocomplete="off">
             </div>
             <div class="grid1_col">Project Description:</div>
             <div class="grid1_col">
-                <input type="text" id="project_new_desc" value="" autocomplete="off">
+                <textarea id="project_new_desc"></textarea>
             </div>
         </div>
         
@@ -1818,11 +1617,77 @@ function ui_project_new() {
     //Call dialog function
     dialog("New Project", html);
 }
+function ui_project_clone() {
+    log("ui_project_clone");
+
+    //API pre-check
+    if(api_check_global(["project_adm", "project_create"]) == false) { return }
+
+    console.log(user_authorize)
+
+    //Check if project selected
+    if(focused_project == "") {
+        dialog("Error", "A project is not selected. Please select a project to clone.");
+        return;
+    }
+
+    //Create dialog HTML
+    html = `
+        <div class="grid2_inner">
+            <div class="grid1_col">Selected Project:</div>
+            <div class="grid1_col">${focused_project}</div>
+            <div class="grid1_col">Name of Clone:</div>
+            <div class="grid1_col">
+                <input type="text" id="project_name" value="" autocomplete="off">
+            </div>
+        </div>
+        
+        <br /><br />
+        <input type="button" value="Clone" onClick="project_clone();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+    `;
+
+    //Call dialog function
+    dialog("Clone Project", html);
+}
+function ui_project_rename() {
+    log("ui_project_rename");
+
+    //API pre-check
+    if(api_check_global(["project_adm", "project_create"]) == false) { return }
+
+    console.log(user_authorize)
+
+    //Check if project selected
+    if(focused_project == "") {
+        dialog("Error", "A project is not selected. Please select a project to clone.");
+        return;
+    }
+
+    //Create dialog HTML
+    html = `
+        <div class="grid2_inner">
+            <div class="grid1_col">Selected Project:</div>
+            <div class="grid1_col">${focused_project}</div>
+            <div class="grid1_col">Rename to:</div>
+            <div class="grid1_col">
+                <input type="text" id="project_name" value="" autocomplete="off">
+            </div>
+        </div>
+        
+        <br /><br />
+        <input type="button" value="Rename" onClick="project_rename();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+    `;
+
+    //Call dialog function
+    dialog("Rename Project", html);
+}
 function ui_project_delete() {
     log("ui_project_delete");
 
     //API pre-check
-    if(api_check_project() == false) { return }
+    if(api_check_global(["project_adm", "project_create"]) == false) { return }
 
     //Check if project selected
     if(focused_project == "") {
@@ -1833,7 +1698,7 @@ function ui_project_delete() {
     //Prompt user
     let html_dialog = `
         <div>Are you sure you want to delete project [<b>${focused_project}</b>] ?</div><br />
-        <input type="button" value="Yes" onClick="project_delete(null, 'yes');">
+        <input type="button" value="Yes" onClick="project_delete();">
         <input type="button" value="No" onClick="$('#dialog').dialog('close');">
         `;
 
@@ -1872,11 +1737,8 @@ function ui_build_content_panel() {
             case "project_panel_mapping":   ui_project_sites_and_settings(); break;
             case "project_panel_website":   ui_project_site(); break;
             case "project_panel_files":     ui_project_files(); break;
-            case "project_panel_dns":       ui_project_dns(); break;
 
-            case "mapping_panel":           ui_mapping_index(); break;
-            case "mapping_panel_proxy":     ui_mapping_proxy(); break;
-            case "mapping_panel_dns":       ui_mapping_dns(); break;
+            case "resolve_panel":           ui_resolve_panel(); break;
         }
     }
 }
@@ -1911,14 +1773,25 @@ function ui_helptip_nav_buttons() {
 
     let html = `
         <div class="grid2_inner">
+            <div class="grid2_head">Top of Navigation Tree Buttons</div>
             <div class="grid1_col"><img src="images/box_icon.png" alt="" /></div>
             <div class="grid1_col">Create a project</div>
+            <div class="grid1_col"><img src="images/box_clone_icon.png" alt="" /></div>
+            <div class="grid1_col">Clone a project</div>
+            <div class="grid1_col"><img src="images/write_icon.png" alt="" /></div>
+            <div class="grid1_col">Rename a project</div>
             <div class="grid1_col"><img src="images/template_icon.png" alt="" /></div>
             <div class="grid1_col">Select a project and turn it into a re-usable template</div>
-            <div class="grid1_col"><img src="images/reload_icon.png" alt="" /></div>
-            <div class="grid1_col">Refresh configurations from server</div>
             <div class="grid1_col"><img src="images/trash_icon.png" alt="" /></div>
             <div class="grid1_col">Select project in the projects tree and delete it</div>
+            <div class="grid1_col"><img src="images/reload_icon.png" alt="" /></div>
+            <div class="grid1_col">Reload project configurations from server (refresh)</div>
+            <div class="grid2_col"></div>
+            <div class="grid2_head">Side Navigation</div>
+            <div class="grid1_col"><img src="images/box_icon.png" alt="" /></div>
+            <div class="grid1_col">Your projects will list under this icon on the tree</div>
+            <div class="grid1_col"><img src="images/resolve_icon.png" alt="" /></div>
+            <div class="grid1_col">Once you have projects with websites, you can setup Proxy Map and DNS Name</div>
         </div>
     `;
     return html;
@@ -1932,7 +1805,6 @@ function ui_project_index() {
     let html_projects = "";
     let html_projects_rows = "";
     for(project in website_projects) {
-        let config_valid = "";
         let project_enabled = website_projects[project]["enabled"];
         let project_desc = website_projects[project]["project_desc"];
         let site_count = Object.keys(website_projects[project]["websites"]).length;
@@ -1953,16 +1825,20 @@ function ui_project_index() {
             log(`ui_project_index :: Error counting Proxy and DNS maps`)
         }
 
+        //Get project errors
+        let this_error = "good";
+        if(website_project_errors[project] != undefined) {
+            this_error = website_project_errors[project]["errlvl"];
+        }
+
         //Format enabled and disables
-        switch(website_projects[project]["valid"]) {
-            case 0:
-                config_valid = `<div class="project_config_state project_config_state_good"></div>`;
+        let config_valid = `<div class="icon icon_size icon_good"></div>`;
+        switch(this_error) {
+            case "warning":
+                config_valid = `<div class="icon icon_size icon_warning"></div>`;
             break;
-            case 1:
-                config_valid = `<div class="project_config_state project_config_state_warning"></div>`;
-            break;
-            case 2:
-                config_valid = `<div class="project_config_state project_config_state_error"></div>`;
+            case "error":
+                config_valid = `<div class="icon icon_size icon_error"></div>`;
             break;
         }
         
@@ -1997,7 +1873,7 @@ function ui_project_index() {
     html_projects = `
         <div class="grid7 grid7_project_index">
             <div class="grid5_head">Projects</div>
-            <div class="grid2_head">Mapping</div>
+            <div class="grid2_head">Resolve</div>
             <div class="grid1_sub_head">Valid Config</div>
             <div class="grid1_sub_head">Enabled</div>
             <div class="grid1_sub_head">Name</div>
@@ -2013,27 +1889,379 @@ function ui_project_index() {
     $("#project_title").html("Projects");
     $("#project_panel").html(html_projects);
 }
-function ui_mapping_index() {
-    log(`ui_mapping_index :: UI mapping top level`)
+function ui_resolve_panel() {
+    log(`ui_resolve_panel`)
+    
+    //Check sites and settings permissions
+    let panel_write_access = api_check_global(["dns_adm"]);
+    let read_access = "";
+    if(panel_write_access == false) {
+        read_access = ui_panel_read_only()
+    }
 
-    //Define HTML
-    let html = ui_mapping_vhost_summary() +
-               "<br />" +
-               ui_mapping_fqdn_summary()
+    //Get server conf
+    let http_on = server_configs.http_on;
+    let http_port = server_configs.http_port;
+    let https_on = server_configs.https_on;
+    let https_port = server_configs.https_port;
 
-    //HTML Content
-    $("#project_title").html("Mapping");
+    //Create FQDN list
+    let html_fqdn_rows = "";
+
+    //Loop through projects
+    let select_project = "";
+    for(let project in website_projects) {
+        //Set project data
+        let project_data = website_projects[project];
+
+        //Set project options list
+        select_project += `<option value="${project}">${project}</option>`;
+
+        //Loop through environments
+        let mapping = ["proxy_map", "dns_names"]
+        for(let m in mapping) {
+            let resolve_type = mapping[m];
+
+            //Set type label
+            let resolve_type_label = "Proxy Map";
+            if(resolve_type == "dns_names") {
+                resolve_type_label = "DNS FQDN";
+            }
+
+            //Loop environments
+            for(let env in project_data[resolve_type]) {
+                //Process server modes DNS config
+                for(let resolve_url in project_data[resolve_type][env]) {
+                    //Parse URL for Proxy Mapping
+                    let this_hostname = "";
+                    let this_path = "";
+                    if(resolve_type == "proxy_map") {
+                        //Parse URL
+                        let parse_url = resolve_url.split("/");
+                        this_hostname = parse_url[0];
+                        this_path = resolve_url.substring(this_hostname.length, resolve_url.length);
+                    }else{
+                        this_hostname = resolve_url;
+                        this_path = "/";
+                    }
+
+                    //Links
+                    let this_http_url = "";
+                    let this_https_url = "";
+                    let this_http_a = "";
+                    let this_https_a = "";
+
+                    //Get URL for HTTP
+                    if(http_on == true) {
+                        if(http_port == "80") {
+                            this_http_url = `http://${this_hostname}${this_path}`;
+                        }else{
+                            this_http_url = `http://${this_hostname}:${http_port}${this_path}`;
+                        }
+                        this_http_a = `<a href="${this_http_url}" target="_blank">HTTP</a>`;
+                    }else{
+                        this_http_a = `-`;
+                    }
+
+                    //Get URL for HTTPS
+                    if(https_on == true) {
+                        if(https_port == "443") {
+                            this_https_url = `https://${this_hostname}${this_path}`;
+                        }else{
+                            this_https_url = `https://${this_hostname}:${http_port}${this_path}`;
+                        }
+                        this_https_a = `<a href="${this_https_url}" target="_blank">HTTPS</a>`;
+                    }else{
+                        this_https_a = `-`;
+                    }
+
+                    //Check site not mapped
+                    this_site = project_data[resolve_type][env][resolve_url];
+
+                    //Check disabled
+                    if(project_data.enabled == false || this_site == "") {
+                        this_http_a = `-`;
+                        this_https_a = `-`;
+                    }
+
+                    //Check panel write access
+                    if(panel_write_access == true) {
+                        let btn_delete = "";
+                        let select_project = "";
+                        let select_env = "";
+                        let select_site = "";
+
+                        //
+                        // Drop down list change value breakdown (separator :: )
+                        //   0 - update type
+                        //   1 - project name (origin)
+                        //   2 - resolve type
+                        //   3 - environment
+                        //   4 - URL
+                        //   5 - change value
+
+                        //Build project list drop down
+                        for(let new_project in website_projects) {
+                            if(project == new_project) {
+                                select_project += `<option value="resolve_select_project::${project}::${resolve_type}::${env}::${resolve_url}::${new_project}" selected>${new_project}</option>`;
+                            }else{
+                                select_project += `<option value="resolve_select_project::${project}::${resolve_type}::${env}::${resolve_url}::${new_project}">${new_project}</option>`;
+                            }
+                        }
+                        select_project = `
+                            <select id="resolve_select_project::${project}::${resolve_type}::${env}::${resolve_url}" class="resolve_project_option">
+                                ${select_project}
+                            </select>
+                        `;
+
+                        //Build environment list drop down
+                        let these_env = ["dev","qa","stage","prod"];
+                        for(let e in these_env) {
+                            let new_env = these_env[e];
+                            if(env == new_env) {
+                                select_env += `<option value="resolve_select_env::${project}::${resolve_type}::${env}::${resolve_url}::${new_env}" selected>${new_env}</option>`;
+                            }else{
+                                select_env += `<option value="resolve_select_env::${project}::${resolve_type}::${env}::${resolve_url}::${new_env}">${new_env}</option>`;
+                            }
+                        }
+                        select_env = `
+                            <select id="resolve_select_env::${project}::${resolve_type}::${env}::${resolve_url}" class="resolve_env_option">
+                                ${select_env}
+                            </select>
+                        `;
+
+                        //Build site list for drop down (related to current project)
+                        for(let new_site in project_data.websites) {
+                            if(this_site == new_site) {
+                                select_site += `<option value="resolve_select_site::${project}::${resolve_type}::${env}::${resolve_url}::${new_site}" selected>${new_site}</option>`;
+                            }else{
+                                select_site += `<option value="resolve_select_site::${project}::${resolve_type}::${env}::${resolve_url}::${new_site}">${new_site}</option>`;
+                            }
+                        }
+                        select_site = `
+                            <select id="resolve_select_site::${project}::${resolve_type}::${env}::${resolve_url}" class="resolve_website_option">
+                                <option value="resolve_select_site::${project}::${resolve_type}::${env}::${resolve_url}::"></option>
+                                ${select_site}
+                            </select>
+                        `;
+
+                        //Delete button
+                        btn_delete = `<div id="resolve_trash_site::${project}::${resolve_type}::${env}::${resolve_url}" class="icon icon_size icon_trash"></div>`;
+
+                        //Append server mode config
+                        html_fqdn_rows += `
+                            <div class="grid1_col">${select_project}</div>
+                            <div class="grid1_col">${resolve_type_label}</div>
+                            <div class="grid1_col">${select_env}</div>
+                            <div class="grid1_col">${resolve_url}</div>
+                            <div class="grid1_col">${this_http_a}</div>
+                            <div class="grid1_col">${this_https_a}</div>
+                            <div class="grid1_col">${select_site}</div>
+                            <div class="grid1_col">${btn_delete}</div>
+                        `;
+
+                    }else{
+                        if(this_site == "") {
+                            this_site = `<span class="font_red">(unmapped)</span>`;
+                        }
+
+                        //Append server mode config
+                        html_fqdn_rows += `
+                            <div class="grid1_col">${project}</div>
+                            <div class="grid1_col">${resolve_type_label}</div>
+                            <div class="grid1_col">${env}</div>
+                            <div class="grid1_col">${resolve_url}</div>
+                            <div class="grid1_col">${this_http_a}</div>
+                            <div class="grid1_col">${this_https_a}</div>
+                            <div class="grid2_col">${this_site}</div>
+                        `;
+                    }
+                }
+            }
+        }
+    }
+
+    //Check is any mapping exists
+    if(html_fqdn_rows == "") {
+        html_fqdn_rows = `<div class="grid8_col">** No Mapping Configured **</div>`;
+    }
+
+    //Add button
+    let resolve_add = "";
+    if(panel_write_access == true) {
+        //Map add
+        resolve_add = `
+            <div class="grid1_col">
+                <select id="resolve_add_project" class="resolve_project_option">
+                    <option value=""></option>
+                    ${select_project}
+                </select>
+            </div>
+            <div class="grid1_col">
+                <select id="resolve_add_type">
+                    <option value=""></option>
+                    <option value="proxy_map">Proxy Map</option>
+                    <option value="dns_names">DNS FQDN</option>
+                </select>
+            </div>
+            <div class="grid1_col">
+                <select id="resolve_add_env" class="resolve_env_option">
+                    <option value=""></option>
+                    <option value="dev">Dev</option>
+                    <option value="qa">QA</option>
+                    <option value="stage">Stage</option>
+                    <option value="prod">Prod</option>
+                </select>
+            </div>
+            <div class="grid1_col">
+                <input id="resolve_add_url" type="text" value="" />
+            </div>
+            <div class="grid2_col"></div>
+            <div class="grid1_col">
+                <select id="resolve_add_site" class="resolve_website_option">
+                    <option value=""></option>
+                </select>
+            </div>
+            <div class="grid1_col">
+                <div id="resolve_add_btn" class="icon icon_size icon_add"></div>
+                <input id="resolve_add_proj" type="hidden" value="${focused_project}" />
+            </div>
+        `;
+    }
+
+    //VHost summary
+    let vhost_summary = ui_resolve_vhost_summary()
+
+    //Define table
+    let html = `
+        ${read_access}
+        <div class="grid8">
+            <div class="grid8_head">Project Website Proxy and DNS Resolve</div>
+            <div class="grid1_sub_head">Project</div>
+            <div class="grid1_sub_head">Map Type</div>
+            <div class="grid1_sub_head">Environment</div>
+            <div class="grid1_sub_head">URL</div>
+            <div class="grid1_sub_head">HTTP (port:${http_port})</div>
+            <div class="grid1_sub_head">HTTPS (port:${https_port})</div>
+            <div class="grid2_sub_head">Website Target</div>
+            ${html_fqdn_rows}
+            ${resolve_add}
+        </div>
+        <br />
+        ${vhost_summary}
+    `;
+
+    //Populate panel
+    $("#project_title").html("Resolve Proxy Mapping and DNS FQDN");
     $("#project_panel").html(html);
-}
-function ui_mapping_proxy() {
-    log(`ui_project :: UI mapping proxy`)
 
-    $("#project_title").html("Proxy Mapping");
-}
-function ui_mapping_dns() {
-    log(`ui_project :: UI mapping dns`)
+    if(panel_write_access == true) {
+        //Project select listener
+        let lis_resolve_add_project = document.getElementById("resolve_add_project")
+        lis_resolve_add_project.addEventListener("change", function(event){
+            let select_project = $("#resolve_add_project").val()
+            let select_site = `<option value="" selected></option>`;
+            for(let project in website_projects) {
+                if(select_project == project) {
+                    for(let website in website_projects[project]["websites"]) {
+                        select_site += `<option value="${website}">${website}</option>`;
+                    }
+                }
+            }
+            $("#resolve_add_site").html(select_site)
+        });
 
-    $("#project_title").html("DNS (FQDN) Mapping");
+        //Add select and trash button listeners
+        let lis_resolve = {}
+        let resolve_types = ["proxy_map", "dns_names"];
+        for(let project in website_projects) {
+            for(let i in resolve_types) {
+                let resolve_type = resolve_types[i];
+                for(let this_env in website_projects[project][resolve_type]) {
+                    for(let this_url in website_projects[project][resolve_type][this_env]) {
+                        //Get IDs of controls
+                        let resolve_select_proj = `resolve_select_project::${project}::${resolve_type}::${this_env}::${this_url}`;
+                        let resolve_select_env = `resolve_select_env::${project}::${resolve_type}::${this_env}::${this_url}`;
+                        let resolve_select_site = `resolve_select_site::${project}::${resolve_type}::${this_env}::${this_url}`;
+                        let resolve_trash_map = `resolve_trash_site::${project}::${resolve_type}::${this_env}::${this_url}`;
+
+                        //Configure listener
+                        lis_resolve[resolve_select_proj] = document.getElementById(resolve_select_proj);
+                        lis_resolve[resolve_select_env] = document.getElementById(resolve_select_env);
+                        lis_resolve[resolve_select_site] = document.getElementById(resolve_select_site);
+                        lis_resolve[resolve_trash_map] = document.getElementById(resolve_trash_map);
+
+                        lis_resolve[resolve_select_proj].addEventListener("change", function(event){
+                            resolve_update_map(this.value);
+                        });
+                        lis_resolve[resolve_select_env].addEventListener("change", function(event){
+                            resolve_update_map(this.value);
+                        });
+                        lis_resolve[resolve_select_site].addEventListener("change", function(event){
+                            resolve_update_map(this.value);
+                        });
+                        lis_resolve[resolve_trash_map].addEventListener("click", function(event){
+                            ui_resolve_delete_map(this.id);
+                        });
+                    }
+                }
+            }
+        }
+
+        //Add listener for map add button
+        let lis_resolve_add_btn = document.getElementById("resolve_add_btn");
+        lis_resolve_add_btn.addEventListener("click", function(event){
+            resolve_add_map();
+        });
+    }
+}
+function ui_resolve_vhost_summary() {
+    log("ui_resolve_vhost_summary");
+    
+    //Create VHOST list
+    let html_vhost_table = "";
+    let html_vhost_rows = "";
+    for(let project in website_projects) {
+        //Set divider line
+        let grid_divider = " grid1_col_divider";
+
+        //Loop sites
+        for(let website in website_projects[project]["websites"]) {
+            //Set vhost
+            let this_path = `/vhost/${project}::${website}/`;
+            html_vhost_rows += `
+                <div class="grid1_col${grid_divider}">${project}</a></div>
+                <div class="grid1_col${grid_divider}">${website}</a></div>
+                <div class="grid1_col${grid_divider}"><a href="${this_path}" target="_blank">${this_path}</a></div>
+            `;
+
+            //Normal divider after first row
+            grid_divider = "";
+        }
+    }
+
+    //Check is any mapping exists
+    if(html_vhost_rows == "") {
+        if(Object.keys(website_projects) == 0) {
+            html_vhost_rows = `<div class="grid3_col">** No projects are created **</div>`;
+        }else{
+            html_vhost_rows = `<div class="grid3_col">** No websites are created **</div>`;
+        }
+    }
+
+    //Build table
+    html_vhost_table = `
+        <div class="grid3">
+            <div class="grid3_head">Porject Website VHost Preview</div>
+            <div class="grid1_sub_head">Project Name</div>
+            <div class="grid1_sub_head">Site Name</div>
+            <div class="grid1_sub_head">Path (VHost URL)</div>
+            ${html_vhost_rows}
+        </div>
+    `;
+
+    //Return HTML
+    return html_vhost_table;
 }
 
 //Project management UI
@@ -2059,15 +2287,84 @@ function ui_project_main() {
         read_access = ui_panel_read_only();
     }
 
+    //Get errors
+    let project_errors = {}
+    let project_error_state = "good";
+    let project_error_notes = "";
+    let project_fix_button = "";
+    if(website_project_errors[focused_project] != undefined) {
+        //Set error state
+        project_errors = website_project_errors[focused_project];
+        project_error_state = project_errors.errlvl;
+
+        //Get error notes
+        if(project_errors.message != "") {
+            project_error_notes += "<b>Porject Error Notes:</b><br />";
+            project_error_notes += (project_errors.message).replaceAll("\n", "<br />");
+            project_error_notes += "<br />";
+        }
+
+        //Check website errors
+        if(Object.keys(project_errors.websites).length > 0) {
+            project_error_notes += "<b>Websites Errors:</b><br />";
+            for(let website in project_errors.websites) {
+                project_error_notes += `${website}:<br />`;
+                project_error_notes += (project_errors.websites[website]["message"]).replaceAll("\n", "<br />");
+                project_error_notes += `<br />`;
+            }
+        }
+
+        //Set project fix button
+        let config_fix_note = "";
+        if(project_error_notes.includes("Config File:")) {
+            project_fix_button = `<input id="project_config_fix" class="project_fix_btn" type="button" value="Fix Config File Errors" />`;
+            config_fix_note = `
+                <b>CONFIG FILE FIX NOTE:</b><br />
+                Most configuration file errors can be corrected by the fix button above. For updates from prior server version 
+                this will bring config file changes into alignment. It may reset maintenance mode, maintenance page and default 
+                errors pages and may require some reconfiguration.
+                <br /><br />
+                If there are invalid configuration settings the fix button will try and correct them or potentially remove those 
+                parameters if appearing corrupted. If you have updated the configuration file manually, please make sure to create 
+                a backup of the file before proceeding.
+                <br /><br />
+            `;
+        }
+        let file_missing_note = "";
+        if(project_error_notes.includes("Missing Files:")) {
+            file_missing_note = `
+                <b>MISSING FILES NOTE:</b><br />
+                Missing files or folders are detected in your project. If you have manually renamed or deleted any files or folders 
+                at the filesystem level, it may result in reported errors. Items such as maintenance and error pages can be created 
+                from the website settings panels. Makes sure default file names for these 
+                settings match what you have in your source files such as default document, maintenance page, and error document names 
+                otherwise the system may report errors.
+                <br /><br />
+                See websiite settings <img src="images/gear_icon.png" alt="" /> for '_maintenance_page' or '_error_pages' errors
+                <br /><br />
+            `;
+        }
+
+        //Add notes
+        project_error_notes = config_fix_note + file_missing_note + project_error_notes;
+
+        //Format string
+        let match_text = project_error_notes.match(/(('|\[)[a-zA-Z0-9\=\{\}\.\_\-\ \\\/]*('|\]))/g)
+        for(let i in match_text) {
+            let this_match = match_text[i];
+            project_error_notes = project_error_notes.replaceAll(this_match, `<b class="font_red">${this_match}</b>`);
+        }
+
+    }
+
     //Project config valid (property added from project_config_validate() on load)
     let project_valid_state = "";
-    let project_valie_err = "";
-    switch(project_data.valid) {
-        case 0:
+    switch(project_error_state) {
+        case "good":
             project_valid_state = `
                 <div class="grid2_inner">
                     <div class="grid1_inner_col">
-                        <div class="project_config_state project_config_state_good"></div>
+                        <div class="icon icon_size icon_good"></div>
                     </div>
                     <div class="grid1_inner_col">
                         <div class="project_config_state_text">Good</div>
@@ -2075,11 +2372,11 @@ function ui_project_main() {
                 </div>
             `;
         break;
-        case 1:
+        case "warning":
             project_valid_state = `
                 <div class="grid2_inner">
                     <div class="grid1_inner_col">
-                        <div class="project_config_state project_config_state_warning"></div>
+                        <div class="icon icon_size icon_warning"></div>
                     </div>
                     <div class="grid1_inner_col">
                         <div class="project_config_state_text">Warning</div>
@@ -2087,11 +2384,11 @@ function ui_project_main() {
                 </div>
             `;
         break;
-        case 2:
+        case "error":
             project_valid_state = `
                 <div class="grid2_inner">
                     <div class="grid1_inner_col">
-                        <div class="project_config_state project_config_state_error"></div>
+                        <div class="icon icon_size icon_error"></div>
                     </div>
                     <div class="grid1_inner_col">
                         <div class="project_config_state_text">Error</div>
@@ -2099,10 +2396,6 @@ function ui_project_main() {
                 </div>
             `;
         break;
-    }
-    let project_fix_button = "";
-    if(project_data.valid == 2) {
-        project_fix_button = `<input id="project_config_fix" type="button" value="Fix Config File Errors" />`;
     }
     if(panel_write_access == true) {
         project_valid = `
@@ -2113,9 +2406,7 @@ function ui_project_main() {
                 ${project_fix_button}
             </div>
             <div class="grid2_col">
-                <br />
-                <b>Error Notes:</b><br />
-                ${project_data.valid_notes}
+                ${project_error_notes}
             </div>
         `;
     }else{
@@ -2127,9 +2418,7 @@ function ui_project_main() {
                 <span class="font_red">Contact Admin or Project Admin to resolve issues</span>
             </div>
             <div class="grid2_col">
-                <br />
-                <b>Error Notes:</b><br />
-                ${project_data.valid_notes}
+                ${project_error_notes}
             </div>
         `;
     }
@@ -2158,9 +2447,16 @@ function ui_project_main() {
             <div class="grid2_head">Project Settings</div>
             <div class="grid1_col">Description</div>
             <div class="grid1_col">${project_desc_html}</div>
-            <div class="grid1_col">Enabled</div>
+            <div class="grid1_col"><div class="text_space_top_3">Enabled</div></div>
             <div class="grid1_col">
-                <input id="project_enabled" type="checkbox"${this_enabled}>
+                <div class="grid2_inner">
+                    <div class="grid1_inner_col">
+                        <input id="project_enabled" type="checkbox"${this_enabled}>
+                    </div>
+                    <div class="grid1_inner_col">
+                        (disable will turn off Porxy Map or DNS FQDN resolve)
+                    </div>
+                </div>
             </div>
             ${project_valid}
         </div>
@@ -2206,33 +2502,43 @@ function ui_project_sites_and_settings() {
     let html = "";
 
     //Check sites and settings permissions
-    let panel_write_access = api_check_project(["project_adm", "website_adm"]);
+    let website_admin_access = api_check_project(["project_adm", "website_adm"]);
     let website_settings_write_access = api_check_project(["project_adm", "website_adm", "website_set"]);
+
     let html_read_only_banner = "";
+    if(website_admin_access == false || website_settings_write_access == false) {
+        html_read_only_banner = ui_panel_read_only();
+        html_read_only_banner += "<p>Restricted from:<br />";
+        if(website_admin_access == false) {
+            html_read_only_banner += "Website Creation<br />";
+        }
+        if(website_settings_write_access == false) {
+            html_read_only_banner += "Website Settings<br />";
+        }
+        html_read_only_banner += "</p>";
+    }
+
     let html_create_site = "";
-    if(panel_write_access == true) {
+    if(website_admin_access == true) {
         //Create site buttons
         html_create_site = `
             <div class="grid3">
                 <div class="grid3_head">Create Website</div>
                 <div class="grid1_col">
-                    <input id="project_new_site_empty" class="project_site_new_btn" type="button" value="Create Site as Empty Folder (blank)"><br />
+                    <input id="project_new_website_empty" class="project_site_new_btn" type="button" value="Create Site as Empty Folder (blank)"><br />
                     <div class="project_site_new_arrow"><img src="images/arrow_double_down_icon.png" alt="" /></div>
                 </div>
                 <div class="grid1_col">
-                    <input id="project_new_site_default" class="project_site_new_btn" type="button" value="Create Site From Default Template"><br />
+                    <input id="project_new_website_default" class="project_site_new_btn" type="button" value="Create Site From Default Template"><br />
                     <div class="project_site_new_arrow"><img src="images/arrow_double_down_icon.png" alt="" /></div>
                 </div>
                 <div class="grid1_col">
-                    <input id="project_new_site_template" class="project_site_new_btn" type="button" value="Create Site From User Template"><br />
+                    <input id="project_new_website_template" class="project_site_new_btn" type="button" value="Create Site From User Template"><br />
                     <div class="project_site_new_arrow"><img src="images/arrow_double_down_icon.png" alt="" /></div>
                 </div>
             </div>
             <br />
         `;
-    }else{
-        //Read only banner
-        html_read_only_banner = ui_panel_read_only();
     }
 
     //Generate list of websites
@@ -2259,10 +2565,10 @@ function ui_project_sites_and_settings() {
         html_ssl_redirect = `
                 <div class="grid2_inner">
                     <div class="grid1_inner_col">
-                        global
+                        <input id="chk_ssl_redirect::${site}" type="checkbox"${ssl_checked}${ssl_disabled} /> 
                     </div>
                     <div class="grid1_inner_col">
-                        <input id="chk_ssl_redirect::${site}" type="checkbox"${ssl_checked}${ssl_disabled} /> 
+                        global
                     </div>
                 </div>
             `;
@@ -2289,9 +2595,11 @@ function ui_project_sites_and_settings() {
 
             //Add to env column (inner grid)
             html_maint_env += `
-                <div class="grid1_inner_col">${env}</div>
                 <div class="grid1_inner_col">
-                    <input id="chk_maint_mode::${site}::${env}" type="checkbox"${maint_checked}${maint_disabled} />&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input id="chk_maint_mode::${site}::${env}" type="checkbox"${maint_checked}${maint_disabled} />
+                </div>
+                <div class="grid1_inner_col">
+                    ${env}&nbsp;&nbsp;&nbsp;
                 </div>
             `;
         }
@@ -2306,19 +2614,19 @@ function ui_project_sites_and_settings() {
         let html_vhost_link = `<a href="${vhost_preview}" target="_blank">${vhost_preview}</a>`;
 
         //Build site index
-        if(panel_write_access == true) {
+        if(website_admin_access == true) {
             html_website_rows += `
                 <div class="grid1_col">
                     <div class="grid4_inner grid4_site_name_edit">
                         <div class="grid1_inner_col">${site}</div>
                         <div class="grid1_inner_col">
-                            <img class="icon project_site_rename" src="images/write_icon.png" alt="" onClick="ui_website_rename_clone('${site}', 'rename');" title="Rename Site" />
+                            <div class="icon icon_size icon_write" onClick="ui_website_rename_clone('${site}', 'rename');" title="Rename Site"></div>
                         </div>
                         <div class="grid1_inner_col">
-                            <img class="icon project_site_clone" src="images/world_clone_icon.png" alt="" onClick="ui_website_rename_clone('${site}', 'clone');" title="Clone Site" />
+                            <div class="icon icon_size icon_clone" onClick="ui_website_rename_clone('${site}', 'clone');" title="Clone Site"></div>
                         </div>
                         <div class="grid1_inner_col">
-                            <img class="icon project_site_trash" src="images/trash_icon.png" alt="" onClick="ui_website_delete('${site}');" title="Delete Site" />
+                            <div class="icon icon_size icon_trash" onClick="ui_website_delete('${site}');" title="Delete Site"></div>
                         </div>
                     </div>
                 </div>
@@ -2336,34 +2644,34 @@ function ui_project_sites_and_settings() {
         }
     }
 
-        if(html_website_rows == "") {
-            html_website_rows = `<div class="grid4_col">** No existing sites **</div>`;
-        }
-        html_website_table = `
-            <div class="grid4">
-                <div class="grid4_head">Websites</div>
-                <div class="grid1_sub_head">Site Name</div>
-                <div class="grid1_sub_head">SSL Redirect</div>
-                <div class="grid1_sub_head">Maintenance Mode (per Environment)</div>
-                <div class="grid1_sub_head">Website Preview</div>
-                ${html_website_rows}
-            </div>
-        `;
+    if(html_website_rows == "") {
+        html_website_rows = `<div class="grid4_col">** No existing sites **</div>`;
+    }
+    html_website_table = `
+        <div class="grid4">
+            <div class="grid4_head">Websites</div>
+            <div class="grid1_sub_head">Site Name</div>
+            <div class="grid1_sub_head">SSL Redirect</div>
+            <div class="grid1_sub_head">Maintenance Mode (per Environment)</div>
+            <div class="grid1_sub_head">Website Preview</div>
+            ${html_website_rows}
+        </div>
+    `;
 
     //Get VHOST and FQDN mapping
-    let html_fqdn_table = ui_project_fqdn_summary(project_data);
+    let html_site_resolve_table = ui_project_site_resolve();
 
     //Add VHOST and DNS mapping
     html = html_read_only_banner +
            html_create_site + 
            html_website_table +
-           html_fqdn_table;
+           html_site_resolve_table;
 
     //Output project panel
     $("#project_panel").html(html);
 
     //API pre-check
-    if(panel_write_access == true) {  
+    if(website_admin_access == true) {
         //Add listener to all check boxes
         let chk_listeners = {}
         for(let site in websites) {
@@ -2382,92 +2690,287 @@ function ui_project_sites_and_settings() {
             chk_listeners[maint_mode_key_prod] = document.getElementById(`chk_maint_mode::${site}::prod`);
 
             chk_listeners[ssl_redirect_key].addEventListener("click", function(event){
-                //Get site
-                let parse_id = this.id.split("::");
-
-                //Focus Site
-                focused_site = parse_id[1]
-
-                //Update property value
-                website_set_property("ssl_redirect", this.checked)
-
-                //Un-focus Site
-                focused_site = "";
+                let parse_id = this.id.split("::");                 //Get site
+                focused_site = parse_id[1]                          //Focus Site
+                website_set_property("ssl_redirect", this.checked)  //Update property value
+                focused_site = "";                                  //Un-focus Site
             });
             chk_listeners[maint_mode_key_dev].addEventListener("click", function(event){
-                //Get site
                 let parse_id = this.id.split("::");
-
-                //Focus Site
                 focused_site = parse_id[1]
                 this_env = parse_id[2]
-
-                //Update property value
                 website_set_property("maintenance_enabled", this.checked, this_env)
-
-                //Un-focus Site
                 focused_site = "";
             });
             chk_listeners[maint_mode_key_qa].addEventListener("click", function(event){
-                //Get site
                 let parse_id = this.id.split("::");
-
-                //Focus Site
                 focused_site = parse_id[1]
                 this_env = parse_id[2]
-
-                //Update property value
                 website_set_property("maintenance_enabled", this.checked, this_env)
-
-                //Un-focus Site
                 focused_site = "";
             });
             chk_listeners[maint_mode_key_stage].addEventListener("click", function(event){
-                //Get site
                 let parse_id = this.id.split("::");
-
-                //Focus Site
                 focused_site = parse_id[1]
                 this_env = parse_id[2]
-
-                //Update property value
                 website_set_property("maintenance_enabled", this.checked, this_env)
-
-                //Un-focus Site
                 focused_site = "";
             });
             chk_listeners[maint_mode_key_prod].addEventListener("click", function(event){
-                //Get site
                 let parse_id = this.id.split("::");
-
-                //Focus Site
                 focused_site = parse_id[1]
                 this_env = parse_id[2]
-
-                //Update property value
                 website_set_property("maintenance_enabled", this.checked, this_env)
-
-                //Un-focus Site
                 focused_site = "";
             });
         }
 
         //Add listener - project site create
-        var lis_project_new_site_empty = document.getElementById("project_new_site_empty");
-        var lis_project_new_site_default = document.getElementById("project_new_site_default");
-        var lis_project_new_site_template = document.getElementById("project_new_site_template");
+        var lis_project_new_website_empty = document.getElementById("project_new_website_empty");
+        var lis_project_new_website_default = document.getElementById("project_new_website_default");
+        var lis_project_new_website_template = document.getElementById("project_new_website_template");
 
-        lis_project_new_site_empty.addEventListener("click", function(event){
+        lis_project_new_website_empty.addEventListener("click", function(event){
             ui_website_new_default('empty');
         });
-        lis_project_new_site_default.addEventListener("click", function(event){
+        lis_project_new_website_default.addEventListener("click", function(event){
             ui_website_new_default('default');
         });
-        lis_project_new_site_template.addEventListener("click", function(event){
+        lis_project_new_website_template.addEventListener("click", function(event){
             ui_website_new_template();
         });
     }
 
+    //Add listeners - Project Mapping 
+    let dns_write_access = api_check_project(["project_adm", "website_adm", "website_set"]);
+    if(dns_write_access == false) {
+        dns_write_access = api_check_global(["dns_adm"]);
+    }
+    if(dns_write_access == true) {
+        //Add website select listeners
+        let lis_resolve = {}
+        let resolve_types = ["proxy_map", "dns_names"];
+        for(let i in resolve_types) {
+            let resolve_type = resolve_types[i];
+            for(let this_env in project_data[resolve_type]) {
+                for(let this_url in project_data[resolve_type][this_env]) {
+                    //Configure listener
+                    let resolve_select_env = `resolve_select_env::${focused_project}::${resolve_type}::${this_env}::${this_url}`;
+                    let resolve_select_site = `resolve_select_site::${focused_project}::${resolve_type}::${this_env}::${this_url}`;
+
+                    lis_resolve[resolve_select_env] = document.getElementById(resolve_select_env);
+                    lis_resolve[resolve_select_site] = document.getElementById(resolve_select_site);
+                    lis_resolve[resolve_select_env].addEventListener("change", function(event){
+                        resolve_update_map(this.value);
+                    });
+                    lis_resolve[resolve_select_site].addEventListener("change", function(event){
+                        resolve_update_map(this.value);
+                    });
+                }
+            }
+        }
+    }
+}
+function ui_project_site_resolve() {
+    log("ui_project_site_resolve");
+
+    //Focused site
+    let project_data = website_projects[focused_project];
+
+    //Check sites and settings permissions
+    let panel_write_access = api_check_project(["project_adm", "website_adm", "website_set"]);
+    if(panel_write_access == false) {
+        panel_write_access = api_check_global(["dns_adm"]);
+    }
+
+    //Get server conf
+    let http_on = server_configs.http_on;
+    let http_port = server_configs.http_port;
+    let https_on = server_configs.https_on;
+    let https_port = server_configs.https_port;
+
+    //Create FQDN list
+    let html_fqdn_table = "";
+    let html_fqdn_rows = "";
+
+    //Loop through environments
+    let mapping = ["proxy_map", "dns_names"]
+    for(let m in mapping) {
+        let resolve_type = mapping[m];
+
+        //Set type label
+        let resolve_type_label = "Proxy Map";
+        if(resolve_type == "dns_names") {
+            resolve_type_label = "DNS FQDN";
+        }
+
+        //Loop environments
+        for(let env in project_data[resolve_type]) {
+            //Process server modes DNS config
+            for(let resolve_url in project_data[resolve_type][env]) {
+                //Parse URL for Proxy Mapping
+                let this_hostname = "";
+                let this_path = "";
+                if(resolve_type == "proxy_map") {
+                    //Parse URL
+                    let parse_url = resolve_url.split("/");
+                    this_hostname = parse_url[0];
+                    this_path = resolve_url.substring(this_hostname.length, resolve_url.length);
+                }else{
+                    this_hostname = resolve_url;
+                    this_path = "/";
+                }
+
+                //Links
+                let this_http_url = "";
+                let this_https_url = "";
+                let this_http_a = "";
+                let this_https_a = "";
+
+                //Get URL for HTTP
+                if(http_on == true) {
+                    if(http_port == "80") {
+                        this_http_url = `http://${this_hostname}${this_path}`;
+                    }else{
+                        this_http_url = `http://${this_hostname}:${http_port}${this_path}`;
+                    }
+                    this_http_a = `<a href="${this_http_url}" target="_blank">HTTP</a>`;
+                }else{
+                    this_http_a = `-`;
+                }
+
+                //Get URL for HTTPS
+                if(https_on == true) {
+                    if(https_port == "443") {
+                        this_https_url = `https://${this_hostname}${this_path}`;
+                    }else{
+                        this_https_url = `https://${this_hostname}:${http_port}${this_path}`;
+                    }
+                    this_https_a = `<a href="${this_https_url}" target="_blank">HTTPS</a>`;
+                }else{
+                    this_https_a = `-`;
+                }
+
+                //Check site not mapped
+                this_site = project_data[resolve_type][env][resolve_url];
+
+                //Check disabled
+                if(project_data.enabled == false || this_site == "") {
+                    this_http_a = `-`;
+                    this_https_a = `-`;
+                }
+
+                //Check panel write access
+                if(panel_write_access == true) {
+                    let select_env = "";
+                    let select_site = "";
+
+                    //
+                    // Drop down list change value breakdown (separator :: )
+                    //   0 - update type
+                    //   1 - project name (origin)
+                    //   2 - resolve type
+                    //   3 - environment
+                    //   4 - URL
+                    //   5 - change value
+
+                    //Build environment list drop down
+                    let these_env = ["dev","qa","stage","prod"];
+                    for(let e in these_env) {
+                        let new_env = these_env[e];
+                        if(env == new_env) {
+                            select_env += `<option value="resolve_select_env::${focused_project}::${resolve_type}::${env}::${resolve_url}::${new_env}" selected>${new_env}</option>`;
+                        }else{
+                            select_env += `<option value="resolve_select_env::${focused_project}::${resolve_type}::${env}::${resolve_url}::${new_env}">${new_env}</option>`;
+                        }
+                    }
+                    select_env = `
+                        <select id="resolve_select_env::${focused_project}::${resolve_type}::${env}::${resolve_url}" class="resolve_env_option">
+                            ${select_env}
+                        </select>
+                    `;
+
+                    //Build site list for drop down (related to current project)
+                    for(let new_site in project_data.websites) {
+                        if(this_site == new_site) {
+                            select_site += `<option value="resolve_select_site::${focused_project}::${resolve_type}::${env}::${resolve_url}::${new_site}" selected>${new_site}</option>`;
+                        }else{
+                            select_site += `<option value="resolve_select_site::${focused_project}::${resolve_type}::${env}::${resolve_url}::${new_site}">${new_site}</option>`;
+                        }
+                    }
+                    select_site = `
+                        <select id="resolve_select_site::${focused_project}::${resolve_type}::${env}::${resolve_url}" class="resolve_website_option">
+                            <option value="resolve_select_site::${focused_project}::${resolve_type}::${env}::${resolve_url}::"></option>
+                            ${select_site}
+                        </select>
+                    `;
+
+                    //Append server mode config
+                    html_fqdn_rows += `
+                        <div class="grid1_col">${resolve_type_label}</div>
+                        <div class="grid1_col">${select_env}</div>
+                        <div class="grid1_col">${resolve_url}</div>
+                        <div class="grid1_col">${this_http_a}</div>
+                        <div class="grid1_col">${this_https_a}</div>
+                        <div class="grid1_col">${select_site}</div>
+                    `;
+
+                }else{
+                    if(this_site == "") {
+                        this_site = `<span class="font_red">(unmapped)</span>`;
+                    }
+
+                    //Append server mode config
+                    html_fqdn_rows += `
+                        <div class="grid1_col">${resolve_type_label}</div>
+                        <div class="grid1_col">${env}</div>
+                        <div class="grid1_col">${resolve_url}</div>
+                        <div class="grid1_col">${this_http_a}</div>
+                        <div class="grid1_col">${this_https_a}</div>
+                        <div class="grid2_col">${this_site}</div>
+                    `;
+                }
+            }
+        }
+    }
+
+    //Check disabled
+    let disabled_note = "";
+    if(project_data.enabled == false) {
+        disabled_note = `<i class="font_red">(URLs disabled while project is set to disabled)</i>`;
+    }
+
+    //Add button
+    if(panel_write_access == true) {
+        //Get get mapping to site
+        select_site = "";
+        for(let site in project_data.websites) {
+            select_site += `<option value="${site}">${site}</option>`;
+        }
+    }
+
+    //Check is any mapping exists
+    if(html_fqdn_rows == "") {
+        html_fqdn_rows = `<div class="grid6_col">** No Mapping Configured **</div>`;
+    }
+
+    //Define table
+    html_fqdn_table = `
+        <br />
+        <div class="grid6">
+            <div class="grid6_head">Project Website Proxy or DNS Resolve ${disabled_note}</div>
+            <div class="grid1_sub_head">Map Type</div>
+            <div class="grid1_sub_head">Environment</div>
+            <div class="grid1_sub_head">URL</div>
+            <div class="grid1_sub_head">HTTP (port:${http_port})</div>
+            <div class="grid1_sub_head">HTTPS (port:${https_port})</div>
+            <div class="grid1_sub_head">Target Website</div>
+            ${html_fqdn_rows}
+        </div>
+    `;
+    
+    //Return HTML
+    return html_fqdn_table;
 }
 function ui_project_site() {
     log("ui_project_site");
@@ -2483,6 +2986,7 @@ function ui_project_site() {
     }
 
     //Focused site
+    let project_data = website_projects[focused_project];
     let setting_data = website_projects[focused_project]["websites"][focused_site];
 
     //Set SSL redirect checkbox
@@ -2493,6 +2997,9 @@ function ui_project_site() {
         ssl_redirect = `<input id="ssl_redirect" type="checkbox">`;
     }
 
+    //Set default doc
+    let default_doc = `<input id="default_doc_text" type="text" value="${setting_data.default_doc}">`;
+
     //Set Maintenance Mode
     let maint_state_env = "";
     for(let env in setting_data.maintenance) {
@@ -2501,9 +3008,11 @@ function ui_project_site() {
             maint_checked = " checked";
         }
         maint_state_env += `
-                <div class="grid1_inner_col">${env}</div>
                 <div class="grid1_inner_col">
-                    <input id="maintenance_${env}_enabled" type="checkbox"${maint_checked}>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input id="maintenance_${env}_enabled" type="checkbox"${maint_checked}>
+                </div>
+                <div class="grid1_inner_col">
+                    ${env}&nbsp;&nbsp;&nbsp;
                 </div>
         `;
     }
@@ -2513,10 +3022,101 @@ function ui_project_site() {
         </div>
     `;
 
-
     //Set default docs text boxes (maintenance page and index)
-    let maint_page = `<input id="maintenance_page_text" type="text" value="${setting_data.maintenance_page}">`;
-    let default_doc = `<input id="default_doc_text" type="text" value="${setting_data.default_doc}">`;
+    let maint_page = `
+        <div class="grid3_inner grid3_inner_site_mapping_err_maint">
+            <div class="grid1_inner_col"></div>
+            <div class="grid1_inner_col"><b>User Response</b></div>
+            <div class="grid1_inner_col"><b>API Response</b></div>
+            <div class="grid1_inner_col"></div>
+            <div class="grid1_inner_col">
+                <input id="maintenance_page_text" type="text" value="${setting_data.maintenance_page}">
+            </div>
+            <div class="grid1_inner_col">
+                <input id="maintenance_page_api_text" type="text" value="${setting_data.maintenance_page_api}">
+            </div>
+        </div>
+    `;
+
+    //set error docs list
+    let def_errors_user = setting_data.default_errors.user;
+    let def_errors_api = setting_data.default_errors.api;
+    let def_error_types = ["404", "500"];
+    let error_documents = "";
+    let error_doc_rows = "";
+    for(let i in def_error_types) {
+        //Get error doc type
+        let doc_type = def_error_types[i];
+
+        //Set doc type
+        error_doc_rows += `<div class="grid1_col"><b>${doc_type}</b></div>`;
+
+        //Set user doc type column
+        if(def_errors_user == undefined || def_errors_user[doc_type] == undefined) {
+            error_doc_rows += `
+                <div class="grid1_inner_col">
+                    <input id="error_page_${doc_type}_user" type="text" value="">
+                </div>`;
+        }else{
+            error_doc_rows += `
+                <div class="grid1_inner_col">
+                    <input id="error_page_${doc_type}_user" type="text" value="${def_errors_user[doc_type]}">
+                </div>`;
+        }
+
+        //Set api doc type column
+        if(def_errors_api == undefined || def_errors_api[doc_type] == undefined) {
+            error_doc_rows += `
+                <div class="grid1_inner_col">
+                    <input id="error_page_${doc_type}_api" type="text" value="">
+                </div>`;
+        }else{
+            error_doc_rows += `
+                <div class="grid1_inner_col">
+                    <input id="error_page_${doc_type}_api" type="text" value="${def_errors_api[doc_type]}">
+                </div>`;
+        }
+    }
+    error_documents = `
+        <div class="grid3_inner grid3_inner_site_mapping_err_maint">
+            <div class="grid1_inner_col"></div>
+            <div class="grid1_inner_col"><b>User Response</b></div>
+            <div class="grid1_inner_col"><b>API Response</b></div>
+            ${error_doc_rows}
+        </div>
+    `;
+
+    //Check error state
+    let site_error = {}
+    let state_default_doc = "";     // Image warning to signale default document missing
+    let state_maint_page = "";      // Image warning to signale default document missing
+    let state_error_pages = "";     // Image warning to signale default document missing
+    let fix_maint_page_btn = "";    // Button HTML code when user has panel write access
+    let fix_error_page_btn = "";    // Button HTML code when user has panel write access
+    if(website_project_errors[focused_project] != undefined && website_project_errors[focused_project]["websites"][focused_site] != undefined) {
+        //Get site errors
+        site_error = website_project_errors[focused_project]["websites"][focused_site];
+
+        //Create fix buttons
+        if(site_error.default_doc_exists == false) {
+            state_default_doc = `<div class="icon_size icon_warning" title="Default Document in static content mapping was not found"></div>`;
+        }
+        if(site_error.maintenance_page_exists == false) {
+            state_maint_page = `<div class="icon_size icon_warning" title="Maintenance Page folder or files are not found"></div>`;
+        }
+        if(site_error.default_errors_exists == false) {
+            state_error_pages = `<div class="icon_size icon_warning" title="Default Errors folder or file are not found"></div>`;
+        }
+
+        if(panel_write_access == true) {
+            if(site_error.maintenance_page_exists == false) {
+                fix_maint_page_btn = `<input id="website_maint_fix" class="project_fix_btn" type="button" value="Fix" />`;
+            }
+            if(site_error.default_errors_exists == false) {
+                fix_error_page_btn = `<input id="website_errors_fix" class="project_fix_btn" type="button" value="Fix" />`;
+            }
+        }
+    }
 
     //General settings
     let vhost_href = `<a href="/vhost/${focused_project}::${focused_site}/" target="_blank">/vhost/${focused_project}::${focused_site}/</a>`;
@@ -2530,15 +3130,36 @@ function ui_project_site() {
             
             <div class="grid2_head">General Settings</div>
             <div class="grid1_col">Redirect to SSL</div>
-            <div class="grid1_col">global ${ssl_redirect}</div>
+            <div class="grid1_col">${ssl_redirect} global</div>
+            <div class="grid1_col">
+                <div class="grid2_inner">
+                    <div class="grid1_inner_col">Default Document</div>
+                    <div class="grid1_inner_col">${state_default_doc}</div>
+                </div>
+            </div>
+            <div class="grid1_col">${default_doc}</div>
             <div class="grid1_col">Maintenance Mode (environments)</div>
             <div class="grid1_col">${maint_state_env}</div>
-            <div class="grid1_col">Maintenance Page</div>
-            <div class="grid1_col">${maint_page}</div>
-            <div class="grid1_col">Default Document</div>
-            <div class="grid1_col">${default_doc}</div>
-            <div class="grid1_col">Error Pages</div>
-            <div class="grid1_col">TBD</div>
+            <div class="grid1_col">
+                <div class="grid3_inner">
+                    <div class="grid1_inner_col">Maintenance Page</div>
+                    <div class="grid1_inner_col">${state_maint_page}</div>
+                    <div class="grid1_inner_col">${fix_maint_page_btn}</div>
+                </div>
+            </div>
+            <div class="grid1_col">
+                ${maint_page}
+            </div>
+            <div class="grid1_col">
+                <div class="grid3_inner">
+                    <div class="grid1_inner_col">Error Pages</div>
+                    <div class="grid1_inner_col">${state_error_pages}</div>
+                    <div class="grid1_inner_col">${fix_error_page_btn}</div>
+                </div>
+            </div>
+            <div class="grid1_col">
+                ${error_documents}
+            </div>
         </div>
     `;
 
@@ -2593,8 +3214,9 @@ function ui_project_site() {
         html_mapping += `
             <div class="grid3_sub_head">
                 <div class="grid2_inner">
-                    <div class="grid1_inner_col">${heading_label}&nbsp;&nbsp;&nbsp;&nbsp;</div>
-                    <div class="grid1_inner_col">${html_add_button}</div>
+                    <div class="grid1_inner_col">${html_add_button}&nbsp;&nbsp;</div>
+                    <div class="grid1_inner_col"><b>${heading_label}</b></div>
+                    
                 </div>
             </div>
         `;
@@ -2623,7 +3245,7 @@ function ui_project_site() {
         //Check if section blank
         if(html_mapping_rows == "") {
             html_mapping_rows = `
-                <div class="grid1_sub_head"></div>
+                <div class="grid1_col"></div>
                 <div class="grid2_col font_gray">No mapping setting for this type</div>
             `;
         }
@@ -2655,179 +3277,90 @@ function ui_project_site() {
 
     //API pre-check
     if(panel_write_access == true) {
-        //Add listener
+        //Add listener for basic properties
         var lis_ssl_redirect = document.getElementById("ssl_redirect");
+        var lis_default_doc_text = document.getElementById("default_doc_text");
+        lis_ssl_redirect.addEventListener("change", function(event){
+            let this_checked = document.getElementById("ssl_redirect").checked;
+            website_set_property("ssl_redirect", this_checked);
+        });
+        lis_default_doc_text.addEventListener("change", function(event){
+            let this_text = $("#default_doc_text").val();
+            website_set_property("default_doc", this_text);
+        });
+
+        //Set listener for maintenance mode checkboxes
         var lis_maintenance_dev_enabled = document.getElementById("maintenance_dev_enabled");
         var lis_maintenance_qa_enabled = document.getElementById("maintenance_qa_enabled");
         var lis_maintenance_stage_enabled = document.getElementById("maintenance_stage_enabled");
         var lis_maintenance_prod_enabled = document.getElementById("maintenance_prod_enabled");
-        var lis_maintenance_page_text = document.getElementById("maintenance_page_text");
-        var lis_default_doc_text = document.getElementById("default_doc_text");
-
-        //Listener action
-        lis_ssl_redirect.addEventListener("change", function(event){
-            let this_ssl_redirect = document.getElementById("ssl_redirect").checked;
-            website_set_property("ssl_redirect", this_ssl_redirect);
-        });
-
         lis_maintenance_dev_enabled.addEventListener("change", function(event){
-            let this_maintenance_enabled = document.getElementById("maintenance_dev_enabled").checked;
-            website_set_property("maintenance_enabled", this_maintenance_enabled, "dev");
+            let this_checked = document.getElementById("maintenance_dev_enabled").checked;
+            website_set_property("maintenance_enabled", this_checked, "dev");
         });
         lis_maintenance_qa_enabled.addEventListener("change", function(event){
-            let this_maintenance_enabled = document.getElementById("maintenance_qa_enabled").checked;
-            website_set_property("maintenance_enabled", this_maintenance_enabled, "qa");
+            let this_checked = document.getElementById("maintenance_qa_enabled").checked;
+            website_set_property("maintenance_enabled", this_checked, "qa");
         });
         lis_maintenance_stage_enabled.addEventListener("change", function(event){
-            let this_maintenance_enabled = document.getElementById("maintenance_stage_enabled").checked;
-            website_set_property("maintenance_enabled", this_maintenance_enabled, "stage");
+            let this_checked = document.getElementById("maintenance_stage_enabled").checked;
+            website_set_property("maintenance_enabled", this_checked, "stage");
         });
         lis_maintenance_prod_enabled.addEventListener("change", function(event){
-            let this_maintenance_enabled = document.getElementById("maintenance_prod_enabled").checked;
-            website_set_property("maintenance_enabled", this_maintenance_enabled, "prod");
+            let this_checked = document.getElementById("maintenance_prod_enabled").checked;
+            website_set_property("maintenance_enabled", this_checked, "prod");
         });
 
+        //Set listener for maintenance mode documents
+        var lis_maintenance_page_text = document.getElementById("maintenance_page_text");
+        var lis_maintenance_page_api_text = document.getElementById("maintenance_page_api_text");
         lis_maintenance_page_text.addEventListener("change", function(event){
-            let this_maintenance_page_text = $("#maintenance_page_text").val();
-            website_set_property("maintenance_page", this_maintenance_page_text);
+            let this_text = $("#maintenance_page_text").val();
+            website_set_property("maintenance_page", this_text);
         });
-        lis_default_doc_text.addEventListener("change", function(event){
-            let this_default_doc_text = $("#default_doc_text").val();
-            website_set_property("default_doc", this_default_doc_text);
+        lis_maintenance_page_api_text.addEventListener("change", function(event){
+            let this_text = $("#maintenance_page_api_text").val();
+            website_set_property("maintenance_page_api", this_text);
+        });
+
+        //Set listener for error documents
+        var lis_error_page_404_user = document.getElementById("error_page_404_user");
+        var lis_error_page_404_api = document.getElementById("error_page_404_api");
+        var lis_error_page_500_user = document.getElementById("error_page_500_user");
+        var lis_error_page_500_api = document.getElementById("error_page_500_api");
+        lis_error_page_404_user.addEventListener("change", function(event){
+            let this_text = $("#error_page_404_user").val();
+            website_set_property("error_page_404_user", this_text);
+        });
+        lis_error_page_404_api.addEventListener("change", function(event){
+            let this_text = $("#error_page_404_api").val();
+            website_set_property("error_page_404_api", this_text);
+        });
+        lis_error_page_500_user.addEventListener("change", function(event){
+            let this_text = $("#error_page_500_user").val();
+            website_set_property("error_page_500_user", this_text);
+        });
+        lis_error_page_500_api.addEventListener("change", function(event){
+            let this_text = $("#error_page_500_api").val();
+            website_set_property("error_page_500_api", this_text);
         });
     }else{
         document.getElementById("ssl_redirect").disabled = true;
+        document.getElementById("default_doc_text").disabled = true;
+
         document.getElementById("maintenance_dev_enabled").disabled = true;
         document.getElementById("maintenance_qa_enabled").disabled = true;
         document.getElementById("maintenance_stage_enabled").disabled = true;
         document.getElementById("maintenance_prod_enabled").disabled = true;
+
         document.getElementById("maintenance_page_text").disabled = true;
-        document.getElementById("default_doc_text").disabled = true;
+        document.getElementById("maintenance_page_api_text").disabled = true;
+
+        document.getElementById("error_page_404_user").disabled = true;
+        document.getElementById("error_page_404_api").disabled = true;
+        document.getElementById("error_page_500_user").disabled = true;
+        document.getElementById("error_page_500_api").disabled = true;
     }
-}
-function ui_project_vhost_summary(project_data) {
-    log("ui_project_vhost_summary");
-
-    //Generate VHOST summary
-    let html_vhost_table = "";
-    let html_vhost_rows = "";
-    for(let website in project_data["websites"]) {
-        //Set vhost
-        let this_path = `/vhost/${focused_project}::${website}/`;
-        html_vhost_rows += `
-            <div class="grid1_col">${website}</a></div>
-            <div class="grid1_col"><a href="${this_path}" target="_blank">${this_path}</a></div>
-        `;
-    }
-    html_vhost_table = `
-        <br />
-        <div class="grid2">
-            <div class="grid2_head">Website Preview</div>
-            <div class="grid1_sub_head">Site Name</div>
-            <div class="grid1_sub_head">VHost URL</div>
-            ${html_vhost_rows}
-        </div>
-    `;
-
-    //Return data
-    return html_vhost_table;
-}
-function ui_project_fqdn_summary(project_data) {
-    log("ui_project_fqdn_summary");
-
-    //Get server conf
-    let http_on = server_configs.http_on;
-    let http_port = server_configs.http_port;
-    let https_on = server_configs.https_on;
-    let https_port = server_configs.https_port;
-
-    //Create FQDN list
-    let html_fqdn_table = "";
-    let html_fqdn_rows = "";
-
-    //Loop through environments
-    for(let env in project_data.dns_names) {
-        //Process server modes DNS config
-        for(let this_dns in project_data.dns_names[env]) {
-            this_row = "";
-
-            this_http_url = "";
-            this_https_url = "";
-            this_http_a = "";
-            this_https_a = "";
-
-            //Check site not mapped
-            this_site = project_data.dns_names[env][this_dns];
-            if(this_site == "") {
-                this_site = `<span class="font_red">(unmapped)</span>`;
-            }
-
-            //Get URL for HTTP
-            if(http_on == true) {
-                if(http_port == "80") {
-                    this_http_url = `http://${this_dns}/`;
-                }else{
-                    this_http_url = `http://${this_dns}:${http_port}/`;
-                }
-                this_http_a = `<a href="${this_http_url}" target="_blank">HTTP</a>`;
-            }else{
-                this_http_a = `-`;
-            }
-
-            //Get URL for HTTPS
-            if(https_on == true) {
-                if(https_port == "443") {
-                    this_https_url = `https://${this_dns}/`;
-                }else{
-                    this_https_url = `https://${this_dns}:${https_port}/`;
-                }
-                this_https_a = `<a href="${this_https_url}" target="_blank">HTTPS</a>`;
-            }else{
-                this_https_a = `-`;
-            }
-
-            //Check disabled
-            let project_enabled = `<span class="font_green">Yes</span>`;
-            if(project_data.enabled == false) {
-                project_enabled = `<span class="font_red">No</span>`;
-                this_http_a = `-`;
-                this_https_a = `-`;
-            }
-
-            //Append server mode config
-            html_fqdn_rows += `
-                <div class="grid1_col">${project_enabled}</div>
-                <div class="grid1_col">${env}</div>
-                <div class="grid1_col">${this_site}</div>
-                <div class="grid1_col">${this_dns}</div>
-                <div class="grid1_col">${this_http_a}</div>
-                <div class="grid1_col">${this_https_a}</div>
-            `;
-        }
-    }
-
-    //Check is any mapping exists
-    if(html_fqdn_rows == "") {
-        html_fqdn_rows = `<div class="grid6_col">** No DNS FQDN Mapping Configured **</div>`;
-    }
-
-    //Define table
-    html_fqdn_table = `
-        <br />
-        <div class="grid6">
-            <div class="grid6_head">Project DNS FQDN Mapping</div>
-            <div class="grid1_sub_head">Project Enabled</div>            
-            <div class="grid1_sub_head">Environment</div>
-            <div class="grid1_sub_head">Site Name</div>
-            <div class="grid1_sub_head">URL</div>
-            <div class="grid1_sub_head">HTTP (port:${http_port})</div>
-            <div class="grid1_sub_head">HTTPS (port:${https_port})</div>
-            ${html_fqdn_rows}
-        </div>
-    `;
-    
-    //Return HTML
-    return html_fqdn_table;
 }
 
 //Project website management UI
@@ -3088,10 +3621,18 @@ function ui_website_sub_map_new() {
     //Get project files list from server
     let project_data = website_projects[focused_project];
 
+    if(Object.keys(project_data.websites).length == 1) {
+        //Call dialog function
+        dialog("Note", "There is only 1 website in your project, you should have more than one website for sub mapping.");
+        return;
+    }
+
     //Loop project websites
     let website_select = "";
     for(site in project_data.websites) {
-        website_select += `<option value="${site}">${site}</option>`;
+        if(site != focused_site) {
+            website_select += `<option value="${site}">${site}</option>`;
+        }
     }
         
     //Build select drop down (change DNS target selector)
@@ -3424,359 +3965,64 @@ function ui_project_files_delete() {
     dialog("Delete Selected", html);
 }
 
-//Project DNS management UI
-function ui_project_dns() {
-    log("ui_project_dns");
+//Resolve ampping management UI
+function ui_resolve_delete_map(value=null) {
+    log("ui_resolve_delete_map");
 
-    //Check sites and settings permissions
-    let panel_write_access = api_check_project(["project_adm", "dns_adm"]);
-
-    //Panel Read Access note
-    let read_access = ""
-    if(panel_write_access == false) {
-        //Set top of page read only
-        read_access = ui_panel_read_only();
-    }
-
-    //Get project files list from server
-    let project_data = website_projects[focused_project];
-
-    //Generate DNS list
-    let html_dns_rows = "";
-    for(let env in project_data.dns_names) {
-        let dns_row = "";
-
-        //Loop DNS names
-        dns_target = project_data.dns_names[env];
-        for(let dns in dns_target) {
-            //Create DNS row
-            if(panel_write_access == true) {
-                //DNS target
-                let dns_resolve = dns_target[dns];
-
-                //Loop sites
-                let dns_select = "";
-                for(site in project_data.websites) {
-                    if(site == dns_resolve) {
-                        dns_select += `<option value="${dns}:${site}" selected>${site}</option>`;
-                    }else{
-                        dns_select += `<option value="${dns}:${site}">${site}</option>`;
-                    }
-                }
-                    
-                //Build select drop down (change DNS target selector)
-                dns_select = `
-                    <select id="${dns}" onChange="dns_update('${env}', this.value);">
-                        <option value="${dns}:"></option>
-                        ${dns_select}
-                    </select>
-                `;
-    
-                //DNS row
-                dns_row += `
-                    <div class="grid1_col">${env}</div>
-                    <div class="grid1_col">${dns}</div>
-                    <div class="grid1_col">${dns_select}</div>
-                    <div class="grid1_col">
-                        <img class="icon project_dns_delete" src="images/trash_icon.png" alt="" onClick="ui_project_dns_delete('${env}', '${dns}');" title="Delete DNS mapping: ${dns}" />
-                    </div>
-                `;
-            }else{
-                dns_row += `
-                    <div class="grid1_col">${env}</div>
-                    <div class="grid1_col">${dns}</div>
-                    <div class="grid1_col">${dns_target[dns]}</div>
-                `;
-            }
-        }
-
-        html_dns_rows += dns_row;
-    }
-
-    //Build DNS resolve table
-    let html_dns = "";
-    let html_fqdn_table = "";
-    if(panel_write_access == true) {
-        html_dns = `
-            <div class="grid4">
-                <div class="grid3_head">DNS Resolution</div>
-                <div class="grid1_head">
-                    <img class="icon project_dns_add" src="images/add_icon.png" alt="" onClick="ui_project_dns_add();" title="Add DNS mapping for site" />
-                </div>
-                <div class="grid1_col"><b>Environment</b></div>
-                <div class="grid1_col"><b>DNS Name</b></div>
-                <div class="grid1_col"><b>Site Mapping</b></div>
-                <div class="grid1_col"></div>
-                ${html_dns_rows}
-            </div>
-        `;
-
-        //Get all FQDN mapping (reference table)
-        let all_dns = ui_mapping_fqdn_summary()
-        html_fqdn_table = `
-            <br /><br /><br />
-            <p><b>* Reference to all DNS mappings (all projects)</b></p>
-            ${all_dns}
-        `;
-    }else{
-        html_dns = `
-            <div class="grid3">
-                <div class="grid3_head">DNS Resolution</div>
-                <div class="grid1_col"><b>Environment</b></div>
-                <div class="grid1_col"><b>DNS Name</b></div>
-                <div class="grid1_col"><b>Site Mapping</b></div>
-                ${html_dns_rows}
-            </div>
-        `;
-    }
-
-    //DNS Prod Table
-    let html = `
-        ${read_access}
-        <p class="project_setting_title">DNS Mapping Settings</p>
-        <p>DNS resolution settings defines the mapping when the web services are in 'dev' or 'prod' mode</p>
-        ${html_dns}
-        ${html_fqdn_table}
-    `;
-
-    //Output project panel
-    $("#project_panel").html(html);
-}
-function ui_project_dns_add() {
-    log("ui_project_dns_add");
-
-    //Get project data
-    let project_data = website_projects[focused_project];
-
-
-    //Prompt use if websites do not exist when creating a DNS record
-    if(Object.keys(project_data.websites).length == 0) {
-        dialog("Notice",`
-            There are no websites to assign DNS names.<br />
-            Please create a website before assigning a<br />
-            DNS name.
-        `)
+    //Validate
+    if(value == null) {
+        dialog("Error", "Function caused an invalid call");
         return;
     }
 
-    //Generate site list
-    let site_select = "";
-    for(site in project_data.websites) {
-        site_select += `<option value="${site}">${site}</option>`;
+    //Parse
+    let proj = "";
+    let type = "";
+    let env = "";
+    let url = "";
+    try {
+        let parse_val = value.split("::");
+        proj = parse_val[1];
+        type = parse_val[2];
+        env = parse_val[3];
+        url = parse_val[4];
+    }catch(e) {
+        dialog("Error", "Function caused an invalid call");
+        return;
     }
-    site_select = `
-        <select id="site_name">
-            <option value=""></option>
-            ${site_select}
-        </select>
-    `;
+
+    //Set strings
+    let this_map_type = "Proxy Map";
+    if(type == "dns_names") {
+        this_map_type = "DNS FQDN";
+    }
 
     //Create dialog HTML
     html = `
-        <div class="grid2">
-            <div class="grid1_col">Environment:</div>
-            <div class="grid1_col">
-                <select id="dns_env">
-                    <option value="dev">dev</option>
-                    <option value="qa">qa</option>
-                    <option value="stage">stage</option>
-                    <option value="prod">prod</option>
-                </select>
-            </div>
-            <div class="grid1_col">DNS FQDN Name:</div>
-            <div class="grid1_col">
-                <input type="text" id="dns_name" value=""><br />
-                format: <i>www.domain.com</i>
-            </div>
-            <div class="grid1_col">Site Name:</div>
-            <div class="grid1_col">${site_select}</div>
+        <input type="hidden" id="resolve_delete_proj" value="${proj}">
+        <input type="hidden" id="resolve_delete_type" value="${type}">
+        <input type="hidden" id="resolve_delete_env" value="${env}">
+        <input type="hidden" id="resolve_delete_url" value="${url}">
+
+        <p>Are you sure you want to delete website map?</p><br />
+        <div class="grid2_inner">
+            <div class="grid1_col"><b>Project</b></div>
+            <div class="grid1_col">${proj}</div>
+            <div class="grid1_col"><b>Map Type</b></div>
+            <div class="grid1_col">${this_map_type}</div>
+            <div class="grid1_col"><b>Environment</b></div>
+            <div class="grid1_col">${env}</div>
+            <div class="grid1_col"><b>URL</b></div>
+            <div class="grid1_col">${url}</div>
         </div>
         
         <br /><br />
-        <input type="button" value="Create" onClick="dns_add();">
-        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
-    `;
-
-    //Call dialog function
-    dialog(`Add DNS Resolution`, html);    
-}
-function ui_project_dns_delete(env, dns) {
-    log("ui_project_dns_delete");
-    
-    //Create dialog HTML
-    html = `
-        <input type="hidden" id="dns_env" value="${env}">
-        <input type="hidden" id="dns_name" value="${dns}">
-
-        <p>Are you sure you want to delete DNS "${dns}"?</p>
-        
-        <br /><br />
-        <input type="button" value="Yes" onClick="dns_delete();">
+        <input type="button" value="Yes" onClick="resolve_delete_map();">
         <input type="button" value="No" onClick="$('#dialog').dialog('close');">
     `;
     
     //Call dialog function
-    dialog(`Delete DNS Resolution (${env})`, html);    
-}
-
-//Project Mapping UI
-function ui_mapping_vhost_summary() {
-    log("ui_mapping_vhost_summary");
-    
-    //Create VHOST list
-    let html_vhost_table = "";
-    let html_vhost_rows = "";
-    for(let project in website_projects) {
-        //Set divider line
-        let grid_divider = " grid1_col_divider";
-
-        //Loop sites
-        for(let website in website_projects[project]["websites"]) {
-            //Set vhost
-            let this_path = `/vhost/${project}::${website}/`;
-            html_vhost_rows += `
-                <div class="grid1_col${grid_divider}">${project}</a></div>
-                <div class="grid1_col${grid_divider}">${website}</a></div>
-                <div class="grid1_col${grid_divider}"><a href="${this_path}" target="_blank">${this_path}</a></div>
-            `;
-
-            //Normal divider after first row
-            grid_divider = "";
-        }
-    }
-
-    //Check is any mapping exists
-    if(html_vhost_rows == "") {
-        if(Object.keys(website_projects) == 0) {
-            html_vhost_rows = `<div class="grid3_col">** No projects are created **</div>`;
-        }else{
-            html_vhost_rows = `<div class="grid3_col">** No websites are created **</div>`;
-        }
-    }
-
-    //Build table
-    html_vhost_table = `
-        <div class="grid3">
-            <div class="grid3_head">All Porject Website Preview</div>
-            <div class="grid1_sub_head">Project Name</div>
-            <div class="grid1_sub_head">Site Name</div>
-            <div class="grid1_sub_head">Path (VHost URL)</div>
-            ${html_vhost_rows}
-        </div>
-    `;
-
-    //Return HTML
-    return html_vhost_table;
-}
-function ui_mapping_proxy_summary() {
-    // Future state
-}
-function ui_mapping_fqdn_summary() {
-    log("ui_mapping_fqdn_summary");
-
-    //Get server conf
-    let http_on = server_configs.http_on;
-    let http_port = server_configs.http_port;
-    let https_on = server_configs.https_on;
-    let https_port = server_configs.https_port;
-
-    //Create FQDN list
-    let html_fqdn_table = "";
-    let html_fqdn_rows = "";
-
-    for(let project in website_projects) {
-        let project_data = website_projects[project]
-
-        //Set divider line
-        let grid_divider = " grid1_col_divider";
-
-        //Loop through environments
-        for(let env in project_data.dns_names) {
-            //Process server modes DNS config
-            for(let this_dns in project_data.dns_names[env]) {
-                this_row = "";
-
-                this_http_url = "";
-                this_https_url = "";
-                this_http_a = "";
-                this_https_a = "";
-
-                //Check site not mapped
-                this_site = project_data.dns_names[env][this_dns];
-                if(this_site == "") {
-                    this_site = `<span class="font_red">(unmapped)</span>`;
-                }
-
-                //Get URL for HTTP
-                if(http_on == true) {
-                    if(http_port == "80") {
-                        this_http_url = `http://${this_dns}/`;
-                    }else{
-                        this_http_url = `http://${this_dns}:${http_port}/`;
-                    }
-                    this_http_a = `<a href="${this_http_url}" target="_blank">HTTP</a>`;
-                }else{
-                    this_http_a = `-`;
-                }
-
-                //Get URL for HTTPS
-                if(https_on == true) {
-                    if(https_port == "443") {
-                        this_https_url = `https://${this_dns}/`;
-                    }else{
-                        this_https_url = `https://${this_dns}:${https_port}/`;
-                    }
-                    this_https_a = `<a href="${this_https_url}" target="_blank">HTTPS</a>`;
-                }else{
-                    this_https_a = `-`;
-                }
-
-                //Check disabled
-                let project_enabled = `<span class="font_green">Yes</span>`;
-                if(project_data.enabled == false) {
-                    project_enabled = `<span class="font_red">No</span>`;
-                    this_http_a = `-`;
-                    this_https_a = `-`;
-                }
-
-                //Append server mode config
-                html_fqdn_rows += `
-                    <div class="grid1_col${grid_divider}">${project_enabled}</div>
-                    <div class="grid1_col${grid_divider}">${project}</div>
-                    <div class="grid1_col${grid_divider}">${env}</div>
-                    <div class="grid1_col${grid_divider}">${this_site}</div>
-                    <div class="grid1_col${grid_divider}">${this_dns}</div>
-                    <div class="grid1_col${grid_divider}">${this_http_a}</div>
-                    <div class="grid1_col${grid_divider}">${this_https_a}</div>
-                `;
-            }
-
-            //Normal divider after first row
-            grid_divider = "";
-        }
-    }
-
-    //Check is any mapping exists
-    if(html_fqdn_rows == "") {
-        html_fqdn_rows = `<div class="grid7_col">** No DNS FQDN Mapping Configured **</div>`;
-    }
-
-    html_fqdn_table = `
-        <div class="grid7">
-            <div class="grid7_head">All Project DNS FQDN Mapping</div>
-            <div class="grid1_sub_head">Project Enabled</div>            
-            <div class="grid1_sub_head">Project Name</div>
-            <div class="grid1_sub_head">Environment</div>
-            <div class="grid1_sub_head">Site Name</div>
-            <div class="grid1_sub_head">URL</div>
-            <div class="grid1_sub_head">HTTP (port:${http_port})</div>
-            <div class="grid1_sub_head">HTTPS (port:${https_port})</div>
-            ${html_fqdn_rows}
-        </div>
-    `;
-    
-    //Return HTML
-    return html_fqdn_table;
+    dialog("Delete Website Map", html);
 }
 
 //Templates UI
@@ -4482,20 +4728,29 @@ function ui_admin_server_settings(response) {
 function ui_admin_server_url_mapping(response) {
     //Get data
     let web_configs = {};
+    let web_mapping = {};
     let html_no_data = "";
     if(response["web_configs"] == undefined) {
         html_no_data = "No Web Config Data Returned<br />"
     }else{
         web_configs = response["web_configs"];
     }
+    if(response["web_mapping"] == undefined) {
+        html_no_data = "No Web Config Data Returned<br />"
+    }else{
+        web_mapping = response["web_mapping"];
+    }
+
+    console.log(web_configs)
+    console.log(web_mapping)
 
     //Counter
     let match_count = 1;
 
     //HTML Managment UI Resolve Hostnames
     let html_mgmtui_hostnames = "";
-    if(web_configs["resolve"]["mgmtui_map"]["hostnames"] != undefined) {
-        let mgmtui_hostname = web_configs["resolve"]["mgmtui_map"]["hostnames"];
+    if(web_mapping["resolve"]["mgmtui_map"]["hostnames"] != undefined) {
+        let mgmtui_hostname = web_mapping["resolve"]["mgmtui_map"]["hostnames"];
         if(Object.keys(mgmtui_hostname).length > 0) {
             //Get hostnames
             let html_mgmtui_rows = "";
@@ -4523,8 +4778,8 @@ function ui_admin_server_url_mapping(response) {
 
     //HTML Managment UI Resolve VHosts
     let html_mgmtui_vhosts = "";
-    if(web_configs["resolve"]["mgmtui_map"]["hostnames"] != undefined) {
-        let mgmtui_vhosts = web_configs["resolve"]["mgmtui_map"]["vhosts"];
+    if(web_mapping["resolve"]["mgmtui_map"]["hostnames"] != undefined) {
+        let mgmtui_vhosts = web_mapping["resolve"]["mgmtui_map"]["vhosts"];
         if(Object.keys(mgmtui_vhosts).length > 0) {
             //Get hostnames
             let html_mgmtui_rows = "";
@@ -4557,8 +4812,8 @@ function ui_admin_server_url_mapping(response) {
 
     //HTML Proxy Map Resolve
     let html_proxy_map = "";
-    if(web_configs["resolve"]["proxy_map"] != undefined) {
-        let proxy_map = web_configs["resolve"]["proxy_map"];
+    if(web_mapping["resolve"]["proxy_map"] != undefined) {
+        let proxy_map = web_mapping["resolve"]["proxy_map"];
         if(Object.keys(proxy_map).length > 0) {
             //Get hostnames
             let html_proxy_rows = "";
@@ -4598,8 +4853,8 @@ function ui_admin_server_url_mapping(response) {
 
     //HTML DNS Map Resolve
     let html_dns_map = "";
-    if(web_configs["resolve"]["dns_map"] != undefined) {
-        let dns_map = web_configs["resolve"]["dns_map"];
+    if(web_mapping["resolve"]["dns_map"] != undefined) {
+        let dns_map = web_mapping["resolve"]["dns_map"];
         if(Object.keys(dns_map).length > 0) {
             //Get hostnames
             let html_dns_rows = "";

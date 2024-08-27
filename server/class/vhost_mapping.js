@@ -59,10 +59,27 @@ class vhost_mapping {
     //Environment
     env = ""
 
+    //Supported file types
+    mime_types = {}
+
     //Configurations and mapping
     change_tracking = {}
-    web_configs = {}
-    web_mapping = {}
+    web_configs = {
+        "mgmtui":{},
+        "projects":{},
+        "errors":{},
+    }
+    web_mapping = {
+        "defaults":{},
+        "resolve":{
+            "mgmtui_map":{
+                "hostnames":[],
+                "vhosts":{}
+            },
+            "proxy_map":{},
+            "dns_map":{}
+        }
+    }
 
     //Class initiailize
     constructor() { 
@@ -150,8 +167,20 @@ class vhost_mapping {
                 }
                 this.mgmt_ui.sort();
             }
+        }
 
-
+        //Load MIME Types
+        let mine_types_config = path.join(this.paths.class, "_mine_types.json");
+        if(fs.existsSync(mine_types_config)) {
+            //Load JSON data
+            let mime_data = fs.readFileSync(mine_types_config);
+            try {
+                var json = JSON.parse(mime_data);
+            }catch{
+                console.error(" :: Cannot open mime types conf [" + mine_types_config + "] :: JSON config parse error, ignoring");
+                return;
+            }
+            this.mime_types = json;
         }
     }
     load_server_ipaddr() {
@@ -206,9 +235,9 @@ class vhost_mapping {
     set_environment(env) {
         if(env == "") {
             this.log({
+                "source":"mapper",
                 "state":"info",
-                "message":`Mapper cannot set environment, value is invalid[${env}]`,
-                "log":{}
+                "message":`Mapper cannot set environment, value is invalid[${env}]`
             })
         }else{
             this.env = env;
@@ -224,15 +253,15 @@ class vhost_mapping {
 
         //Set default log message
         let this_log = {
-            "project":"",
+            "source":"",
             "state":"info",
             "message":"",
-            "log":{"log":"none"}
+            "environment":this.env
         }
 
         //Validate fields
-        if(data.project != undefined) {
-            this_log.project = data.project
+        if(data.source != undefined) {
+            this_log.source = data.source
         }
         if(data.state != undefined) {
             this_log.state = data.state
@@ -240,8 +269,12 @@ class vhost_mapping {
         if(data.message != undefined) {
             this_log.message = data.message
         }
-        if(data.log != undefined) {
-            this_log.log = data.log
+
+        //Append additional fields
+        for(let field in data) {
+            if(this_log[field] == undefined) {
+                this_log[field] = data[field];
+            }
         }
 
         //Output in debug mode
@@ -271,9 +304,9 @@ class vhost_mapping {
             let this_config = path.join(web_source, project, "config.json");
             if(fs.existsSync(this_config) == false) {
                 this.log({
+                    "source":"mapper",
                     "state":"info",
-                    "message":`project[${project}] folder or configuration removed, removing config data`,
-                    "log":{}
+                    "message":`project[${project}] folder or configuration removed, removing config data`
                 })
                 delete this.change_tracking[project];
                 detect_change = true;
@@ -311,9 +344,9 @@ class vhost_mapping {
                         var this_json = JSON.parse(this_content);
                     }catch{
                         this.log({
+                            "source":"mapper",
                             "state":"info",
-                            "message":`project[${project}] :: Project configuration error, unable to parse JSON data, ignoring`,
-                            "log":{}
+                            "message":`project[${project}] :: Project configuration error, unable to parse JSON data, ignoring`
                         })
                         continue;
                     }
@@ -321,9 +354,9 @@ class vhost_mapping {
                     //Check if web_config already exists
                     if(this.change_tracking[project] == undefined) {
                         this.log({
+                            "source":"mapper",
                             "state":"info",
-                            "message":`New Configuration @ project[${project}]`,
-                            "log":{}
+                            "message":`New Configuration @ project[${project}]`
                         })
                         this.change_tracking[project] = {};
                         this.change_tracking[project]["modified"] = this_modified;
@@ -333,9 +366,9 @@ class vhost_mapping {
                         //Check if newer time stamp
                         if(this.change_tracking[project]["modified"].toString() != this_modified.toString()) {
                             this.log({
+                                "source":"mapper",
                                 "state":"info",
-                                "message":`Configuration Updated @ project[${project}]`,
-                                "log":{}
+                                "message":`Configuration Updated @ project[${project}]`
                             })
                             this.change_tracking[project] = {};
                             this.change_tracking[project]["modified"] = this_modified;
@@ -345,9 +378,9 @@ class vhost_mapping {
                     }
                 }else{
                     this.log({
+                        "source":"mapper",
                         "state":"info",
-                        "message":`No configuration for [${project}] > ${this_config}, ignoring`,
-                        "log":{}
+                        "message":`No configuration for [${project}] > ${this_config}, ignoring`
                     })
                     continue;
                 }
@@ -364,47 +397,49 @@ class vhost_mapping {
 
     //Mapping
     map_generate() {
-        //Set temp web_config
-        let temp_web_configs = {
-            "defaults":{},
-            "resolve":{
-                "mgmtui_map":{
-                    "hostnames":[],
-                    "vhosts":{}
-                },
-                "proxy_map":{},
-                "dns_map":{},
-            },
-            "mgmtui":{},
-            "projects":{}
+        //Start time
+        let time = new Date()
+        let start_time = time.getTime()
+
+        //Define web_configs
+        this.web_configs.mgmtui = this.map_mgmtui_configs();
+        this.web_configs.projects = this.map_project_configs();
+
+        //Define mapping for mgmt UI
+        if(this.mgmt_mode == true) {
+            this.web_mapping.resolve.mgmtui_map = this.map_resolve_mgmtui();
         }
 
-        //Run mapping functions
-        temp_web_configs = this.map_system_default(temp_web_configs);
-        temp_web_configs = this.map_project_configs(temp_web_configs);
-        temp_web_configs = this.map_resolve(temp_web_configs);
+        //Resolve Proxy and DNS Mapping
+        this.web_mapping.resolve.proxy_map = this.map_resolve_proxy_dns_map("proxy_map");
+        this.web_mapping.resolve.dns_map = this.map_resolve_proxy_dns_map("dns_names");
 
-        //Set web config to class
-        this.web_configs = temp_web_configs;
+        //Define mapping configs
+        this.web_mapping.defaults = this.map_system_default();
+
+        //Validate the configuration files
+        this.validate_web_configs();
+
+        //End time
+        time = new Date()
+        let end_time = time.getTime()
+
+        this.log({
+            "source":"mapper",
+            "state":"info",
+            "message":`Project configuration mapping and validate time: ${end_time - start_time} ms`,
+            "time": (end_time - start_time)
+        })
 
     }
-    map_system_default(temp_web_configs) {
-        //Set defaults
-        temp_web_configs.defaults["default_doc"] = "index.html";
-        temp_web_configs.defaults["maintenance_page"] = "maintenance.html";
-        temp_web_configs.defaults["404"] = "404.html";
-        temp_web_configs.defaults["404_json"] = "404_json.html";
-        temp_web_configs.defaults["500"] = "500.html";
-        temp_web_configs.defaults["500_json"] = "500_json.html";
+    map_mgmtui_configs() {
+        //Set return variable
+        let this_mgmtui = {}
 
-        //Return web configs
-        return temp_web_configs;
-    }
-    map_project_configs(temp_web_configs) {
         //Dev mode website configurations
         if(this.mgmt_mode == true) {
             //Mapping dev UI names
-            temp_web_configs.mgmtui = {
+            this_mgmtui = {
                 "project_desc": "Management UI",
                 "enabled": true,
                 "proxy_map": {
@@ -422,12 +457,24 @@ class vhost_mapping {
                 "websites": {
                     "www": {
                         "ssl_redirect": true,
-                        "maintenance": false,
+                        "maintenance": {
+                            "dev": false,
+                            "qa": false,
+                            "stage": false,
+                            "prod": false
+                        },
                         "maintenance_page": "maintenance.html",
+                        "maintenance_page_api": "maintenance.json",
                         "default_doc": "index.html",
                         "default_errors": {
-                            "404": "404.js",
-                            "500": "500.js"
+                            "user": {
+                                "404": "404.html",
+                                "500": "500.html"
+                            },
+                            "api": {
+                                "404": "404.json",
+                                "500": "500.json"
+                            }
                         },
                         "apis_fixed_path": {},
                         "apis_dynamic_path": {
@@ -442,6 +489,13 @@ class vhost_mapping {
                 }
             }
         }
+
+        //Return data
+        return this_mgmtui;
+    }
+    map_project_configs() {
+        //Set return variable
+        let this_projects = {}
 
         //Cycle project files
         let web_source = this.paths["web_source"];
@@ -470,12 +524,12 @@ class vhost_mapping {
                     //Check file data is JSON
                     try {
                         this_json = JSON.parse(this_content);
-                        temp_web_configs.projects[project] = this_json;
+                        this_projects[project] = this_json;
                     }catch{
                         this.log({
+                            "source":"mapper",
                             "state":"info",
-                            "message":`project[${project}] :: JSON config parse error, ignoring`,
-                            "log":{}
+                            "message":`project[${project}] :: JSON config parse error, ignoring`
                         })
                         continue;
                     }
@@ -484,81 +538,31 @@ class vhost_mapping {
         }
 
         //Return web configs
-        return temp_web_configs;
+        return this_projects;
     }
-    map_resolve(temp_web_configs) {
-        //Get environment
-        let env = this.env;
-
-        //Add dev mode resolve hostname
-        if(this.mgmt_mode == true) {
-            //Set Dev UI server IP and VHosts
-            temp_web_configs.resolve.mgmtui_map.hostnames = this.mgmt_ui;
-            temp_web_configs.resolve.mgmtui_map.vhosts = this.map_mgmtui_vhosts(temp_web_configs);
+    map_resolve_mgmtui() {
+        //Set return variable
+        let this_mgmtui_map = {
+            "hostnames":this.mgmt_ui,
+            "vhosts":this.map_resolve_mgmtui_vhosts()
         }
 
-        //Temp web_mapping
-        let web_mapping = {
-            "resolve":{
-                "proxy_map":{},
-                "dns_map":{},
-            }
-        }
-
-        //Get proxy mapping
-        for(let project in temp_web_configs.projects) {
-            if(temp_web_configs.projects[project].enabled == true) {
-                //Get proxy mapping
-                if(temp_web_configs.projects[project]["proxy_map"] != undefined) {
-                    if(temp_web_configs.projects[project]["proxy_map"][env] != undefined) {
-                        if(Object.keys(temp_web_configs.projects[project]["proxy_map"][env]).length > 0) {
-                            for(let proxy in temp_web_configs.projects[project]["proxy_map"][env]) {
-                                web_mapping.resolve.proxy_map[proxy] = {
-                                    "project": project,
-                                    "website": temp_web_configs.projects[project]["proxy_map"][env][proxy]
-                                }
-                            }
-                        }
-                    }
-                }
-
-                //Get DNS map
-                if(temp_web_configs.projects[project]["dns_names"] != undefined) {
-                    if(temp_web_configs.projects[project]["dns_names"][env] != undefined) {
-                        if(Object.keys(temp_web_configs.projects[project]["dns_names"][env]).length > 0) {
-                            for(let dns in temp_web_configs.projects[project]["dns_names"][env]) {
-                                web_mapping.resolve.dns_map[dns] = {
-                                    "project": project,
-                                    "website": temp_web_configs.projects[project]["dns_names"][env][dns]
-                                };
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        //Store web_mapping to class properties
-        temp_web_configs.resolve.proxy_map = web_mapping.resolve.proxy_map;
-        temp_web_configs.resolve.dns_map = web_mapping.resolve.dns_map;
-
-        //Return web configs
-        return temp_web_configs;
+        //Return
+        return this_mgmtui_map;
     }
-    map_mgmtui_vhosts(temp_web_configs) {
+    map_resolve_mgmtui_vhosts() {
         //Loop project names and sites
         let vhost_path = []
         let temp_map = {}
         let vhost_map = {}
-        for(let project in temp_web_configs.projects) {
-            for(let website in temp_web_configs.projects[project]["websites"]) {
+        for(let project in this.web_configs.projects) {
+            for(let website in this.web_configs.projects[project]["websites"]) {
                 let vhost = `/vhost/${project}::${website}/`;
                 vhost_path.push(vhost);
                 temp_map[vhost] = {
                     "project":project,
                     "website":website
                 }
-
             }
         }
 
@@ -573,6 +577,536 @@ class vhost_mapping {
         //Return vhost mapping
         return vhost_map;
     }
+    map_resolve_proxy_dns_map(map_type) {
+        //Get environment
+        let env = this.env;
+        let this_path = []
+        let temp_map = {}
+        let this_map = {}
+
+        //Get proxy mapping
+        for(let project in this.web_configs.projects) {
+            if(this.web_configs.projects[project].enabled == true) {
+                //Get proxy mapping
+                if(this.web_configs.projects[project][map_type] != undefined) {
+                    if(this.web_configs.projects[project][map_type][env] != undefined) {
+                        if(Object.keys(this.web_configs.projects[project][map_type][env]).length > 0) {
+                            for(let proxy in this.web_configs.projects[project][map_type][env]) {
+                                this_path.push(proxy);
+                                temp_map[proxy] = {
+                                    "project": project,
+                                    "website": this.web_configs.projects[project][map_type][env][proxy]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //Sort array by string length
+        this_path.sort((a, b) => b.length - a.length);
+
+        //Add to mapping
+        for(let i in this_path) {
+            this_map[this_path[i]] = temp_map[this_path[i]];
+        }
+
+        //Return mapping
+        return this_map;
+    }
+    map_system_default() {
+        //Set default docs
+        let this_defaults = {
+            "default_doc":"index.html",
+            "default_404_user":"404.html",
+            "default_404_api":"404.json",
+            "default_500_user":"500.html",
+            "default_500_api":"500.json",
+            "maintenance_page":"maintenance.html",
+            "maintenance_page_api":"maintenance.json"
+        }
+
+        //Return web configs
+        return this_defaults;
+    }    
+
+    //////////////////////////////////
+    //Project configuration validate
+    //////////////////////////////////
+
+    //
+    // Temporarily correct configuration
+    // Add to web_config["errors"][project]
+    //
+
+    validate_web_configs() {
+        //Reset errors state
+        this.web_configs.errors = {}
+
+        //Loop configurations
+        for(let project in this.web_configs.projects) {
+            //Validate general settings
+            this.validate_project_params(project);
+            this.validate_project_resolve_maps(project, "proxy_map");
+            this.validate_project_resolve_maps(project, "dns_names");
+            this.validate_project_websites(project);
+        }
+    }
+    validate_project_flag_error(project, website=null, errlvl, msg, website_files_type=null) {
+        //
+        // Error levels [errlvl]
+        //   warning = minor misconfiguration (e.g. Proxy or DNS with null setting)
+        //   error   = Configuration missing and needs correcting
+        //
+
+        //Check if errors sections exists
+        if(this.web_configs.errors[project] == undefined) {
+            this.web_configs.errors[project] = {
+                "errlvl":"warning",
+                "message":"",
+                "websites":{}
+            }
+        }
+
+        //Check is website section is defined
+        if(website != null) {
+            if(this.web_configs.errors[project]["websites"][website] == undefined) {
+                this.web_configs.errors[project]["websites"][website] = {
+                    "errlvl":"warning",
+                    "message":"",
+                    "maintenance_page_exists":true,
+                    "default_doc_exists":true,
+                    "default_errors_exists":true
+                }
+            }
+        }
+
+        //Update error
+        if(website == null) {
+            //Set error level
+            if(errlvl == "error") {
+                this.web_configs.errors[project]["errlvl"] = errlvl;
+            }
+            this.web_configs.errors[project]["message"] += `${msg}\n`;
+        }else{
+            //Set error level
+            if(errlvl == "error") {
+                this.web_configs.errors[project]["errlvl"] = errlvl;
+                this.web_configs.errors[project]["websites"][website]["errlvl"] = errlvl;
+            }
+            this.web_configs.errors[project]["websites"][website]["message"] += `${msg}\n`;
+
+            //Flag parameter error
+            switch(website_files_type) {
+                case "maintenance_page_exists":  this.web_configs.errors[project]["websites"][website][website_files_type] = false; break;
+                case "default_doc_exists":       this.web_configs.errors[project]["websites"][website][website_files_type] = false; break;
+                case "default_errors_exists":    this.web_configs.errors[project]["websites"][website][website_files_type] = false; break;
+            }
+        }
+    }
+    validate_project_params(project) {
+        //Get project data
+        let project_data = this.web_configs.projects[project];
+
+        //Check project description
+        if(project_data["project_desc"] == undefined) {
+            this.validate_project_flag_error(project, null, "error", `Config File: Porject Desc [project_desc=string] is not defined`)
+            this.web_configs.projects[project]["project_desc"] = "";
+        }
+
+        //Check project enabled
+        if(project_data["enabled"] == undefined) {
+            this.validate_project_flag_error(project, null, "error", `Config File: Porject Enable [enabled=boolean] is not defined`)
+            this.web_configs.projects[project]["enabled"] = false;
+        }else if(typeof(project_data["enabled"]) != "boolean") {
+            this.validate_project_flag_error(project, null, "error", `Config File: Project Enable [enabled=boolean] is wrong data type`)
+            this.web_configs.projects[project]["enabled"] = false;
+        }
+
+        //Check project proxy map
+        if(project_data["proxy_map"] == undefined) {
+            this.validate_project_flag_error(project, null, "error", `Config File: Project Proxy Map [proxy_map={...}] is not defined`)
+            this.web_configs.projects[project]["proxy_map"] = { dev: {}, qa: {}, stage: {}, prod: {} }
+        }else if(typeof(project_data["proxy_map"]) != "object") {
+            this.validate_project_flag_error(project, null, "error", `Config File: Project Proxy Map [proxy_map={...}] is wrong data type`)
+            this.web_configs.projects[project]["proxy_map"] = { dev: {}, qa: {}, stage: {}, prod: {} }
+        }
+
+        //Check project DNS names
+        if(project_data["dns_names"] == undefined) {
+            this.validate_project_flag_error(project, null, "error", `Config File: Project DNS Hostnames [dns_names={...}] is not defined`)
+            this.web_configs.projects[project]["dns_names"] = { dev: {}, qa: {}, stage: {}, prod: {} }
+        }else if(typeof(project_data["dns_names"]) != "object") {
+            this.validate_project_flag_error(project, null, "error", `Config File: Project DNS Hostnames [dns_names={...}] is wrong data type`)
+            this.web_configs.projects[project]["dns_names"] = { dev: {}, qa: {}, stage: {}, prod: {} }
+        }
+
+        //Sort project fields
+        let this_project = {
+            "project_desc": this.web_configs.projects[project]["project_desc"],
+            "enabled": this.web_configs.projects[project]["enabled"],
+            "proxy_map": this.web_configs.projects[project]["proxy_map"],
+            "dns_names": this.web_configs.projects[project]["dns_names"],
+            "websites": this.web_configs.projects[project]["websites"]
+        }
+        this.web_configs.projects[project] = this_project;
+    }
+    validate_project_resolve_maps(project, map_type) {
+        //Get project data
+        let project_data = this.web_configs.projects[project];
+
+        //Set map type string
+        let map_type_str = "Proxy Map";
+        if(map_type == "dns_names") {
+            map_type_str = "DNS Names Map";
+        }
+
+        //Set environments
+        let environments = [
+            "dev",
+            "qa",
+            "stage",
+            "prod",
+        ]
+
+        //Check Environments
+        for(let i in environments) {
+            let env = environments[i];
+            if(project_data[map_type][env] == undefined) {
+                this.validate_project_flag_error(project, null, "error", `Config File: Project ${map_type_str} [${map_type}[${env}]={...}] is not defined`)
+                this.web_configs.projects[project][map_type][env] = {};
+            }else if(typeof(project_data[map_type][env]) != "object") {
+                this.validate_project_flag_error(project, null, "error", `Config File: Project ${map_type_str} [${map_type}[${env}]={...}] is wrong data type`)
+                this.web_configs.projects[project][map_type][env] = {};
+            }else{
+                //Check if any settings are blank
+                for(let this_map in this.web_configs.projects[project][map_type][env]) {
+                    let this_target = this.web_configs.projects[project][map_type][env][this_map];
+                    if(this_target == "") {
+                        this.validate_project_flag_error(project, null, "warning", `Config File: Project ${map_type_str} [${map_type}[${env}]], map[${this_map}] is not resolved`)
+                    }
+                    if(this_target != "" && this.web_configs.projects[project]["websites"][this_target] == undefined) {
+                        this.validate_project_flag_error(project, null, "warning", `Config File: Project ${map_type_str} [${map_type}[${env}]], map[${this_map}] resolves to invalid website[${this_target}]`)
+                    }
+                }
+            }
+        }
+    }
+    validate_project_websites(project) {
+        //Get asset data
+        let project_data = this.web_configs.projects[project];
+
+        //Check project Websites section
+        if(project_data["websites"] == undefined) {
+            this.validate_project_flag_error(project, null, "error", `Config File: Websites [websites={...}] is not defined`)
+            this.web_configs.projects[project]["websites"] = { }
+        }else if(typeof(project_data["websites"]) != "object") {
+            this.validate_project_flag_error(project, null, "error", `Config File: Websites [websites={...}] is wrong data type`)
+            this.web_configs.projects[project]["websites"] = { }
+        }else{
+            //Loop websites
+            for(let website in project_data["websites"]) {
+                //Validate website config
+                if(typeof(project_data["websites"][website]) != "object") {
+                    this.validate_project_flag_error(project, null, "error", `Config File: Website [${website}] is not a valid website configuration`)
+                    delete this.web_configs.projects[project]["websites"][website]
+                }else{
+                    let website_root = path.join(this.paths.web_source, project, website);
+                    if(fs.existsSync(website_root) == false) {
+                        this.validate_project_flag_error(project, website, "error", `Missing Files: Website folder '${website}' not found in project`)
+                    }else{
+                        //Validate website parameters
+                        this.validate_project_website_params(project, website);
+
+                        //Validate website paths (maintenance, error_pages, mapping)
+                        this.validate_project_website_default_doc_path(project, website);
+                        this.validate_project_website_maint_and_errors_paths(project, website);
+                        this.validate_project_website_mapping(project, website);
+                    }
+                }
+            }
+        }
+    }
+    validate_project_website_params(project, website) {
+        //Get website parameters
+        let project_data = this.web_configs.projects[project];
+        let website_data = this.web_configs.projects[project]["websites"][website];
+        let check = true;
+
+        //Check ssl_redirect
+        if(website_data["ssl_redirect"] == undefined) {
+            this.validate_project_flag_error(project, website, "error", `Config File: Website field[ssl_redirect] is not defined`)
+            check = false;
+        }else if(typeof(website_data["ssl_redirect"]) != "boolean") {
+            this.validate_project_flag_error(project, website, "error", `Config File: Website field[ssl_redirect] is wrong data type`)
+            check = false;
+        }
+        if(check == false) {
+            this.web_configs.projects[project]["websites"][website]["ssl_redirect"] = true;
+            check = true;
+        }
+
+        //Check maintenance
+        if(website_data["maintenance"] == undefined) {
+            this.validate_project_flag_error(project, website, "error", `Config File: Website field[maintenance] is not defined`)
+            check = false;
+        }else if(typeof(website_data["maintenance"]) != "object") {
+            this.validate_project_flag_error(project, website, "error", `Config File: Website field[maintenance] is wrong data type`)
+            check = false;
+        }
+        if(check == false) {
+            this.web_configs.projects[project]["websites"][website]["maintenance"] = { "dev": false, "qa": false, "stage": false, "prod": false };
+            check = true;
+        }
+
+        //Check maintenance environment
+        let environments = ["dev", "qa", "stage", "prod"];
+        for(let i in environments) {
+            let env = environments[i];
+            if(website_data["maintenance"][env] == undefined) {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[maintenance][${env}] is not defined`)
+                check = false;
+            }else if(typeof(website_data["maintenance"][env]) != "boolean") {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[maintenance][${env}] is wrong data type`)
+                check = false;
+            }
+            if(check == false) {
+                this.web_configs.projects[project]["websites"][website]["maintenance"][env] = false;
+                check = true;
+            }
+        }
+
+        //Check default documents
+        let default_docs = ["maintenance_page", "maintenance_page_api", "default_doc"];
+        for(let d in default_docs) {
+            let doc_setting = default_docs[d];
+            if(website_data[doc_setting] == undefined) {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[${doc_setting}] is not defined`)
+                check = false;
+            }else if(typeof(website_data[doc_setting]) != "string") {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[${doc_setting}] is wrong data type`)
+                check = false;
+            }
+            if(check == false) {
+                this.web_configs.projects[project]["websites"][website][doc_setting] = "";
+                check = true;
+            }
+        }
+
+        //Check default errors documents parameters sections exists
+        let default_error_docs = ["404", "500"];
+        let default_error_types = ["user", "api"];
+        for(let t in default_error_types) {
+            //Verify the default docs sections exist in the config file
+            let response_type = default_error_types[t];     // Defines of error pages are to user or api call
+            if(website_data["default_errors"][response_type] == undefined) {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[default_errors][${response_type}] is not defined`)
+                check = false;
+            }else if(typeof(website_data["default_errors"][response_type]) != "object") {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[default_errors][${response_type}] is wrong data type`)
+                check = false;
+            }
+            if(check == false) {
+                this.web_configs.projects[project]["websites"][website]["default_errors"][response_type] = {}
+                for(let i in default_error_docs) {
+                    let doc_type = default_error_docs[i];
+                    this.web_configs.projects[project]["websites"][website]["default_errors"][response_type][doc_type] = "";
+                }
+                check = true;
+            }
+        }
+        for(let response_type in website_data["default_errors"]) {
+            // Remove invalid response types of default_errors
+            if(response_type != "user" && response_type != "api") {
+                delete this.web_configs.projects[project]["websites"][website]["default_errors"][response_type];
+            }
+        }
+        for(let t in default_error_types) {
+            //Check default errors doc_type files parameters are set
+            let response_type = default_error_types[t];     // Defines of error pages are to user or api call
+            for(let i in default_error_docs) {
+                let doc_type = default_error_docs[i];
+                if(website_data["default_errors"][response_type][doc_type] == undefined) {
+                    check = false;
+                }else if(typeof(website_data["default_errors"][response_type][doc_type]) != "string") {
+                    check = false;
+                }else if(website_data["default_errors"][response_type][doc_type] == "") {
+                    check = false;
+                }
+                if(check == false) {
+                    this.web_configs.projects[project]["websites"][website]["default_errors"][response_type][doc_type] = "";
+                    check = true;
+                }
+            }
+        }
+
+        //Check mapping sections
+        let map_sections = ["apis_fixed_path","apis_dynamic_path","path_static","path_static_server_exec","sub_map"];
+        for(let i in map_sections) {
+            let section = map_sections[i];
+
+            //Make sure section is proper data type and defined
+            if(website_data[section] == undefined) {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[${section}] is not defined`)
+                check = false;
+            }else if(typeof(website_data[section]) != "object") {
+                this.validate_project_flag_error(project, website, "error", `Config File: Website field[${section}] is wrong data type`)
+                check = false;
+            }
+            if(check == false) {
+                this.web_configs.projects[project]["websites"][website][section] = {};
+                check = true;
+            }
+
+            //Wehere sections are already defined, verify settings
+            for(let map in website_data[section]) {
+                let target = website_data[section][map];
+                if(map == "") {
+                    delete this.web_configs.projects[project]["websites"][website][section][map];
+                    this.validate_project_flag_error(project, website, "error", `Config File: Website field[${section}] map[${map}] label is blank`)
+                }
+                if(target == "") {
+                    delete this.web_configs.projects[project]["websites"][website][section][map];
+                    if(section == "sub_map") {
+                        this.validate_project_flag_error(project, website, "error", `Config File: Website field[${section}] map[${map}] does not resolve a website`)
+                    }else{
+                        this.validate_project_flag_error(project, website, "error", `Config File: Website field[${section}] map[${map}] does not resolve a path`)
+                    }
+                }else{
+                    if(section == "sub_map") {
+                        if(target == website) {
+                            this.validate_project_flag_error(project, website, "error", `Config File: Website field[${section}] map[${map}] points to itself, website[${target}]`)
+                        }else if(project_data["websites"][target] == undefined) {
+                            this.validate_project_flag_error(project, website, "error", `Config File: Website field[${section}] map[${map}] points to invalid website[${target}]`)
+                        }
+                    }
+                }
+            }
+        }
+
+        //Sort parameters
+        let sort_params = {
+            "ssl_redirect": this.web_configs.projects[project]["websites"][website]["ssl_redirect"],
+            "maintenance": this.web_configs.projects[project]["websites"][website]["maintenance"],
+            "maintenance_page": this.web_configs.projects[project]["websites"][website]["maintenance_page"],
+            "maintenance_page_api": this.web_configs.projects[project]["websites"][website]["maintenance_page_api"],
+            "default_doc": this.web_configs.projects[project]["websites"][website]["default_doc"],
+            "default_errors": this.web_configs.projects[project]["websites"][website]["default_errors"],
+            "apis_fixed_path": this.web_configs.projects[project]["websites"][website]["apis_fixed_path"],
+            "apis_dynamic_path": this.web_configs.projects[project]["websites"][website]["apis_dynamic_path"],
+            "path_static": this.web_configs.projects[project]["websites"][website]["path_static"],
+            "path_static_server_exec": this.web_configs.projects[project]["websites"][website]["path_static_server_exec"],
+			"sub_map": this.web_configs.projects[project]["websites"][website]["sub_map"]
+        }
+        this.web_configs.projects[project]["websites"][website] = sort_params;
+    }
+    validate_project_website_default_doc_path(project, website) {
+        //Get the default map and target
+        let path_static = this.web_configs.projects[project]["websites"][website]["path_static"];
+        let default_doc = this.web_configs.projects[project]["websites"][website]["default_doc"];
+
+        if(default_doc != "") {
+            //Loop paths
+            for(let map in path_static) {
+                //Set path
+                let target = path_static[map];
+                let target_path = path.join(this.paths.web_source, project, target, default_doc);
+
+                //Full target
+                let full_target = (`${target}/${default_doc}`).replaceAll(/\/+/g, "/");
+
+                //Verify exists
+                if(fs.existsSync(target_path) == false) {
+                    this.validate_project_flag_error(project, website, "error", `Missing Files: Website mapping section[path_static] file '${full_target}' is not found`, "default_doc_exists")
+                }
+            }
+        }
+    }
+    validate_project_website_maint_and_errors_paths(project, website) {
+        //Set maintenance page default docs
+        let default_maint_pages = []
+        default_maint_pages.push(this.web_configs.projects[project]["websites"][website]["maintenance_page"]);
+        default_maint_pages.push(this.web_configs.projects[project]["websites"][website]["maintenance_page_api"]);
+
+        //Set maintenance page default docs
+        let default_error_pages = []
+        default_error_pages.push(this.web_configs.projects[project]["websites"][website]["default_errors"]["user"]["404"]);
+        default_error_pages.push(this.web_configs.projects[project]["websites"][website]["default_errors"]["user"]["500"]);
+        default_error_pages.push(this.web_configs.projects[project]["websites"][website]["default_errors"]["api"]["404"]);
+        default_error_pages.push(this.web_configs.projects[project]["websites"][website]["default_errors"]["api"]["500"]);
+
+        //Check special directories
+        let special_dir = ["_maintenance_page", "_error_pages"];
+        for(let s in special_dir) {
+            //Set target path
+            let this_dir = special_dir[s];
+            let target_root_path = path.join(this.paths.web_source, project, website, this_dir);
+
+            //Get document list per directory
+            let doc_list = []
+            let flag = "";
+            switch(this_dir) {
+                case "_maintenance_page":
+                    doc_list = default_maint_pages;
+                    flag = "maintenance_page_exists";
+                break;
+                case "_error_pages":
+                    doc_list = default_error_pages;
+                    flag = "default_errors_exists";
+                break;
+            }
+
+            //Check doc list is defined
+            let not_blank = false;
+            for(let d in doc_list) {
+                if(doc_list[d] != "") {
+                    not_blank = true;
+                    break;
+                }
+            }
+
+            //Check target path if there are defined files
+            if(not_blank == true) {
+                if(fs.existsSync(target_root_path) == false) {
+                    this.validate_project_flag_error(project, website, "warning", `Missing Files: Website sub folder '${this_dir}' path is not found`, flag);
+                }else{
+                    for(let d in doc_list) {
+                        let this_file = doc_list[d];
+                        let this_file_path = path.join(target_root_path, this_file);
+                        if(fs.existsSync(this_file_path) == false) {
+                            this.validate_project_flag_error(project, website, "warning", `Missing Files: Website file '${this_dir}/${this_file}' is not found`, flag);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    validate_project_website_mapping(project, website) {
+        //Set mapping sections
+        let map_sections = ["apis_fixed_path", "apis_dynamic_path", "path_static_server_exec"];
+
+        //Get website root path
+        let website_root = path.join(this.paths.web_source, project, website);
+
+        //Loop mapping sections
+        for(let i in map_sections) {
+            let section = map_sections[i];
+            let target_section = this.web_configs.projects[project]["websites"][website][section]
+
+            //Loop section mapping
+            for(let map in target_section) {
+                //Get target mapping
+                let target = target_section[map]
+                let target_path = path.join(this.paths.web_source, project, target)
+
+                //Verify exists
+                if(fs.existsSync(target_path) == false) {
+                    this.validate_project_flag_error(project, website, "error", `Missing Files: Website mapping section[${section}] file or folder '${target}' is not found`, "default_doc_exists")
+                }
+            }
+        }
+    }
 
     //////////////////////////////////
     //Match Functions
@@ -582,10 +1116,6 @@ class vhost_mapping {
     match_url(target_url) {
         //Get environment
         let env = this.env;
-
-        //Get mapping from web_configs
-        this.web_mapping.defaults = this.web_configs.defaults;
-        this.web_mapping.resolve = this.web_configs.resolve;
 
         //Match output
         let match = {
@@ -603,8 +1133,10 @@ class vhost_mapping {
             "maintenance":false,        // Website Maintenance Mode setting
             "maintenance_page":"",      // Website default Maintenance Page
             "default_doc":"",           // Website Default Doc
-            "default_404":"",           // Website Default 404 doc
-            "default_500":"",           // Website Default 500 doc
+            "default_404_user":"",      // Website Default 404 doc - HTML client response
+            "default_404_api":"",       // Website Default 404 doc - API JSON, XML, other
+            "default_500_user":"",      // Website Default 500 doc - HTML client response
+            "default_500_api":"",       // Website Default 500 doc - API JSON, XML, other
             "website_root_path":"",     // Web source, project, website path
             "website_uri_prefix":"",    // URI prefix before a target string
             "website_uri_suffix":"",    // URI suffix target string for rule compare
@@ -698,9 +1230,6 @@ class vhost_mapping {
                 match = this.match_default_system_request(match);
             }else{
                 if(match.project == "mgmtui" && match.website == "mgmtui") {
-                    match.log += `> Resolved to Management UI\n`;
-                    match.config = this.web_configs.mgmtui.websites.www;
-
                     //Process request for Management UI site
                     match = this.match_mgmtui_request(match);
 
@@ -743,8 +1272,10 @@ class vhost_mapping {
         match.log += `    Website URI Prefix    :: ${match.website_uri_prefix}\n`;
         match.log += `    Website URI Suffix    :: ${match.website_uri_suffix}\n`;
         match.log += `    Default Doc           :: ${match.default_doc}\n`;
-        match.log += `    Default 404           :: ${match.default_404}\n`;
-        match.log += `    Default 500           :: ${match.default_500}\n`;
+        match.log += `    Default 404 User      :: ${match.default_404_user}\n`;
+        match.log += `    Default 404 API       :: ${match.default_404_api}\n`;
+        match.log += `    Default 500 User      :: ${match.default_404_user}\n`;
+        match.log += `    Default 500 API       :: ${match.default_404_api}\n`;
         match.log += `    Maintenance Mode      :: ${match.maintenance}\n`;
         match.log += `    Maintenance Page      :: ${match.maintenance_page}\n`;
         match.log += `    Match State           :: ${match.state}\n`;
@@ -763,14 +1294,21 @@ class vhost_mapping {
         //Parse URL
         let this_url = url.parse(target_url);
 
-        //Add properties to URL parse
-        this_url.extname = path.extname(this_url.pathname);
-        if(this_url.extname == "") {
+        //Determine file extension, name and base path
+        if(this_url.pathname.match(/\/vhost\/[0-9a-z\-\_\.]*::[0-9a-z\-\_\.]*\//g) && this_url.pathname.endsWith("/")) {
+            this_url.extname = "";
             this_url.filename = "";
             this_url.basepath = this_url.pathname;
         }else{
-            this_url.filename = path.basename(this_url.pathname);
-            this_url.basepath = (`${path.dirname(this_url.pathname)}/`).replaceAll(/\/+/g,"/");
+            //Add properties to URL parse
+            this_url.extname = path.extname(this_url.pathname);
+            if(this_url.extname == "") {
+                this_url.filename = "";
+                this_url.basepath = this_url.pathname;
+            }else{
+                this_url.filename = path.basename(this_url.pathname);
+                this_url.basepath = (`${path.dirname(this_url.pathname)}/`).replaceAll(/\/+/g,"/");
+            }
         }
 
         //Add trailing slash when no file extension
@@ -912,7 +1450,7 @@ class vhost_mapping {
             match.log += `    Target URI: ${target_uri}\n`;
 
             //Get VHost paths
-            if(target_uri.match(/\/vhost\/[0-9a-z\-\_]*::[0-9a-z\-\_]*\//g)) {
+            if(target_uri.match(/\/vhost\/[0-9a-z\-\_\.]*::[0-9a-z\-\_\.]*\//g)) {
                 //Search VHost mapping
                 let mgmtui_vhosts = this.web_mapping.resolve.mgmtui_map.vhosts;
                 for(let vhost in mgmtui_vhosts) {
@@ -1086,18 +1624,70 @@ class vhost_mapping {
         match.project = "system";
         match.website = "system";
 
-        //Set default docs
-        match.default_doc = this.web_mapping.defaults["default_doc"];
-        match.default_404 = this.web_mapping.defaults["404"];
-        match.default_500 = this.web_mapping.defaults["500"];
-        match.maintenance_page = this.web_mapping.defaults["maintenance_page"];
+        //Common settings
+        match.default_doc = this.web_mapping.defaults.default_doc;
+        match.default_404_user = this.web_mapping.defaults.default_404_user;
+        match.default_404_api = this.web_mapping.defaults.default_404_api;
+        match.default_500_user = this.web_mapping.defaults.default_500_user;
+        match.default_500_api = this.web_mapping.defaults.default_500_api;
+        match.maintenance_page = this.web_mapping.defaults.maintenance_page;
+        match.maintenance_page_api = this.web_mapping.defaults.maintenance_page_api;
 
-        //Set execute 
-        match.file_match_type = "path_static";
-        match.file_exec = "client";
+        //Choose file based on execute type
+        if(match.file_match_type == "path_static") {
+            match.file_exec = "client";
+            match.file_name = match.default_404_user;
+        }else if(match.file_match_type == "apis_fixed_path" || match.file_match_type == "apis_dynamic_path" || match.file_match_type == "path_static_server_exec") {
+            //Set client since this will service a '.json' file, not server side execut            
+            match.file_exec = "client";
+            match.file_name = match.default_404_api;
+        }else{
+            match.file_match_type = "path_static";
+            match.file_exec = "client";
+            match.file_name = match.default_404_user;
+        }
+
+        //Set file path
         match.file_path = this.paths.system;
-        match.file_name = "404.html";
         match.status_code = 404;
+
+        //Return match
+        return match;
+    }
+    match_default_system_maintenance_page(match) {
+        //Match log
+        match.log += "    Set default system maintenance page\n";
+
+        //Set default system
+        match.project = "system";
+        match.website = "system";
+
+        //Common settings
+        match.default_doc = this.web_mapping.defaults.default_doc;
+        match.default_404_user = this.web_mapping.defaults.default_404_user;
+        match.default_404_api = this.web_mapping.defaults.default_404_api;
+        match.default_500_user = this.web_mapping.defaults.default_500_user;
+        match.default_500_api = this.web_mapping.defaults.default_500_api;
+        match.maintenance_page = this.web_mapping.defaults.maintenance_page;
+        match.maintenance_page_api = this.web_mapping.defaults.maintenance_page_api;
+
+        //Choose file based on execute type
+        if(match.file_match_type == "path_static") {
+            match.file_exec = "client";
+            match.file_name = "maintenance.html";
+        }else if(match.file_match_type == "apis_fixed_path" || match.file_match_type == "apis_dynamic_path" || match.file_match_type == "path_static_server_exec") {
+            //Set client since this will service a '.json' file, not server side execut            
+            match.file_exec = "client";
+            match.file_name = "maintenance.json";
+        }else{
+            match.file_match_type = "path_static";
+            match.file_exec = "client";
+            match.file_name = "maintenance.html";
+        }
+
+        //Set file path
+        match.file_path = this.paths.system;
+        match.status_code = 200;
 
         //Return match
         return match;
@@ -1111,14 +1701,22 @@ class vhost_mapping {
         match.project = "system";
         match.website = "system";
 
-        //Set default docs
-        match.default_doc = this.web_mapping.defaults["default_doc"];
-        match.default_404 = this.web_mapping.defaults["404"];
-        match.default_500 = this.web_mapping.defaults["500"];
-        match.maintenance_page = this.web_mapping.defaults["maintenance_page"];
+        //Common settings
+        match.default_doc = this.web_mapping.defaults.default_doc;
+        match.default_404_user = this.web_mapping.defaults.default_404_user;
+        match.default_404_api = this.web_mapping.defaults.default_404_api;
+        match.default_500_user = this.web_mapping.defaults.default_500_user;
+        match.default_500_api = this.web_mapping.defaults.default_500_api;
+        match.maintenance_page = this.web_mapping.defaults.maintenance_page;
+        match.maintenance_page_api = this.web_mapping.defaults.maintenance_page_api;
 
         //Target URI path
         let this_uri = match.url_parsed.basepath;
+
+        //Remove duplicate '_default_system/_default_system/' string
+        if(this_uri.includes("_default_system/_default_system/")) {
+            this_uri = this_uri.replace("_default_system/_default_system/", "_default_system/");
+        }
 
         //Check _default_system URI string
         if(this_uri.includes("/_default_system/")) {
@@ -1140,7 +1738,7 @@ class vhost_mapping {
             let this_path = relative_sub_uri;
             let this_file = "";
             if(match.url_parsed.filename == "") {
-                this_file = this.web_mapping.defaults["404"];
+                this_file = this.web_mapping.defaults.default_doc;
             }else{
                 this_file = match.url_parsed.filename;
             }
@@ -1163,17 +1761,25 @@ class vhost_mapping {
 
     //Management UI request content
     match_mgmtui_request(match) {
+        match.log += `> Resolved to Management UI\n`;
+
+        //Get Managment UI config
+        match.config = this.web_configs.mgmtui.websites.www;
+
         //Set filesystem root path
         match.website_root_path = path.join(this.paths.localhost);
 
         //Default parameters
         match.state = true;
-        match.ssl_redirect = match.config.ssl_redirect;
-        match.maintenance = match.config.maintenance;
-        match.maintenance_page = match.config.maintenance_page;
-        match.default_doc = match.config.default_doc;
-        match.default_404 = match.config.default_errors["404"];
-        match.default_500 = match.config.default_errors["500"];
+        match.ssl_redirect          = match.config.ssl_redirect;
+        match.maintenance           = match.config.maintenance[this.env];
+        match.maintenance_page      = match.config.maintenance_page;
+        match.maintenance_page_api  = match.config.maintenance_page;
+        match.default_doc           = match.config.default_doc;
+        match.default_404_user      = match.config.default_errors.user["404"];
+        match.default_500_user      = match.config.default_errors.user["500"];
+        match.default_404_api       = match.config.default_errors.api["404"];
+        match.default_500_api       = match.config.default_errors.api["500"];
 
         //Set URL
         let this_uri = match.url_parsed.basepath;
@@ -1240,12 +1846,20 @@ class vhost_mapping {
         // String "/_error_pages/" may be anywhere in the URI path (FQDN, proxy path, VHost path)
         //
 
+        //Target URI path
+        let this_uri = match.url_parsed.basepath;
+
+        //Remove duplicate '_error_pages/_error_pages/' string
+        if(this_uri.includes("_error_pages/_error_pages/")) {
+            this_uri = this_uri.replace("_error_pages/_error_pages/", "_error_pages/");
+        }
+
         //Check error pages URI string
-        if(match.url_parsed.basepath.includes("/_error_pages/")) {
+        if(this_uri.includes("/_error_pages/")) {
             match.log += "    Detected '_error_pages' path content\n";
 
             //Parse URI by '_maintenance_page' string
-            let parse_uri = match.url_parsed.basepath.split("_error_pages");
+            let parse_uri = this_uri.split("_error_pages");
             match.website_uri_prefix = parse_uri[0];
             match.website_uri_suffix = parse_uri[1];
 
@@ -1311,12 +1925,15 @@ class vhost_mapping {
         match.log += "> Get website parameters\n";
 
         //Set configurations
-        match.ssl_redirect = match.config.ssl_redirect;
-        match.maintenance = match.config.maintenance;
-        match.maintenance_page = match.config.maintenance_page;
-        match.default_doc = match.config.default_doc;
-        match.default_404 = match.config.default_errors["404"];
-        match.default_500 = match.config.default_errors["500"];
+        match.ssl_redirect          = match.config.ssl_redirect;
+        match.maintenance           = match.config.maintenance[this.env];
+        match.maintenance_page      = match.config.maintenance_page;
+        match.maintenance_page_api  = match.config.maintenance_page_api;
+        match.default_doc           = match.config.default_doc;
+        match.default_404_user      = match.config.default_errors.user["404"];
+        match.default_404_api       = match.config.default_errors.api["404"];
+        match.default_500_user      = match.config.default_errors.user["500"];
+        match.default_500_api       = match.config.default_errors.api["404"];
         
         //Set website URI root path
         if(match.match_proxyuri != "") {
@@ -1631,12 +2248,24 @@ class vhost_mapping {
                             file_name = this_file_name;
                         }
 
+                        //Catch file name blank and use system default (catch blank default document)
+                        if(file_name == undefined || file_name == "" || file_name == null) {
+                            file_name = this.web_mapping.defaults.default_doc;
+                        }
+
                         //Set match state
                         match.state = true;
-                        match.file_match_type = "path_static";
-                        match.file_exec = "client";
                         match.file_path = file_path;
                         match.file_name = file_name;
+
+                        //Check if default document is '.js'
+                        if(path.extname(match.default_doc) == ".js") {
+                            match.file_match_type = "path_static_server_exec";
+                            match.file_exec = "server";
+                        }else{
+                            match.file_match_type = "path_static";
+                            match.file_exec = "client";
+                        }
 
                         match.log += `           Execute: ${match.file_exec}\n`;
                         match.log += `           Path:    ${match.file_path}\n`;
@@ -1686,21 +2315,46 @@ class vhost_mapping {
         if(match.config.maintenance[this.env] == true) {
             match.log += "    Maintenance mode is enabled\n";
 
-            //Ignore if maintenance page content is already requests
-            if(match.website_uri_suffix.includes("/_maintenance_page/") == false) {
-                //Set maintenance file as default document
-                match.file_path = path.join(match.website_root_path,"_maintenance_page/");
-                match.file_name = match.maintenance_page;
+            //Check if in vhost preview mode
+            if(match.match_vhost != "") {
+                match.log += "      VHost previews allowed to access main website content\n";
+                match.log += "      Proxy and DNS mapping will redirect to maintenance page\n";
+            }else{
+                match.log += "      Block all website requests and redirect to maintenance page\n";
 
-                match.log += `      Set target path[${match.file_path}]\n`;
-                match.log += `      Set target file[${match.file_name}]\n`;
+                //Ignore if maintenance page content is already requests
+                if(match.website_uri_suffix.includes("/_maintenance_page/") == false) {
+                    if(match.file_match_type == "apis_fixed_path" || match.file_match_type == "apis_dynamic_path") {
+                        match.log += "      Map to website maintenance page for APIs\n";
 
-                //Determine client or server execute
-                match.file_match_type = "path_static";
-                match.file_exec = "client";
-                if(path.extname(match.file_name) == ".js") {
-                    match.file_match_type = "path_static_server_exec";
-                    match.file_exec = "server";
+                        //Set maintenance file as default document
+                        match.file_name = match.maintenance_page_api;
+                    }else{
+                        match.log += "      Map to website maintenance page\n";
+
+                        //Set maintenance file as default document
+                        match.file_name = match.maintenance_page;
+                    }
+
+                    //Set maintenance file as default document
+                    match.file_path = path.join(match.website_root_path,"_maintenance_page/");
+
+                    //Catch blank filename
+                    if(match.file_name == "") {
+                        match.file_name = this.web_mapping.defaults.maintenance_page;
+                    }
+
+                    match.log += `        Set target path[${match.file_path}]\n`;
+                    match.log += `        Set target file[${match.file_name}]\n`;
+
+                    //Determine client or server execute
+                    match.file_match_type = "path_static";
+                    match.file_exec = "client";
+                    if(path.extname(match.file_name) == ".js") {
+                        match.file_match_type = "path_static_server_exec";
+                        match.file_exec = "server";
+                    }
+
                 }
             }
         }else{
@@ -1771,7 +2425,7 @@ class vhost_mapping {
         //Return match
         return match;
     }
-    match_website_error_pages(match) {
+    match_website_error_pages(match) { //// Needs to detect Match Type (path_static or API)
         //Match log
         match.log += "> Check website error page mapping\n";
 
@@ -1803,6 +2457,10 @@ class vhost_mapping {
             if((relative_sub_uri.startsWith("/api/") && relative_sub_uri.length > 5) || 
                (relative_sub_uri.startsWith("/api/") && match.url_parsed.filename != "")) {
 
+                // This configured a dynamic API preset path '_error_pages/api/*' for user to leverage back end server
+                // code execution to do specific actions as required. Assumed most error pages will be static
+                // source files. This is an optional feature.
+
                 //Set type and file exec
                 match.file_match_type = "apis_dynamic_path";
                 match.file_exec = "server";
@@ -1824,6 +2482,9 @@ class vhost_mapping {
                 match.file_path = path.join(this.paths.web_source,match.project,match.website,"_error_pages",this_path);
                 match.file_name = this_file;
             }else{
+
+                // All static files mapped from website '_error_pages/*'
+
                 //Set type and file exec
                 match.file_match_type = "path_static";
                 match.file_exec = "client";
@@ -1832,7 +2493,13 @@ class vhost_mapping {
                 let this_path = relative_sub_uri;
                 let this_file = "";
                 if(match.url_parsed.filename == "") {
-                    this_file = this.web_mapping.defaults["404"];
+                    //Filename not specified will use website defined 404 page
+                    this_file = match.default_404_user;
+
+                    //Use system default filename if file not defined, 404 catch at file / content verify
+                    if(this_file == "") {
+                        this.web_mapping.defaults.default_404_user;
+                    }
                 }else{
                     this_file = match.url_parsed.filename;
                 }
@@ -1900,7 +2567,7 @@ class vhost_mapping {
             match.log += `      Content file not found\n`;
 
             //Determine target path
-            if(match.file_path.includes("_default_system")) {
+            if(match.file_path.includes("default_system")) {
                 match = this.match_file_not_exist_default_system(match);
 
             }else if(match.file_path.includes("_maintenance_page")) {
@@ -1941,15 +2608,21 @@ class vhost_mapping {
     match_file_not_exist_default_system(match) {
         match.log += `      Request '_default_system'\n`;
 
+        // File not found to a file that belongs to default system should not route back to 404 default page.
+        // Example: If a CSS, Image or JavaScript file or other reference from the 404.html is not found from
+        //          a system error or deleted file, this need to avoid pointing back at the 404.html and trying
+        //          to load the same missing files. At this point it should be caught as a system fault. Any
+        //          files that are not part of the default list can be pointed to default 404.html page.
+
         //System path files
         let default_system_files = [
             "/index.html",
             "/maintenance.html",
-            "/maintenance_json.html",
+            "/maintenance.json",
             "/404.html",
-            "/404_json.html",
+            "/404.json",
             "/500.html",
-            "/500_json.html",
+            "/500.json",
             "/css/common.css",
             "/images/404.png",
             "/images/500.png"
@@ -1958,19 +2631,14 @@ class vhost_mapping {
         //Get the URI
         let uri_path = `${match.website_uri_suffix}${match.file_name}`;
 
-        //Search known files
-        for(let i in default_system_files) {
-            if(uri_path == default_system_files[i]) {
-                match.log += `      *** Default System File[${uri_path}] is Missing ***\n`;
-                match.error = true;
-                match.status_code = 500;
-                match.status_msg = "Default System file is missing";
-                break;
-            }
-        }
-
-        //Check error state
-        if(match.error == false) {
+        //Check is known system file is missing
+        let check_missing = default_system_files.includes(uri_path);
+        if(check_missing == true) {
+            match.log += `      *** Default System File[${uri_path}] is Missing ***\n`;
+            match.error = true;
+            match.status_code = 500;
+            match.status_msg = "Default System file is missing";
+        }else{
             //Set default 404
             match = this.match_default_system_404(match);
         }
@@ -1981,19 +2649,8 @@ class vhost_mapping {
     match_file_not_exist_maintenance_page(match) {
         match.log += `      Validate '_maintenance_page' focus from project[${match.project}] website[${match.website}]\n`;
 
-        //Get website default maintenance page
-        if(match.file_name == match.maintenance_page) {
-            match.log += `      Website maintenance page not found, user default system maintenance page\n`;
-
-            //Set Management UI VHost path error page
-            match.file_match_type = "path_static";
-            match.file_exec = "client";
-            match.file_path = path.join(this.paths.system);
-            match.file_name = "maintenance.html";
-        }else{
-            match.log += `      Website maintenance page folder content not found, default system 404\n`;
-            match = this.match_default_system_404(match);
-        }
+        //Use system default maintenance page
+        match = this.match_default_system_maintenance_page(match);
 
         //Return match
         return match;
@@ -2031,12 +2688,19 @@ class vhost_mapping {
             match.file_name = "vhost_error.html";
             match.status_code = 404;
         }else{
-            //Set Management UI VHost path error page
-            match.file_match_type = "path_static";
+            //Common
             match.file_exec = "client";
             match.file_path = path.join(this.paths.localhost,"_error_pages");
-            match.file_name = "404.html";
             match.status_code = 404;
+
+            if(match.file_match_type == "path_static") {
+                //Set client error page
+                match.file_name = "404.html";
+            }else{
+                //Set API error page
+                match.file_match_type = "apis_dynamic_path";
+                match.file_name = "404.json";
+            }
         }
 
         //Return match
@@ -2045,26 +2709,37 @@ class vhost_mapping {
     match_file_not_exist_website_content(match) {
         match.log += `      Set Error Page from project[${match.project}] website[${match.website}]\n`;
 
-        //Set error page target
-        let target_path = path.join(this.paths.web_source, match.project, match.website, "_error_pages")
-        let target_file = match.default_404;
-        let this_error_page = path.join(target_path, target_file);
+        //Set files based on API or user request
+        let target_file = match.default_404_user;
+        if(match.file_match_type == "apis_fixed_path" || match.file_match_type == "apis_dynamic_path") {
+            target_file = match.default_404_api;
+        }
 
-        //Check target exists
-        if(this.match_file_exists(this_error_page) == false) {
-            match.log += `        Error Page not found: ${this_error_page}\n`;
-            match.log += `        Call default system 404 function\n`;
-
-            //Call default 404
+        //Check filename is not blank
+        if(target_file == "") {
             match = this.match_default_system_404(match);
         }else{
-            match.log += `        Error Page found\n`;
+            //Set error page target
+            let target_path = path.join(this.paths.web_source, match.project, match.website, "_error_pages")
+            let this_error_page = path.join(target_path, target_file);
 
-            match.file_exec = "client";
-            match.file_path = target_path;
-            match.file_name = target_file;
-            match.status_code = 404;
+            //Check target error page exists
+            if(this.match_file_exists(this_error_page) == false) {
+                match.log += `        Website Error Page not found: ${this_error_page}\n`;
+                match.log += `        Call default system 404 function\n`;
+
+                //Call default 404
+                match = this.match_default_system_404(match);
+            }else{
+                match.log += `        Error Page found\n`;
+
+                match.file_exec = "client";
+                match.file_path = target_path;
+                match.file_name = target_file;
+                match.status_code = 404;
+            }
         }
+
 
         //Return match
         return match;

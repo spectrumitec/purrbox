@@ -55,6 +55,10 @@ class jwt_auth {
     auth_mode = "auth";
     auth_store = "file";
 
+    //DB and session
+    auth_db = {}
+    auth_session = {}
+
     //User specifics
     user_agent = null;
     user_ip = null;
@@ -178,11 +182,7 @@ class jwt_auth {
             if(this.conf.store.type == undefined) {
                 this.error = "Unable to determine JWT database"
             }else{
-                switch(this.conf.store.type) {
-                    case "file": case "mysql":
-                        this.auth_store = this.conf.store.type;
-                    break;
-                }
+                this.auth_store = this.conf.store.type;
             }
         }
 

@@ -4,9 +4,7 @@
 //
 
 //Load message on document load
-$( document ).ready(function() {
-    get_message();
-});
+(function() { get_message() })();
 
 //Get message
 function get_message() {
@@ -44,5 +42,5 @@ function update_message(response) {
 	}
 	
 	//Update message
-	$("#message").html(this_message);
+	document.getElementById("message").innerHTML = this_message;
 }

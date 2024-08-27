@@ -1,5 +1,5 @@
 {
-	"project_desc": "Default system website template\nStyle: Simple",
+	"project_desc": "",
 	"enabled": false,
 	"proxy_map": {
 		"dev": {},
@@ -16,15 +16,29 @@
 	"websites": {
 		"www": {
 			"ssl_redirect": true,
-			"maintenance": false,
+			"maintenance": {
+				"dev": false,
+				"qa": false,
+				"stage": false,
+				"prod": false
+			},
 			"maintenance_page": "maintenance.html",
+			"maintenance_page_api": "maintenance.json",
 			"default_doc": "index.html",
 			"default_errors": {
-				"404": "404.html",
-				"500": "500.html"
+				"user": {
+					"404": "404.html",
+					"500": "500.html"
+				},
+				"api": {
+					"404": "404.json",
+					"500": "500.json"
+				}
 			},
 			"apis_fixed_path": {},
-			"apis_dynamic_path": {},
+			"apis_dynamic_path": {
+				"/api/": "/www/api/"
+			},
 			"path_static": {
 				"/": "/www/"
 			},

@@ -77,32 +77,9 @@ exports.request = async function(params={}) {
 
     //Return output
     switch(_query.action) {
-        case "check":
-            api_response = mgmt.jwt_auth_check();
-            if(api_response.authenticated == false) {
-                _response["headers"] = {
-                    "Set-Cookie":`${user_cookie}; Expires=Tue, 1 Jan 1980 00:00:00 GMT;`,
-                };
-            }
-        break;
         case "login":
             //Login 
             api_response = mgmt.jwt_user_auth(_query.username, _query.password);
-            if(api_response.authenticated == true) {
-                if(api_response.cookie != undefined) {
-                    _response["headers"] = {
-                        "Set-Cookie":`${api_response.cookie}; Secure; HttpOnly`,
-                    };
-                }
-            }
-            delete api_response.cookie;
-        break;
-        case "validate":
-            api_response = mgmt.jwt_auth_validate();
-        break;
-        case "refresh":
-            //Refresh
-            api_response = mgmt.jwt_auth_refresh();
             if(api_response.authenticated == true) {
                 if(api_response.cookie != undefined) {
                     _response["headers"] = {
@@ -124,6 +101,29 @@ exports.request = async function(params={}) {
         break;
         case "change_password":
             api_response = mgmt.jwt_auth_user_reset_passwd(_query.passwd_old, _query.passwd_new);
+        break;
+        case "check":
+            api_response = mgmt.jwt_auth_check();
+            if(api_response.authenticated == false) {
+                _response["headers"] = {
+                    "Set-Cookie":`${user_cookie}; Expires=Tue, 1 Jan 1980 00:00:00 GMT;`,
+                };
+            }
+        break;
+        case "validate":
+            api_response = mgmt.jwt_auth_validate();
+        break;
+        case "refresh":
+            //Refresh
+            api_response = mgmt.jwt_auth_refresh();
+            if(api_response.authenticated == true) {
+                if(api_response.cookie != undefined) {
+                    _response["headers"] = {
+                        "Set-Cookie":`${api_response.cookie}; Secure; HttpOnly`,
+                    };
+                }
+            }
+            delete api_response.cookie;
         break;
         default:
             error_output(`Invalid Login Function [${_query.action}]`)

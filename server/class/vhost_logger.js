@@ -169,14 +169,13 @@ class vhost_logger {
         //Set message
         let timestamp = new Date().toISOString();
         let log_data = {
-            "timestamp":timestamp,
-            "server":this.server,
-            "process_id":process.pid,
-            "application":"wonderbox",
-            "project":"",
+            "_timestamp":timestamp,
+            "_server":this.server,
+            "_process_id":process.pid,
+            "_node_version":process.version,
+            "source":"",
             "state":"info",
-            "message":"",
-            "log":{}
+            "message":""
         };
 
         //Set file timestamp
@@ -187,10 +186,13 @@ class vhost_logger {
         this.file_json = `${this.default_log_name}_${filedatetime}.json`;
 
         //Get fields from payload
-        if(data.project != undefined && data.project != "") {
-            this.file_text = `${data.project}-request_${filedatetime}.log`;
-            this.file_json = `${data.project}-request_${filedatetime}.json`;
-            log_data.project = data.project;
+        log_data.source = data.source;
+        if(data.source == "error_trace" || data.source == "system" || data.source == "mapper") {
+            this.file_text = `${data.source}_${filedatetime}.log`;
+            this.file_json = `${data.source}_${filedatetime}.json`;
+        }else{
+            this.file_text = `${data.source}-request_${filedatetime}.log`;
+            this.file_json = `${data.source}-request_${filedatetime}.json`;
         }
         if(data.state != undefined) {
             log_data.state = data.state
@@ -198,8 +200,12 @@ class vhost_logger {
         if(data.message != undefined) {
             log_data.message = data.message
         }
-        if(data.log != undefined) {
-            log_data.log = data.log
+
+        //Append additional fields
+        for(let field in data) {
+            if(log_data[field] == undefined) {
+                log_data[field] = data[field];
+            }
         }
 
         //Log cleanup (if set to server, still check log file path to clear old file if any)
@@ -247,37 +253,19 @@ class vhost_logger {
         });   
     }
     log_file(log) {
-        //Standard log file
-        let log_entry = `${log.timestamp} [server:${log.server}] [pid:${log.process_id}] [state:${log.state}] -- ${log.message}\n`
-        let log_file = path.join(this.paths["logs"], this.file_text)
-
+        //Append Standard Log File
+        let log_entry = `${log._timestamp} [server:${log._server}] [pid:${log._process_id}] [ver:${log._node_version}] [state:${log.state}] -- ${log.message}\n`;
+        let log_file = path.join(this.paths["logs"], this.file_text);
         fs.appendFile(log_file, log_entry, err => {
             if (err) {
                 console.error(err);
             }
         });
 
-        //JSON log file
-        log_file = path.join(this.paths["logs"], this.file_json)
-        let log_data = "";
-        let if_log_exists = fs.existsSync(log_file);
-        let json = [];
-        if(if_log_exists == true) {
-            //Open log file
-            log_data = fs.readFileSync(log_file);
-            try {
-                json = JSON.parse(log_data);
-            }catch{
-                return;
-            }
-        }
-
-        //Appand JSON data
-        json.push(log)
-
-        //Write file
-        log_data = JSON.stringify(json,null)
-        fs.writeFile(log_file, log_data, err => {
+        //Append JSON Log File
+        log_entry = JSON.stringify(log) + "\n";
+        log_file = path.join(this.paths["logs"], this.file_json);
+        fs.appendFile(log_file, log_entry, err => {
             if (err) {
                 console.error(err);
             }

@@ -37,7 +37,6 @@ Management class for localhost host Dev UI
 //Set Node JS constants
 const fs = require("fs");
 const path = require("path");
-const s = path.sep;
 
 //JWT auth class
 const class_jwt_auth = path.join(path.dirname(__dirname),"class","jwt_auth.js");
@@ -75,6 +74,7 @@ class manage_server {
         //System defaults
         let default_authorized = [
             "project_adm",
+            "project_create",
             "project_set",
             "template_adm",
             "website_adm",
@@ -110,7 +110,9 @@ class manage_server {
         //Check required groups
         let required_groups = [
             "Project Admin",
-            "Template Admin"
+            "Project Create",
+            "Template Admin",
+            "DNS Admin"
         ]
         //Add project specific groups to list
         let all_projects = this.get_projects();
@@ -121,7 +123,6 @@ class manage_server {
             required_groups.push(`project::${project}::Website Settings`);
             required_groups.push(`project::${project}::Files Admin`);
             required_groups.push(`project::${project}::Files Read`);
-            required_groups.push(`project::${project}::DNS Admin`);
             required_groups.push(`project::${project}::Read Only`);
         }
 
@@ -176,7 +177,6 @@ class manage_server {
                             this.jwt_auth.group_set_authorized(group,"project_adm",true);
                             this.jwt_auth.group_set_authorized(group,"website_adm",true);
                             this.jwt_auth.group_set_authorized(group,"files_adm",true);
-                            this.jwt_auth.group_set_authorized(group,"dns_adm",true);
                         }
                         if(group.endsWith("::Settings")) {
                             this.jwt_auth.group_set_authorized(group,"project_set",true);
@@ -195,9 +195,6 @@ class manage_server {
                         if(group.endsWith("::Files Read")) {
                             this.jwt_auth.group_set_authorized(group,"files_read",true);
                         }
-                        if(group.endsWith("::DNS Admin")) {
-                            this.jwt_auth.group_set_authorized(group,"dns_adm",true);
-                        }
                         if(group.endsWith("::Read Only")) {
                             this.jwt_auth.group_set_authorized(group,"files_read",true);
                             this.jwt_auth.group_set_authorized(group,"read_only",true);
@@ -205,7 +202,9 @@ class manage_server {
                     }else{
                         switch(group) {
                             case "Project Admin":       this.jwt_auth.group_set_authorized(group,"project_adm",true); break;
+                            case "Project Create":      this.jwt_auth.group_set_authorized(group,"project_create",true); break;
                             case "Template Admin":      this.jwt_auth.group_set_authorized(group,"template_adm",true); break;
+                            case "DNS Admin":           this.jwt_auth.group_set_authorized(group,"dns_adm",true); break;
                         }
                     }
                 }
@@ -316,7 +315,7 @@ class manage_server {
         let web_source = this.paths["web_source"];
 
         //Stop use of '..' in path
-        let pattern = `${s}..`;
+        let pattern = path.sep + "..";
         let match = path.match(new RegExp(pattern, "g"));
         if(match != null) {
             if(match.indexOf(pattern) > -1) {
@@ -385,8 +384,6 @@ class manage_server {
         for(let i in sort_keys) {
             new_hash_array[sort_keys[i]] = hash_array[sort_keys[i]];
         }
-
-        console.log(new_hash_array)
 
         //Return sort
         return new_hash_array;
@@ -683,7 +680,7 @@ class manage_server {
         }
 
         //Parse the path separator to get base path
-        let parse_dir = dir.split(s);
+        let parse_dir = dir.split(path.sep);
         let parse_last_idx = parse_dir.length - 1;
         let base_name = parse_dir[parse_last_idx];
         let map_path = "/";
@@ -725,8 +722,6 @@ class manage_server {
             let prop_map_path   = "";
             let prop_type       = "";
             let prop_ext        = "";
-
-            console.log(prop_id)
 
             //Check if directory
             let is_directory = fs.lstatSync(prop_id).isDirectory()
@@ -908,7 +903,7 @@ class manage_server {
                             }
                         }else{
                             switch(group) {
-                                case "admins": case "Project Admin": case "Template Admin":
+                                case "admins": case "Project Admin": case "Project Create": case "Template Admin": case "DNS Admin":
                                     //Set authorized
                                     for(let authorize in groups[group]) {
                                         let value = groups[group][authorize]
@@ -1102,31 +1097,10 @@ class manage_server {
 
     //Query project directories
     get_projects() {
-        //Variables
-        let web_source = this.paths.web_source;
-        let projects = {}
-        
-        //Loop folders in web path
-        let dir_list = fs.readdirSync(web_source);
-        for(var target in dir_list) {
-            //Get project name from folder name
-            let project = dir_list[target];
-            let conf_load = this.load_project_conf(project);
-            let conf_data = {};
-            if(conf_load.error != "") {
-                continue;
-            }else{
-                conf_data = conf_load.data;
-            }
-
-            //Populate conf data
-            if(Object.keys(conf_data).length > 0) {
-                projects[project] = conf_data;
-            }
-        }
-
-        //Return collections
-        return projects;
+        //Generate mapping
+        mapping.map_generate();
+        let all_projects = mapping.web_configs.projects;
+        return all_projects;
     }
     get_templates() {
         //Variables
@@ -1193,10 +1167,13 @@ class manage_server {
             "data":{}
         }
 
+        //Generate mapping
+        mapping.map_generate();
+
         //Load server configs
         let server_config = this.load_server_conf();
-        let all_projects = this.get_projects();
         let files_restricted = this.files_restricted();
+        let all_projects = mapping.web_configs.projects;
 
         // Auth Check ///////////////
 
@@ -1243,15 +1220,24 @@ class manage_server {
                     //Get project
                     let this_project = all_projects[project];
 
+                    //Allowed access
+                    let allow_true = false;
+                    if(global_auth["project_adm"] == true || project_auth[project] != undefined) {
+                        allow_true = true;
+                    }
+
                     //Check user allowed access to project
-                    if(project_auth[project] == undefined) {
+                    if(allow_true == true) {
+                        result.data["projects"][project] = this_project;
+                    }else{
                         result.data["projects"][project] = this_project
                         result.data["projects"][project]["state"] = "disabled";
-                    }else{
-                        result.data["projects"][project] = this_project;
                     }
                 }
             }
+
+            //Add project errors
+            result.data["project_error"] = mapping.web_configs.errors;
 
             //Add user authorized
             result.data["user_authorize"] = {}
@@ -1269,7 +1255,7 @@ class manage_server {
     project_config_structure() {
         return {
             "project_desc":"",
-            "enabled":false,
+            "enabled":true,
             "proxy_map":{
                 "dev": {},
                 "qa": {},
@@ -1285,7 +1271,8 @@ class manage_server {
             "websites":{}
         }
     }
-    project_new(query=null) {
+
+    project_manage(query=null) {
         //Set configs
         let result = {
             "error":"",
@@ -1301,51 +1288,143 @@ class manage_server {
             result.error = "Missing parameters";
             return result;
         }else{
-            if(this.validate_name(query.project) == false) {
-                result.error = "Project name is invalid";
+            //Verify action
+            if(this.validate_name(query.action) == false) {
+                result.error = "Project action is invalid";
                 return result;
+            }else{
+                //Validate action
+                if(!(query.action == "project_new" ||
+                     query.action == "project_clone" ||
+                     query.action == "project_rename" ||
+                     query.action == "project_delete")
+                ) {
+                    result.error = "Project action is invalid";
+                    return result;
+                }
             }
-            if(this.validate_desc(query.desc) == false) {
-                result.error = "Project description is invalid";
-                return result;
-            }
-        }
-        if(query.project == "devui") {
-            result.error = "Project name is reserved by system";
-            return result;
-        }
 
-        //Get vars
-        let project_name = query.project;
-        let project_desc = query.desc;
+            //Validate parameters
+            if(query.action == "project_new" || query.action == "project_clone" || query.action == "project_rename") {
+                //Project name used as target name to create, new clone name or new renamed project
+                if(query.project_name == undefined) {
+                    result.error = "Project name is invalid";
+                    return result;
+                }else{
+                    if(this.validate_name(query.project_name) == false) {
+                        result.error = "Project name is invalid";
+                        return result;
+                    }
+                }
+
+                //Reserve system names (will cause some errors)
+                if(query.project_name == "system" || query.project_name == "mgmtui") {
+                    result.error = "Project name is reserved by system";
+                    return result;
+                }
+            }
+            if(query.action == "project_new") {
+                //Description field can be blank, check for invalid character
+                if(query.project_desc == undefined) {
+                    result.error = "Project description is invalid";
+                    return result;
+                }else if(query.project_desc != "") {
+                    if(this.validate_desc(query.project_desc) == false) {
+                        result.error = "Project description is invalid";
+                        return result;
+                    }
+                }
+            }
+            if(query.action == "project_clone" || query.action == "project_rename" || query.action == "project_delete") {
+                //Project selected used as the clone from, rename from, or target delete
+                if(query.project_selected == undefined) {
+                    result.error = "Selected project name is invalid";
+                    return result;
+                }else if(query.project_selected != "") {
+                    //Confirm name is valid
+                    if(this.validate_name(query.project_selected) == false) {
+                        result.error = "Selected project name is invalid";
+                        return result;
+                    }
+                }
+            }
+        }
 
         // Auth Check ///////////////
 
-        //Define auth check
-        let access={
-            "type":"global",
-            "permission":["project_adm"],
-            "project":null
-        }
-        let api_check = this.api_access_check(access)
-        result.error = api_check.error;
-        result.state = api_check.state;
-        result.authenticated = api_check.authenticated;
+        //Check authenticated
+        let auth_check = this.jwt_auth_user_check();
+        result.error = auth_check.error;
+        result.state = auth_check.state;
+        result.authenticated = auth_check.authenticated;
 
         //Return on invalid state
         if(result.error != "") { return result; }
         if(result.authenticated == false) { return result; }
 
-        //Get auth mode
-        let auth_mode = api_check.auth_check.mode;
-        let is_admin = api_check.auth_check.admin;
-        let this_user = api_check.auth_check.username;
+        //Check authorized
+        let authorized = false;
+        if(auth_check.admin == true || auth_check.mode == "none") {
+            //User is the admin
+            authorized = true;
+        }else{
+            //Check user is part of global authorized groups
+            if(auth_check.global_authorize["project_adm"] != undefined) {
+                authorized = true;
+            }else if(auth_check.global_authorize["project_create"] != undefined) {
+                if(query.action == "project_new") {
+                    authorized = true;
+                }
+                //Project_selected will only exist with clone, rename and delete
+                if(query.action == "project_clone") {
+                    if(auth_check.project_authorize[query.project_selected] != undefined) {
+                        //Allow user to clone from a project that they have read only to
+                        authorized = true;
+                    }
+                }else if(query.action == "project_rename" || query.action == "project_delete") {
+                    //Check if user is assigned any permission to project
+                    if(auth_check.project_authorize[query.project_selected] != undefined) {
+                        let project_permission = auth_check.project_authorize[query.project_selected];
+                        if(project_permission["project_adm"] != undefined) {
+                            authorized = true;
+                        }
+                    }
+                }
+            }
+        }
 
         // Do command ///////////////
 
+        if(authorized == false) {
+            result.error = "User does not have permission to complete this action";
+        }else{
+            switch(query.action) {
+                case "project_new":
+                    result = this.project_manage_new(result, auth_check, query);
+                break;
+                case "project_clone":
+                    result = this.project_manage_clone(result, auth_check, query);
+                break;
+                case "project_rename":
+                    result = this.project_manage_rename(result, query);
+                break;
+                case "project_delete":
+                    result = this.project_manage_delete(result, query);
+                break;
+            }
+        }
+
+        //Return results
+        return result;
+    }
+    project_manage_new(result, auth_check, query) {
+        //Get parameters
+        let project_name = query.project_name;
+        let project_desc = query.project_desc;
+
         //Check for existing folder
         let web_source = this.paths.web_source;
-        let project_folder = `${web_source}${project_name}`;
+        let project_folder = path.join(web_source, project_name);
         if(fs.existsSync(project_folder)) {
             result.error = `Project folder[${project_folder}] already exists`;
             return result;
@@ -1358,7 +1437,7 @@ class manage_server {
             return result;
         }else{
             //Conf file
-            let conf_file = `${web_source}${project_name}${s}config.json`;
+            let conf_file = path.join(web_source, project_name, "config.json");
             let conf_data = this.project_config_structure()
             conf_data.project_desc = project_desc;
             conf_data = JSON.stringify(conf_data,null,"\t")
@@ -1371,8 +1450,9 @@ class manage_server {
             }
 
             //Assign permission to user who created the project (if not admin)
-            if(auth_mode == "auth") {
-                if(is_admin == false) {
+            if(auth_check.mode == "auth") {
+                if(auth_check.admin == false) {
+                    let this_user = auth_check.username;
                     this.class_init(); // Add groups required
                     let this_group_name = `project::${project_name}::Admin`;
                     this.jwt_auth.group_set_user(this_group_name, this_user, true)
@@ -1383,53 +1463,77 @@ class manage_server {
             return result;
         }
     }
-    project_delete(query=null) {
-        //Set configs
-        let result = {
-            "error":"",
-            "state":"unauthenticated",
-            "authenticated":false,
-            "data":{}
+    project_manage_clone(result, auth_check, query) {
+        //Get parameters
+        let project_selected = query.project_selected;
+        let project_name = query.project_name;
+
+        //Try and rename source folder first
+        let web_source = this.paths.web_source;
+        let curr_project_folder = path.join(web_source, project_selected);
+        let new_project_folder = path.join(web_source, project_name);
+        let try_copy = this.copy_directory(curr_project_folder, new_project_folder);
+        if(try_copy["error"] != "") {
+            result.error = try_copy["error"];
+            return result;
         }
 
-        // Validate /////////////////
+        //Remove Proxy Map and DNS Names configuration from clone
+        mapping.map_generate();
+        let blank_map = {
+            "dev": {},
+            "qa": {},
+            "stage": {},
+            "prod": {}
+        }
+        let conf_data = mapping.web_configs.projects[project_name]
+        conf_data["proxy_map"] = blank_map;
+        conf_data["dns_names"] = blank_map;
 
-        //Validate
-        if(query == null) {
-            result.error = "Missing parameters";
-            return result;
-        }else{
-            if(this.validate_name(query.project) == false) {
-                result.error = "Project name parameter is invalid";
-                return result;
+        //Save project config
+        let is_updated = this.update_project_conf_file(project_name, conf_data);
+        if(is_updated.error != "") {
+            result.error = is_updated.error;
+        }
+
+        //Assign permission to user who created the project (if not admin)
+        if(auth_check.mode == "auth") {
+            if(auth_check.admin == false) {
+                let this_user = auth_check.username;
+                this.class_init(); // Add groups required
+                let this_group_name = `project::${project_name}::Admin`;
+                this.jwt_auth.group_set_user(this_group_name, this_user, true)
             }
         }
 
-        //Check query parameters
-        let project_name = query.project;
-        
-        // Auth Check ///////////////
+        //Return results
+        return result;
+    }
+    project_manage_rename(result, query) {
+        //Get parameters
+        let project_selected = query.project_selected;
+        let project_name = query.project_name;
 
-        //Define auth check
-        let access={
-            "type":"project",
-            "permission":["project_adm"],
-            "project":project_name
+        //Try and rename source folder first
+        let web_source = this.paths.web_source;
+        let curr_project_folder = path.join(web_source, project_selected);
+        let new_project_folder = path.join(web_source, project_name);
+        let try_rename = this.rename_directory(curr_project_folder, new_project_folder);
+        if(try_rename["error"] != "") {
+            result.error = try_rename["error"];
+            return result;
         }
-        let api_check = this.api_access_check(access)
-        result.error = api_check.error;
-        result.state = api_check.state;
-        result.authenticated = api_check.authenticated;
 
-        //Return on invalid state
-        if(result.error != "") { return result; }
-        if(result.authenticated == false) { return result; }
-
-        // Do command ///////////////
+        //Return results
+        return result;
+    }
+    project_manage_delete(result, query) {
+        //Get parameters
+        let project_name = query.project_selected;
 
         //Check if file exists
         let web_source = this.paths.web_source;
-        let target_project = `${web_source}${project_name}`;
+        let target_project = path.join(web_source, project_name);
         let if_proj_exists = fs.existsSync(target_project);
         if(if_proj_exists == false) {
             result.error = `Project folder doesn't exist: '${project_name}'`;
@@ -1446,6 +1550,7 @@ class manage_server {
             return result;
         }
     }
+
     project_set_property(query=null) {
         //Set configs
         let result = {
@@ -1553,8 +1658,9 @@ class manage_server {
     project_config_fix(query=null) {
 
         //
-        // Check the configuration file only, doesn't validate to files and folders
-        // 
+        // Uses mapping class to load and map all projects, validate configuration and folder/files
+        // Extract only the project configuration details from mapping class that have been corrected
+        // by the system and save the configuration file. Does not correct file and folder issues.
         //
 
         //Set configs
@@ -1600,178 +1706,15 @@ class manage_server {
 
         // Do command ///////////////
 
-        //Get project config
-        let conf_load = this.load_project_conf(project_name);
-        let conf_data = {}
-        if(conf_load.error != "") {
-            result.error = "Cannot load configuration";
-            return result;
-        }else{
+        //Use mapper class validate and correct config
+        mapping.map_generate()
+
+        //Get conf_data
+        if(mapping.web_configs.projects[project_name] != undefined) {
             //Get config data
-            conf_data = conf_load.data;
-            
-            //Validate and fix configuration data ///////////////////
+            let conf_data = mapping.web_configs.projects[project_name];
 
-            //Root level config settings
-            if(conf_data.project_desc == undefined) {
-                conf_data.project_desc = "";
-            }
-            if(conf_data.enabled == undefined || typeof(conf_data.enabled) != "boolean") {
-                conf_data.enabled = false;
-            }
-
-            //Check proxy map
-            if(conf_data.proxy_map == undefined || typeof(conf_data.proxy_map) != "object") {
-                conf_data.proxy_map = {
-                    "dev": {},
-                    "qa": {},
-                    "stage": {},
-                    "prod": {}
-                }
-            }else{
-                if(conf_data.proxy_map.dev == undefined || typeof(conf_data.proxy_map.dev) != "object") {
-                    conf_data.proxy_map.dev = {}
-                }
-                if(conf_data.proxy_map.qa == undefined || typeof(conf_data.proxy_map.qa) != "object") {
-                    conf_data.proxy_map.qa = {}
-                }
-                if(conf_data.proxy_map.stage == undefined || typeof(conf_data.proxy_map.stage) != "object") {
-                    conf_data.proxy_map.stage = {}
-                }
-                if(conf_data.proxy_map.prod == undefined || typeof(conf_data.proxy_map.prod) != "object") {
-                    conf_data.proxy_map.prod = {}
-                }
-            }
-
-            //Check DNS map
-            if(conf_data.dns_names == undefined || typeof(conf_data.dns_names) != "object") {
-                conf_data.dns_names = {
-                    "dev": {},
-                    "qa": {},
-                    "stage": {},
-                    "prod": {}
-                }
-            }else{
-                if(conf_data.dns_names.dev == undefined || typeof(conf_data.dns_names.dev) != "object") {
-                    conf_data.dns_names.dev = {}
-                }
-                if(conf_data.dns_names.qa == undefined || typeof(conf_data.dns_names.qa) != "object") {
-                    conf_data.dns_names.qa = {}
-                }
-                if(conf_data.dns_names.stage == undefined || typeof(conf_data.dns_names.stage) != "object") {
-                    conf_data.dns_names.stage = {}
-                }
-                if(conf_data.dns_names.prod == undefined || typeof(conf_data.dns_names.prod) != "object") {
-                    conf_data.dns_names.prod = {}
-                }
-            }
-
-            //Validate any website configurations
-            if(conf_data.websites == undefined) {
-                conf_data.websites = {}
-            }else{
-                for(let website in conf_data.websites) {
-                    //Check website SSL redirect
-                    if(conf_data.websites[website]["ssl_redirect"] == undefined || typeof(conf_data.websites[website]["ssl_redirect"]) != "boolean") {
-                        conf_data.websites[website]["ssl_redirect"] = true;
-                    }
-
-                    //Check maintenance mode
-                    if(conf_data.websites[website]["maintenance"] == undefined || typeof(conf_data.websites[website]["maintenance"]) != "object") {
-                        conf_data.websites[website]["maintenance"] = {
-                            "dev": false,
-                            "qa": false,
-                            "stage": false,
-                            "prod": false
-                        }
-                    }else{
-                        if(conf_data.websites[website]["maintenance"]["dev"] == undefined || typeof(conf_data.websites[website]["maintenance"]["dev"]) != "boolean") {
-                            conf_data.websites[website]["maintenance"]["dev"] = false;
-                        }
-                        if(conf_data.websites[website]["maintenance"]["qa"] == undefined || typeof(conf_data.websites[website]["maintenance"]["qa"]) != "boolean") {
-                            conf_data.websites[website]["maintenance"]["qa"] = false;
-                        }
-                        if(conf_data.websites[website]["maintenance"]["stage"] == undefined || typeof(conf_data.websites[website]["maintenance"]["stage"]) != "boolean") {
-                            conf_data.websites[website]["maintenance"]["stage"] = false;
-                        }
-                        if(conf_data.websites[website]["maintenance"]["prod"] == undefined || typeof(conf_data.websites[website]["maintenance"]["prod"]) != "boolean") {
-                            conf_data.websites[website]["maintenance"]["prod"] = false;
-                        }
-                    }
-
-                    //Check default maintenance page
-                    if(conf_data.websites[website]["maintenance_page"] == undefined) {
-                        conf_data.websites[website]["maintenance_page"] = "";
-                    }
-
-                    //Check default maintenance page
-                    if(conf_data.websites[website]["default_doc"] == undefined) {
-                        conf_data.websites[website]["default_doc"] = "";
-                    }
-    
-                    //Check error pages
-                    if(conf_data.websites[website]["default_errors"] == undefined || typeof(conf_data.websites[website]["default_errors"]) != "object") {
-                        conf_data.websites[website]["default_errors"] = {
-                            //"401": "",      // Unauthorized
-                            //"403": "",      // Forbidden
-                            "404": "",      // Not Found
-                            //"405": "",      // Method not allowed
-                            //"408": "",      // Request Timeout
-                            //"414": "",      // URI Too Long
-                            "500": ""       // Internal Server Error
-                        }
-                    }else{
-                        /*
-                        if(conf_data.websites[website]["default_errors"]["401"] == undefined) {
-                            conf_data.websites[website]["default_errors"]["401"] = "";
-                        }
-                        if(conf_data.websites[website]["default_errors"]["403"] == undefined) {
-                            conf_data.websites[website]["default_errors"]["403"] = "";
-                        }
-                        */
-                        if(conf_data.websites[website]["default_errors"]["404"] == undefined) {
-                            conf_data.websites[website]["default_errors"]["404"] = "";
-                        }
-                        /*
-                        if(conf_data.websites[website]["default_errors"]["405"] == undefined) {
-                            conf_data.websites[website]["default_errors"]["405"] = "";
-                        }
-                        if(conf_data.websites[website]["default_errors"]["408"] == undefined) {
-                            conf_data.websites[website]["default_errors"]["408"] = "";
-                        }
-                        if(conf_data.websites[website]["default_errors"]["414"] == undefined) {
-                            conf_data.websites[website]["default_errors"]["414"] = "";
-                        }
-                        */
-                        if(conf_data.websites[website]["default_errors"]["500"] == undefined) {
-                            conf_data.websites[website]["default_errors"]["500"] = "";
-                        }
-                    }
-
-                    //Check sections exists
-                    if(conf_data.websites[website]["apis_fixed_path"] == undefined) {
-                        conf_data.websites[website]["apis_fixed_path"] = {}
-                    }
-                    if(conf_data.websites[website]["apis_dynamic_path"] == undefined) {
-                        conf_data.websites[website]["apis_dynamic_path"] = {}
-                    }
-                    if(conf_data.websites[website]["path_static"] == undefined) {
-                        conf_data.websites[website]["path_static"] = {}
-                    }
-                    if(conf_data.websites[website]["path_static_server_exec"] == undefined) {
-                        conf_data.websites[website]["path_static_server_exec"] = {}
-                    }
-                    if(conf_data.websites[website]["sub_map"] == undefined) {
-                        conf_data.websites[website]["sub_map"] = {}
-                    }
-                }
-            }
-
-            //Validate configuration aligns with folders and files ///////////////////
-
-
-            //Align old config to new config structure ///////////////////
-
+            //Arrange the config file
             let new_config = this.project_config_structure()
             new_config.project_desc =   conf_data.project_desc
             new_config.enabled =        conf_data.enabled
@@ -1786,19 +1729,12 @@ class manage_server {
             if(is_updated.error != "") {
                 result.error = "Configuration data is empty";
             }
-
-            //Return result
-            return result;
+        }else{
+            result.error = "Could not retreive the configuration file";
         }
-    }
-    project_config_validate_websites(project=null, website=null) {
 
-    }
-    project_config_validate_error_pages(project=null, website=null) {
-
-    }
-    project_config_validate_maintenance_page(project=null, website=null) {
-
+        //Return result
+        return result;
     }
 
     //Manage project tempaltes
@@ -1898,8 +1834,8 @@ class manage_server {
         // Do command ///////////////        
 
         //Set paths
-        let source_path = `${this.paths.web_source}${project_name}`;
-        let template_path = `${this.paths.web_templates}${template_name}`;
+        let source_path = path.join(this.paths.web_source, project_name);
+        let template_path = path.join(this.paths.web_templates, template_name);
 
         //Validate template doesn't exist already
         let if_dir_exists = fs.existsSync(template_path);
@@ -1932,7 +1868,7 @@ class manage_server {
             }
 
             //Validate the site folder exists in project folder
-            let source_site_path = `${source_path}${s}${this_site}`;
+            let source_site_path = path.join(source_path, this_site);
             let if_dir_exists = fs.existsSync(source_site_path);
             if(if_dir_exists == false) {
                 result.error = `Project site folder doesn't exist: '${source_site_path}'`;
@@ -1957,8 +1893,9 @@ class manage_server {
             let this_site = template_sites[i];
 
             //Copy folder path
-            let source_site_path = `${source_path}${s}${this_site}`;
-            let template_site_path = `${template_path}${s}${this_site}`;
+            let source_site_path = path.join(source_path, this_site);
+            let template_site_path = path.join(template_path, this_site);
+            
             let is_copied = this.copy_directory(source_site_path, template_site_path);
             if(is_copied["error"] != "") {
                 result.error = is_copied["error"];
@@ -1972,7 +1909,7 @@ class manage_server {
         }
 
         //Write template config data
-        let template_conf_file = `${template_path}${s}template_conf.json`
+        let template_conf_file = path.join(template_path, "template_conf.json")
         template_conf = JSON.stringify(template_conf,null,"\t")
         
         //Write config
@@ -2029,7 +1966,7 @@ class manage_server {
         // Do command ///////////////        
 
         //Define template path
-        let template_dir = `${this.paths.web_templates}${template_name}`;
+        let template_dir = path.join(this.paths.web_templates, template_name);
 
         //Delete directory
         let is_deleted = this.delete_directory(template_dir);
@@ -2076,14 +2013,14 @@ class manage_server {
                         result.error = "Site name is invalid";
                         return result;
                     }
-                    target_name = query.site;
+                    target_name = (query.site).toLowerCase();;
                 break;
                 case "template":
                     if(this.validate_name(query.template) == false) {
                         result.error = "Template name is invalid";
                         return result;
                     }
-                    target_name = query.template;
+                    target_name = (query.template).toLowerCase();;
                 break;
                 default:
                     result.error = "Invalid request type";
@@ -2156,7 +2093,7 @@ class manage_server {
         }
 
         //Set target folder
-        let new_site_folder = `${this.paths.web_source}${project_name}${s}${site_name}`;
+        let new_site_folder = path.join(this.paths.web_source, project_name, site_name);
 
         //Create site directory
         let is_created = this.make_directory(new_site_folder);
@@ -2178,15 +2115,23 @@ class manage_server {
                 "prod": false
             },
             "maintenance_page": "",
+            "maintenance_page_api": "",
             "default_doc": "",
             "default_errors": {
-                "404":"",
-                "500":""
-            },
+				"user": {
+					"404": "",
+					"500": ""
+				},
+				"api": {
+					"404": "",
+					"500": ""
+				}
+			},
             "apis_fixed_path": {},
             "apis_dynamic_path": {},
             "path_static": {},
-            "path_static_server_exec": {}
+            "path_static_server_exec": {},
+			"sub_map": {}
         }
 
         //Add to config
@@ -2215,7 +2160,7 @@ class manage_server {
         let default_new_site = `${this.paths.server}default_new_site`
 
         //Set target folder
-        let new_site_folder = `${this.paths.web_source}${project_name}${s}${site_name}`;
+        let new_site_folder = path.join(this.paths.web_source, project_name, site_name);
 
         //Clone directory files
         let is_copied = this.copy_directory(default_new_site, new_site_folder);
@@ -2237,11 +2182,18 @@ class manage_server {
                 "prod": false
             },
             "maintenance_page": "maintenance.html",
+            "maintenance_page_api": "maintenance.json",
             "default_doc": "index.html",
             "default_errors": {
-                "404":"404.html",
-                "500":"500.html"
-            },
+				"user": {
+					"404": "404.html",
+					"500": "500.html",
+				},
+				"api": {
+					"404": "404.json",
+					"500": "500.json"
+				}
+			},
             "apis_fixed_path": {},
             "apis_dynamic_path": {},
             "path_static": {
@@ -2291,8 +2243,10 @@ class manage_server {
         let web_source_path = this.paths.web_source;
 
         //Define template and web source root paths
-        let this_template_path = `${web_template_path}${template}${s}`;
-        let this_project_path = `${web_source_path}${project_name}${s}`;
+        //let this_template_path = `${web_template_path}${template}${s}`;
+        //let this_project_path = `${web_source_path}${project_name}${s}`;
+        let this_template_path = path.join(web_template_path, template);
+        let this_project_path = path.join(web_source_path, project_name);
 
         //Validate if site folder or configuration exists
         for(let site in template_conf.websites) {
@@ -2303,7 +2257,8 @@ class manage_server {
             }
 
             //Define site folder target
-            let this_project_site_path = `${this_project_path}${site}`;
+            //let this_project_site_path = `${this_project_path}${site}`;
+            let this_project_site_path = path.join(this_project_path, site);
 
             //Check if website folder exists already in the project directory
             let if_dir_exists = fs.existsSync(this_project_site_path);
@@ -2316,8 +2271,10 @@ class manage_server {
         //Add template website to the project
         for(let site in template_conf.websites) {
             //Define folder targets
-            let this_template_site_path = `${this_template_path}${site}`;
-            let this_project_site_path = `${this_project_path}${site}`;
+            //let this_template_site_path = `${this_template_path}${site}`;
+            //let this_project_site_path = `${this_project_path}${site}`;
+            let this_template_site_path = path.join(this_template_path, site);
+            let this_project_site_path = path.join(this_project_path, site)
 
             let is_copied = this.copy_directory(this_template_site_path, this_project_site_path);
             if(is_copied["error"] != "") {
@@ -2414,7 +2371,7 @@ class manage_server {
 
             //Try and delete source folder first
             let web_source = this.paths.web_source;
-            let site_folder = `${web_source}${project_name}${s}${site_name}`;
+            let site_folder = path.join(web_source, project_name, site_name);
             let try_delete = this.delete_directory(site_folder);
             if(try_delete["error"] != "") {
                 result.error = try_delete["error"];
@@ -2427,23 +2384,36 @@ class manage_server {
             //Sort array
             conf_data.websites = this.sort_hash_array(conf_data.websites);
 
-            //Clean up DNS linking for deleted sites
-            if(conf_data.dns_names != undefined) {
-                //Set DNS resolve to blank for removed sites
-                if(conf_data.dns_names.dev != undefined) {
-                    for(let dns in conf_data.dns_names.dev) {
-                        let this_site = conf_data.dns_names.dev[dns];
-                        if(conf_data.websites[this_site] == undefined) {
-                            conf_data.dns_names.dev[dns] = "";
+            //Clean up Proxy Map and DNS linking for deleted sites
+            let mapping = ["proxy_map", "dns_names"];
+            for(let i in mapping) {
+                let this_map = mapping[i];
+
+                //Loop environments
+                let environments = ["dev", "qa", "stage", "prod"];
+                for(let e in environments) {
+                    let this_env = environments[e];
+
+                    if(conf_data[this_map] != undefined) {
+                        //Set DNS resolve to blank for removed sites
+                        if(conf_data[this_map][this_env] != undefined) {
+                            for(let map in conf_data[this_map][this_env]) {
+                                let this_site = conf_data[this_map][this_env][map];
+                                if(conf_data.websites[this_site] == undefined) {
+                                    conf_data[this_map][this_env][map] = "";
+                                }
+                            }
                         }
                     }
                 }
-                if(conf_data.dns_names.prod != undefined) {
-                    for(let dns in conf_data.dns_names.prod) {
-                        let this_site = conf_data.dns_names.prod[dns];
-                        if(conf_data.websites[this_site] == undefined) {
-                            conf_data.dns_names.prod[dns] = "";
-                        }
+            }
+
+            //Clean up sub mapping
+            for(let website in conf_data.websites) {
+                for(let map in conf_data.websites[website]["sub_map"]) {
+                    let target_site = conf_data.websites[website]["sub_map"][map];
+                    if(target_site == site_name) {
+                        delete conf_data.websites[website]["sub_map"][map];
                     }
                 }
             }
@@ -2466,8 +2436,6 @@ class manage_server {
             "authenticated":false,
             "data":{}
         }
-
-        console.log(query)
         
         // Validate /////////////////
 
@@ -2558,8 +2526,8 @@ class manage_server {
 
             //Try and rename source folder first
             let web_source = this.paths.web_source;
-            let curr_site_folder = `${web_source}${project_name}${s}${curr_site_name}`;
-            let new_site_folder = `${web_source}${project_name}${s}${new_site_name}`;
+            let curr_site_folder = path.join(web_source, project_name, curr_site_name);
+            let new_site_folder = path.join(web_source, project_name, new_site_name)
             if(action == "rename") {
                 let try_rename = this.rename_directory(curr_site_folder, new_site_folder);
                 if(try_rename["error"] != "") {
@@ -2613,22 +2581,36 @@ class manage_server {
 
             //Update DNS linking for rename site
             if(action == "rename") {
-                if(conf_data.dns_names != undefined) {
-                    //Set DNS resolve to blank for removed sites
-                    if(conf_data.dns_names.dev != undefined) {
-                        for(let dns in conf_data.dns_names.dev) {
-                            let this_site = conf_data.dns_names.dev[dns];
-                            if(this_site == curr_site_name) {
-                                conf_data.dns_names.dev[dns] = new_site_name;
+                //Clean up Proxy Map and DNS linking for deleted sites
+                let mapping = ["proxy_map", "dns_names"];
+                for(let i in mapping) {
+                    let this_map = mapping[i];
+
+                    //Loop environments
+                    let environments = ["dev", "qa", "stage", "prod"];
+                    for(let e in environments) {
+                        let this_env = environments[e];
+
+                        if(conf_data[this_map] != undefined) {
+                            //Set DNS resolve to blank for removed sites
+                            if(conf_data[this_map][this_env] != undefined) {
+                                for(let map in conf_data[this_map][this_env]) {
+                                    let this_site = conf_data[this_map][this_env][map];
+                                    if(conf_data.websites[this_site] == undefined) {
+                                        conf_data[this_map][this_env][map] = new_site_name;
+                                    }
+                                }
                             }
                         }
                     }
-                    if(conf_data.dns_names.prod != undefined) {
-                        for(let dns in conf_data.dns_names.prod) {
-                            let this_site = conf_data.dns_names.prod[dns];
-                            if(this_site == curr_site_name) {
-                                conf_data.dns_names.prod[dns] = new_site_name;
-                            }
+                }
+
+                //Clean up sub mapping
+                for(let website in conf_data.websites) {
+                    for(let map in conf_data.websites[website]["sub_map"]) {
+                        let target_site = conf_data.websites[website]["sub_map"][map];
+                        if(target_site == curr_site_name) {
+                            conf_data.websites[website]["sub_map"][map] = new_site_name;
                         }
                     }
                 }
@@ -2698,11 +2680,14 @@ class manage_server {
 
         //Validate property
         if(!(property === "ssl_redirect" ||
+             property === "default_doc" ||
              property === "maintenance_enabled" ||
              property === "maintenance_page" ||
-             property === "default_doc" ||
-             property === "404_doc" ||
-             property === "500_doc")) {
+             property === "maintenance_page_api" ||
+             property === "error_page_404_user" ||
+             property === "error_page_404_api" ||
+             property === "error_page_500_user" ||
+             property === "error_page_500_api")) {
             result.error = `Invalid property[${property}]`;
             return result;
         }
@@ -2723,16 +2708,35 @@ class manage_server {
                 return result;
             }
         }else{
-            //Validate value has a file extension
-            if(!(path.extname(value) == ".html" || path.extname(value) == ".js")) {
-                result.error = `Invalid file extension[${path.extname(value)}]`;
-                return result;
-            }
+            //Process file
+            if(value != "") {
+                //Validate file name
+                if(this.validate_name(value) == false) {
+                    result.error = `Filename contains invalid charaters[${value}]`;
+                    return result;
+                }
 
-            //Validate file name
-            if(this.validate_name(value) == false) {
-                result.error = `Filename contains invalid charaters[${value}]`;
-                return result;
+                //Set allowed extensions
+                let extnames = [
+                    ".csv", 
+                    ".html", 
+                    ".htm", 
+                    ".js", 
+                    ".json", 
+                    ".jsonld", 
+                    ".txt", 
+                    ".xhtml", 
+                    ".xml"
+                ];
+
+                //Get extension names from file
+                let extname = path.extname(value);
+
+                //Validate value has a file extension
+                if(extnames.includes(extname) == false) {
+                    result.error = `Invalid file extension[${path.extname(value)}]`;
+                    return result;
+                }
             }
         }
 
@@ -2782,22 +2786,30 @@ class manage_server {
                 case "ssl_redirect":
                     conf_data["websites"][site_name]["ssl_redirect"] = value;
                 break;
+                case "default_doc":
+                    conf_data["websites"][site_name]["default_doc"] = value;
+                break;
                 case "maintenance_enabled":
                     conf_data["websites"][site_name]["maintenance"][env] = value;
                 break;
                 case "maintenance_page":
                     conf_data["websites"][site_name]["maintenance_page"] = value;
                 break;
-                case "default_doc":
-                    conf_data["websites"][site_name]["default_doc"] = value;
+                case "maintenance_page_api":
+                    conf_data["websites"][site_name]["maintenance_page_api"] = value;
                 break;
-                case "404_doc":
-                    conf_data["websites"][site_name]["default_errors"]["404"] = value;
+                case "error_page_404_user":
+                    conf_data["websites"][site_name]["default_errors"]["user"]["404"] = value;
                 break;
-                case "500_doc":
-                    conf_data["websites"][site_name]["default_errors"]["500"] = value;
+                case "error_page_404_api":
+                    conf_data["websites"][site_name]["default_errors"]["api"]["404"] = value;
                 break;
-
+                case "error_page_500_user":
+                    conf_data["websites"][site_name]["default_errors"]["user"]["500"] = value;
+                break;
+                case "error_page_500_api":
+                    conf_data["websites"][site_name]["default_errors"]["api"]["500"] = value;
+                break;
             }
 
             //Update config file
@@ -3092,82 +3104,81 @@ class manage_server {
         let web_source = this.paths.web_source;
         let all_configs = this.get_projects();
 
-        //Format the 
-        function format_map_path(website, map_path) {
-            //Replace path separator (Windows OS)
-            if(s == "\\") {
-                let pattern = "/";
-                map_path = map_path.replace(new RegExp(pattern, "g"), s);
-            }
-
-            //Remove leading slash and end slashes
-            if(map_path.substr(0,1) == s) {
-                map_path = map_path.replace(`${s}${website}`, "");
-            }else{
-                map_path = map_path.replace(`${website}`, "");
-            }
-            if(map_path.substr(map_path.length - 1) == s) {
-                map_path = map_path.substr(0, (map_path.length - 1));
-            }
-
-            //Return path
-            return map_path;
-        }
-
         //Define restricted paths
         for(let project in all_configs) {
             //Project root folder
-            let project_path = `${web_source}${project}`;
+            let project_path = path.join(web_source, project);
             restrict_paths[project_path] = "Project folder";
 
             //Get all website paths
             for(let website in all_configs[project]["websites"]) {
-                //Set base website path
-                let website_path = `${web_source}${project}${s}${website}`;
+                //Set this website data
+                let this_website = all_configs[project]["websites"][website];
+
+                //Protect base website path
+                let website_path = path.join(web_source, project, website);
                 restrict_paths[website_path] = "Website folder bound to configuration";
 
-                //Check path mappings
-                if(all_configs[project]["websites"][website]["apis_fixed_path"] != undefined) {
-                    for(let web_path in all_configs[project]["websites"][website]["apis_fixed_path"]) {
-                        let map_path = all_configs[project]["websites"][website]["apis_fixed_path"][web_path];
-                        map_path = format_map_path(website, map_path);
-                        if(map_path != "") {
-                            restrict_paths[`${project_path}${s}${website}${map_path}`] = "Website fixed API path mapping";
+                //Protect mapping folders
+                let sections = ["apis_fixed_path", "apis_dynamic_path", "path_static", "path_static_server_exec"]
+                for(let i in sections) {
+                    let section = sections[i];
+                    if(this_website[section] != undefined) {
+                        for(let web_path in this_website[section]) {
+                            //Protect map path
+                            let map_path = this_website[section][web_path];
+                            map_path = map_path.substring(map_path.length - (map_path.length - website.length - 1))
+                            if(map_path != "") {
+                                restrict_paths[path.join(website_path, map_path)] = "Website fixed API path mapping";
+                            }
+
+                            //Protect default_doc for static path
+                            if(section == "path_static") {
+                                let default_doc = this_website["default_doc"]
+                                if(default_doc != "") {
+                                    let doc_path = path.join(website_path, map_path, default_doc)
+                                    restrict_paths[doc_path] = "Website static path mapped default doc";
+                                }
+                            }
                         }
                     }
                 }
-                if(all_configs[project]["websites"][website]["apis_dynamic_path"] != undefined) {
-                    for(let web_path in all_configs[project]["websites"][website]["apis_dynamic_path"]) {
-                        let map_path = all_configs[project]["websites"][website]["apis_dynamic_path"][web_path];
-                        map_path = format_map_path(website, map_path);
-                        if(map_path != "") {
-                            restrict_paths[`${project_path}${s}${website}${map_path}`] = "Website dynamic API path mapping";
-                        }
+
+                //Protect _maintenance_page and _error_pages if default file exists
+                if(this_website["maintenance_page"] != "" || this_website["maintenance_page_api"] != "") {
+                    restrict_paths[path.join(website_path, "_maintenance_page")] = "Website maintenance page path";
+                }
+                if(this_website["maintenance_page"] != "") {
+                    restrict_paths[path.join(website_path, "_maintenance_page", this_website["maintenance_page"])] = "Website maintenance page";
+                }
+                if(this_website["maintenance_page_api"] != "") {
+                    restrict_paths[path.join(website_path, "_maintenance_page", this_website["maintenance_page_api"])] = "Website maintenance page";
+                }
+
+                //Protect _error_pages if default file exists
+                let default_error_docs = ["404", "500"];
+                let setting_exist = false;
+                for(let d in default_error_docs) {
+                    let error_page_user = this_website["default_errors"]["user"][default_error_docs[d]];
+                    let error_page_api = this_website["default_errors"]["api"][default_error_docs[d]]
+                    if(error_page_user != "") {
+                        setting_exist = true;
+                        restrict_paths[path.join(website_path, "_error_pages", error_page_user)] = "Website error pages";
+                    }
+                    if(error_page_api != "") {
+                        setting_exist = true;
+                        restrict_paths[path.join(website_path, "_error_pages", error_page_api)] = "Website error pages";
                     }
                 }
-                if(all_configs[project]["websites"][website]["path_static"] != undefined) {
-                    for(let web_path in all_configs[project]["websites"][website]["path_static"]) {
-                        let map_path = all_configs[project]["websites"][website]["path_static"][web_path];
-                        map_path = format_map_path(website, map_path);
-                        if(map_path != "") {
-                            restrict_paths[`${web_source}${project}${s}${website}${map_path}`] = "Static path mapping";
-                        }
-                    }
+                if(setting_exist == true) {
+                    restrict_paths[path.join(website_path, "_error_pages")] = "Website error pages path";
                 }
-                if(all_configs[project]["websites"][website]["path_static_server_exec"] != undefined) {
-                    for(let index in all_configs[project]["websites"][website]["path_static_server_exec"]) {
-                        let map_path = all_configs[project]["websites"][website]["path_static_server_exec"][index];
-                        map_path = format_map_path(website, map_path);
-                        if(map_path != "") {
-                            restrict_paths[`${web_source}${project}${s}${website}${map_path}`] = "Static path server override mapping";
-                        }
-                    }
-                }
+
 
             }
 
             //Get JSON config
-            restrict_paths[`${web_source}${project}${s}config.json`] = "Project configuation file";
+            restrict_paths[path.join(web_source, project, "config.json")] = "Project configuation file";
         }
 
         //Remove all end of line slashes (append in other function where needed)
@@ -3413,7 +3424,7 @@ class manage_server {
         // Do command ///////////////
 
         //Set folder location
-        let create_folder = `${target_path}${s}${folder_name}`;
+        let create_folder = path.join(target_path, folder_name);
         let is_created = this.make_directory(create_folder);
         if(is_created["error"] != "") {
             result.error = is_created["error"];
@@ -3472,7 +3483,7 @@ class manage_server {
 
         //Check path belongs to project
         let web_source = this.paths.web_source;
-        let target_project = `${web_source}${project_name}`;
+        let target_project = path.join(web_source, project_name);
 
         // Check if path belongs to project path
         if(!(target_path.startsWith(target_project))) {
@@ -3507,10 +3518,14 @@ class manage_server {
         // Do command ///////////////
 
         //Set paths
-        let file_type_path = `${this.paths.server}default_file_types${s}`
-        let file_type_html = `${file_type_path}file_type.html`;
-        let file_type_css = `${file_type_path}file_type.css`;
-        let file_type_api = `${file_type_path}file_type.js`;
+        //let file_type_path = `${this.paths.server}default_file_types${s}`;
+        let file_type_path = path.join(this.paths.server, "default_file_types");
+        //let file_type_html = `${file_type_path}file_type.html`;
+        //let file_type_css = `${file_type_path}file_type.css`;
+        //let file_type_api = `${file_type_path}file_type.js`;
+        let file_type_html = path.join(file_type_path, "file_type.html");
+        let file_type_css = path.join(file_type_path, "file_type.css");
+        let file_type_api = path.join(file_type_path, "file_type.js");
 
         //Set file contents
         let file_content = "";
@@ -3544,7 +3559,8 @@ class manage_server {
         }
 
         //Set file location
-        let create_file = `${target_path}${s}${file_name}`;
+        //let create_file = `${target_path}${s}${file_name}`;
+        let create_file = path.join(target_path, file_name);
         let is_created = this.make_file(create_file, file_content);
         if(is_created["error"] != "") {
             result.error = is_created.error;
@@ -3650,8 +3666,8 @@ class manage_server {
         return result;
     }
 
-    //Project DNS settings
-    dns_add(query=null) {
+    //Project website mapping
+    resolve_add_update_delete(query=null) {
         //Set configs
         let result = {
             "error":"",
@@ -3662,53 +3678,130 @@ class manage_server {
 
         // Validate /////////////////
 
+        //Common vars
+        var environments = ["dev","qa","stage","prod"]
+
         //Check query parameters
         if(query == null) {
             result.error = "Missing parameters";
             return result;
         }else{
+            if(query.action == undefined) {
+                result.error = "Unknown action";
+                return result;
+            }else{
+                if(!(query.action === "resolve_add" ||
+                    query.action === "resolve_update" || 
+                    query.action === "resolve_delete")) 
+                {
+                   result.error = "Invalid action";
+                   return result;
+                }
+            }
+
             if(this.validate_name(query.project) == false) {
                 result.error = "Project name is invalid";
                 return result;
             }
-            if(this.validate_name(query.dns) == false) {
-                result.error = "DNS name is invalid";
+            if(this.validate_name(query.type) == false) {
+                result.error = "Map type is invalid";
                 return result;
             }
-            if(this.validate_name(query.site) == false) {
-                result.error = "Site name is invalid";
-                return result;
-            }
-            if(query.env == undefined) {
+            if(this.validate_name(query.env) == false) {
                 result.error = "Environment not defined";
                 return result;
+            }
+            if(this.validate_web_path(query.url) == false) {
+                result.error = "URL is invalid";
+                return result;
+            }
+            if((query.action == "resolve_add")) {
+                if(query.site != undefined) {
+                    if(query.site != "" && this.validate_name(query.site) == false) {
+                        result.error = "Site name is invalid";
+                        return result;
+                    }
+                }else{
+                    result.error = "Site name is not defined";
+                    return result;
+                }
+            }
+            if(query.action == "resolve_update") {
+                if(query.update == undefined || query.update == "") {
+                    result.error = "Update type is not defined";
+                    return result;
+                }else{
+                    //Check update type
+                    if(!(query.update === "resolve_select_project" ||
+                        query.update === "resolve_select_env" || 
+                        query.update === "resolve_select_site")
+                    ){
+                       result.error = "Invalid Environment";
+                       return result;
+                    }
+
+                    //Check environment string
+                    if(query.update === "resolve_select_env") {
+                        if(environments.includes(query.change) == false) {
+                            result.error = "Invalid Environment";
+                            return result;
+                        }
+                    }
+                }
             }
         }
 
         //Validate environment name
-        if(!(query.env === "dev" ||
-             query.env === "qa" || 
-             query.env === "stage" || 
-             query.env === "prod")) {
+        if(!(query.type === "proxy_map" || query.type === "dns_names")) {
+            result.error = "Invalid mapping type";
+            return result;
+        }
+
+        //Validate environment name
+        if(environments.includes(query.env) == false) {
             result.error = "Invalid Environment";
             return result;
         }
 
         //Get vars
         let project_name = query.project;
-        let dns_env = query.env;
-        let dns_name = query.dns;
-        let site_name = query.site;
+        let map_type = query.type;
+        let map_env = query.env;
+        let map_url = query.url;
+        let site_name = "";
+        let this_change = "";
+        if((query.action == "resolve_add")) {
+            site_name = query.site;
+        }
+        if((query.action == "resolve_update")) {
+            this_change = query.change;
+        }        
+        if(map_type == "proxy_map") {
+            map_url = (map_url + "/").replaceAll(/\/+/g,"/");
+        }
 
         // Auth Check ///////////////
 
         //Define auth check
-        let access={
-            "type":"project",
-            "permission":["project_adm","dns_adm"],
-            "project":project_name
+        let access={}
+        access={
+            "type":"global",
+            "permission":["dns_adm"],
+            "project":null
         }
         let api_check = this.api_access_check(access)
+
+        //Global access is not authenticated, check project level permission
+        if(api_check.api_access == false && query.action == "resolve_update") { 
+            access={
+                "type":"project",
+                "permission":["project_adm","website_adm","website_set"],
+                "project":project_name
+            }
+            api_check = this.api_access_check(access)
+        }
+
+        //Get result
         result.error = api_check.error;
         result.state = api_check.state;
         result.authenticated = api_check.authenticated;
@@ -3731,14 +3824,16 @@ class manage_server {
         }
 
         //Look for DNS FQDN conflicts
-        for(let search_project in all_projects) {
-            let this_project = all_projects[search_project];
-            if(this_project.dns_names != undefined) {
-                for(let search_env in this_project.dns_names) {
-                    for(let search_dns in this_project.dns_names[search_env]) {
-                        if(search_dns == dns_name) {
-                            result.error = `DNS Name is already assigned to project[${search_project}] environment[${search_env}] DNS Mapping`;
-                            return result;
+        if(query.action == "resolve_add") {
+            for(let search_project in all_projects) {
+                let this_project = all_projects[search_project];
+                if(this_project[map_type] != undefined) {
+                    for(let search_env in this_project[map_type]) {
+                        for(let search_url in this_project[map_type][search_env]) {
+                            if(search_url == map_url) {
+                                result.error = `Map URL is already assigned to project[${search_project}] map_type[${map_type}] environment[${search_env}]`;
+                                return result;
+                            }
                         }
                     }
                 }
@@ -3753,8 +3848,8 @@ class manage_server {
 
         //Make sure DNS names exists
         let config_changed = false;
-        if(conf_data.dns_names == undefined) {
-            conf_data["dns_names"] = {
+        if(conf_data[map_type] == undefined) {
+            conf_data[map_type] = {
                 "dev":{},
                 "qa":{},
                 "stage":{},
@@ -3764,22 +3859,117 @@ class manage_server {
         }
 
         //Make sure DNS environment exists
-        if(conf_data.dns_names[dns_env] == undefined) {
-            conf_data.dns_names[dns_env] = {}
+        if(conf_data[map_type][map_env] == undefined) {
+            conf_data[map_type][map_env] = {}
             config_changed = true;
         }
 
-        //Add DNS to site name resolution
-        if(conf_data.dns_names[dns_env][dns_name] == undefined) {
-            conf_data.dns_names[dns_env][dns_name] = site_name;
-            let sort_dns = this.sort_hash_array(conf_data.dns_names[dns_env]);
-            conf_data.dns_names[dns_env] = sort_dns;
-            config_changed = true;
+        //Add mapping to site name resolution
+        switch(query.action) {
+            case "resolve_add":
+                if(conf_data[map_type][map_env][map_url] == undefined) {
+                    conf_data[map_type][map_env][map_url] = site_name;
+                    let sort_dns = this.sort_hash_array_longest_str(conf_data[map_type][map_env]);
+                    conf_data[map_type][map_env] = sort_dns;
+                    config_changed = true;
+                }
+            break;
+            case "resolve_update":
+                switch(query.update) {
+                    case "resolve_select_project":
+                        //Verify project exists
+                        if(all_projects[query.change] == undefined) {
+                            result.error = `Target project[${query.change}] is not found`;
+                            return result;
+                        }
+
+                        //Check access
+                        access={
+                            "type":"project",
+                            "permission":["project_adm","website_adm","website_set"],
+                            "project":query.change
+                        }
+                        api_check = this.api_access_check(access)
+                        //Return on invalid state
+                        if(api_check.error != "") { return result; }
+                        if(api_check.authenticated == false) { return result; }
+
+                        //Check destination project
+                        if(all_projects[query.change]) {
+                            //Delete URL from current project
+                            let del_query = {
+                                "action":"resolve_delete",
+                                "project":query.project,
+                                "type":query.type,
+                                "env": query.env,
+                                "url": query.url
+                            }
+                            let del_result = this.resolve_add_update_delete(del_query);
+
+                            //Check if user has permission to move proxy_map or dns_names
+                            if(del_result.error != "") { 
+                                return del_result; 
+                            }else{
+                                //Add URL to target project
+                                let add_query = {
+                                    "action":"resolve_add",
+                                    "project":query.change,
+                                    "type":query.type,
+                                    "env": query.env,
+                                    "url": query.url,
+                                    "site": ""              //Set site to blank, user select after re-assign
+                                }
+                                let add_result = this.resolve_add_update_delete(add_query);
+
+                                //No need to write config in this type of update, handled above
+                                if(add_result.error != "") { 
+                                    return add_result; 
+                                }else{
+                                    return result;
+                                }
+                            }
+                        }
+                    break;
+                    case "resolve_select_env":
+                        //Check existing environment settings
+                        if(conf_data[map_type][map_env][map_url] == undefined) {
+                            result.error = `Map type[${map_type}] environment[${map_env}] URL[${map_url}] is not found in configuration`;
+                            return result;
+                        }else{
+                            //Move setting to other environment
+                            let this_site = conf_data[map_type][map_env][map_url];
+                            conf_data[map_type][query.change][map_url] = this_site;
+                            delete conf_data[map_type][map_env][map_url];
+                            config_changed = true;
+                        }
+                    break;
+                    case "resolve_select_site":
+                        if(conf_data[map_type][map_env][map_url] == undefined) {
+                            result.error = "Map URL is not found in configuration";
+                            return result;
+                        }else{
+                            conf_data[map_type][map_env][map_url] = this_change;
+                            let sort_dns = this.sort_hash_array_longest_str(conf_data[map_type][map_env]);
+                            conf_data[map_type][map_env] = sort_dns;
+                            config_changed = true;
+                        }
+                    break;
+                }
+            break;
+            case "resolve_delete":
+                if(conf_data[map_type][map_env][map_url] == undefined) {
+                    result.error = "Map URL does not exist configuration";
+                    return result;
+                }else{
+                    delete conf_data[map_type][map_env][map_url];
+                    config_changed = true;
+                }
+            break;
         }
 
         //Update config file
         if(config_changed == false){
-            result.error = "No DNS configurations changed";
+            result.error = "No mapping configurations changed";
             return result;
         }else{
             let is_updated = this.update_project_conf_file(project_name, conf_data);
@@ -3788,211 +3978,6 @@ class manage_server {
             }
 
             //Result
-            return result;
-        }
-    }
-    dns_delete(query=null) {
-        //Set configs
-        let result = {
-            "error":"",
-            "state":"unauthenticated",
-            "authenticated":false,
-            "data":{}
-        }
-
-        // Validate /////////////////
-
-        //Check query parameters
-        if(query == null) {
-            result.error = "Missing parameters";
-            return result;
-        }else{
-            if(this.validate_name(query.project) == false) {
-                result.error = "Project name is invalid";
-                return result;
-            }
-            if(this.validate_name(query.dns) == false) {
-                result.error = "DNS name is invalid";
-                return result;
-            }
-            if(query.env == undefined) {
-                result.error = "Environment not defined";
-                return result;
-            }
-        }
-
-        //Validate environment name
-        if(!(query.env === "dev" ||
-             query.env === "qa" || 
-             query.env === "stage" || 
-             query.env === "prod")) {
-            result.error = "Invalid Environment";
-            return result;
-        }
-
-        //Get vars
-        let project_name = query.project;
-        let dns_env = query.env;
-        let dns_name = query.dns;
-
-        // Auth Check ///////////////
-
-        //Define auth check
-        let access={
-            "type":"project",
-            "permission":["project_adm","dns_adm"],
-            "project":project_name
-        }
-        let api_check = this.api_access_check(access)
-        result.error = api_check.error;
-        result.state = api_check.state;
-        result.authenticated = api_check.authenticated;
-
-        //Return on invalid state
-        if(result.error != "") { return result; }
-        if(result.authenticated == false) { return result; }
-
-        // Do command ///////////////        
-
-        //Get project config
-        let conf_load = this.load_project_conf(project_name);
-        let conf_data = {}
-        if(conf_load.error != "") {
-            result.error = "Cannot load configuration";
-            return result;
-        }else{
-            //Get config data
-            conf_data = conf_load.data;
-            if(Object.keys(conf_data).length === 0) {
-                result.error = "Configuration data is empty";
-                return result;
-            }
-
-            //Check for DNS
-            let config_changed = false;
-            if(conf_data.dns_names[dns_env] != undefined) {
-                if(conf_data.dns_names[dns_env][dns_name] != undefined) {
-                    delete conf_data.dns_names[dns_env][dns_name];
-                    config_changed = true;
-                }
-            }
-
-            //Update config file
-            if(config_changed == false){
-                result.error = "No DNS configurations changed";
-                return result;
-            }else{
-                let is_updated = this.update_project_conf_file(project_name, conf_data);
-                if(is_updated.error != "") {
-                    result.error = is_updated.error;
-                }
-
-                //Results
-                return result;
-            }
-        }
-    }
-    dns_update(query=null) {
-        //Set configs
-        let result = {
-            "error":"",
-            "state":"unauthenticated",
-            "authenticated":false,
-            "data":{}
-        }
-
-        // Validate /////////////////
-
-        //Check query parameters
-        if(query == null) {
-            result.error = "Missing parameters";
-            return result;
-        }else{
-            if(this.validate_name(query.project) == false) {
-                result.error = "Project name is invalid";
-                return result;
-            }
-            if(this.validate_name(query.dns) == false) {
-                result.error = "DNS name is invalid";
-                return result;
-            }
-            if(query.site != undefined && query.site != "") {
-                if(this.validate_name(query.site) == false) {
-                    result.error = "Site name is invalid";
-                    return result;
-                }
-            }
-            if(query.env == undefined) {
-                result.error = "Environment not defined";
-                return result;
-            }
-        }
-
-        //Validate environment name
-        if(!(query.env === "dev" ||
-             query.env === "qa" || 
-             query.env === "stage" || 
-             query.env === "prod")) {
-            result.error = "Invalid Environment";
-            return result;
-        }
-
-        //Get vars
-        let project_name = query.project;
-        let dns_env = query.env;
-        let dns_name = query.dns;
-        let site_name = query.site;
-
-        // Auth Check ///////////////
-
-        //Define auth check
-        let access={
-            "type":"project",
-            "permission":["project_adm","dns_adm"],
-            "project":project_name
-        }
-        let api_check = this.api_access_check(access)
-        result.error = api_check.error;
-        result.state = api_check.state;
-        result.authenticated = api_check.authenticated;
-
-        //Return on invalid state
-        if(result.error != "") { return result; }
-        if(result.authenticated == false) { return result; }
-
-        // Do command ///////////////        
-
-        //Get project config
-        let conf_load = this.load_project_conf(project_name);
-        let conf_data = {}
-        if(conf_load.error != "") {
-            result.error = "Cannot load configuration";
-            return result;
-        }else{
-            //Get config data
-            conf_data = conf_load.data;
-            if(Object.keys(conf_data).length === 0) {
-                result.error = "Configuration data is empty";
-                return result;
-            }
-
-            //Validate setting exists
-            if(conf_data.dns_names[dns_env][dns_name] == undefined) {
-                result.error = "DNS Configuration does not exist";
-                return result;
-            }else{
-                conf_data.dns_names[dns_env][dns_name] = site_name;
-                let sort_dns = this.sort_hash_array(conf_data.dns_names[dns_env]);
-                conf_data.dns_names[dns_env] = sort_dns;
-            }
-
-            //Update config file
-            let is_updated = this.update_project_conf_file(project_name, conf_data);
-            if(is_updated.error != "") {
-                result.error = is_updated.error;
-            }
-
-            //Results
             return result;
         }
     }
@@ -4072,6 +4057,7 @@ class manage_server {
         //Get data
         result.error = mapping.error;
         result.data["web_configs"] = mapping.web_configs;
+        result.data["web_mapping"] = mapping.web_mapping;
 
         //Return
         return result;
