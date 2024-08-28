@@ -5,7 +5,9 @@
 <p>I would appreciate any feedback or comments if currently using this tool!</p>
 <br />
 
-<img src=".github/wonderbox_sample.png" alt="" />
+![2024-08-27_17-11-25](https://github.com/user-attachments/assets/032c4035-fe77-48fe-bd84-e5325d6e58b6)
+![2024-08-27_17-14-22](https://github.com/user-attachments/assets/eec46813-49ba-455f-8f2a-372b2c823b68)
+
 
 <b>About:</b><br />
 <p>Wonderbox objective is to provide an easy way for setting up static sites or applications where users do not want to use a framework such as react or angular, or write code to start a web services. It is designed to support running multiple site projects under a single IP addres and port. Components include a web server engine and a web based Dev UI for management of your project settings. The system is built to support running multiple environments such as a Dev, QA, Stage and Prod via the server configuration settings. Web projects are configured for portability between environments to allow for promoting code from Dev to other environments with minimumal intervention. A template system is built into the management UI allowing users to create their own code templates for projects or packaging fully functional applications.</p>
