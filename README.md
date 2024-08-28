@@ -38,9 +38,9 @@ portable, meaning you can create a website or multiple websites under project an
 <p>4. Install node modules required to support this server. Newer versions of Node may already include 'crypto' module.</p>
 <pre>
     npm install ip bcrypt crypto jsonwebtoken syslog-client
-
-    ** cypto not needed in newer Node versions
 </pre>
+<i>** crypto module not needed for newer versions of node **</i>
+<br />
 <p>5. Start Node JS Wonderbox</p>
 <pre>
     node start_server
@@ -103,7 +103,9 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 
 <b>Quick Start Guide:</b><br />
 <p>To begin with a simple project, and let's not call it 'Hello World!'. You can start with logging into the Dev Management UI at 'https://your_ip_addres' or 'https://localhost', if you have not already setup the server configuration 'server_dev_ui' settings. On the main 'Projects' tab, there are four button on the left pane at the top. The 'box' icon allows you to create a new project. Supply a project 'Name' and 'Description' (optional) to create a base configuration. A new project should appear in the left pane.</p>
-![2024-08-27_18-00-49](https://github.com/user-attachments/assets/ca4f3dec-311e-4b70-9cc1-b8fb0e329f4a)
+
+![2024-08-27_18-00-49](https://github.com/user-attachments/assets/65066c8f-2d63-41c2-a34f-aa3c3b141843)
+
 
 <br />
 <p>Select your project and you will see the project tree is broken into a few sections:</p>
