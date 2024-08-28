@@ -2,9 +2,14 @@
 <br />
 <table>
     <tr>
-        <td>![2024-08-27_17-11-25](https://github.com/user-attachments/assets/032c4035-fe77-48fe-bd84-e5325d6e58b6)</td>
-        <td>![2024-08-27_17-14-22](https://github.com/user-attachments/assets/eec46813-49ba-455f-8f2a-372b2c823b68)</td>
-        <td>![2024-08-27_17-15-03](https://github.com/user-attachments/assets/6c08b71f-1b77-4fea-b087-319ea49f22aa)</td>
+        <td>![2024-08-27_17-11-25](https://github.com/user-attachments/assets/fcc40271-9c32-44db-beb4-286969d8c9cb)</td>
+        <td>![2024-08-27_17-14-22](https://github.com/user-attachments/assets/125f70bf-a49a-42be-bf32-4455c8feb5f7)</td>
+        <td>![2024-08-27_17-15-03](https://github.com/user-attachments/assets/d0c1b873-7e4c-4fe0-9731-c101bf256c06)</td>
+    </tr>
+    <tr>
+        <td>![2024-08-27_17-15-47](https://github.com/user-attachments/assets/2cab6ff2-ec84-493c-8061-e8fe5ab2c79c)</td>
+        <td>![2024-08-27_17-16-31](https://github.com/user-attachments/assets/ef6283be-78c9-4fb8-a37f-0b6a48dcea40)</td>
+        <td><![2024-08-27_17-18-06](https://github.com/user-attachments/assets/b4b617ef-2524-42f0-a62e-52b0fbcd3089)</td>
     </tr>
 </table>
 <br />
@@ -23,8 +28,10 @@ portable, meaning you can create a website or multiple websites under project an
     <li>Automatic self refesh of project configuration and site mapping</li>
     <li>Configurable option to unload cache content as you develop (server restart and monitoring modules not required)</li>
     <li>Configurable mapping for static content or server side execution</li>
+    <li>Sub mapping under a project, create a sub folder resolving to another webite under current project</li>
     <li>Website source version cloning and preview ability (when working with code branches and feature changes)</li>
     <li>DNS resolution mapping (FQDN resolution to server IP can be mapped easily to site code)</li>
+    <li>Proxy friendly mapping without a need for regex complexity (does require site relative path for CSS, JS, Images, etc.)</li>
     <li>Server pre-processing of client and server details, headers, environment setting, query parsing, etc. and available for server side execute</li>
     <li>Optional default system site template or helper files from file management</li>
     <li>Ability for templating your starter code for new projects or fully functional sites for distribution</li>
