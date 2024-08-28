@@ -104,8 +104,12 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
     <li><b>The root of the project</b> - This is where basic settings allow for changing description or enable / disable the project for DNS resolution settings. Here you can also preview your site creations under a special VHost path (/vhost/project::sitename/). Disabling your project does not disable the VHost preview function. Note: VHost preview is only available when server dev mode is active.</li>
     <li><b>Sites and Settings</b> - This is where you create a website under your project. All sites will appear under this tree selector when created. There are three general options here where you can create a blank empty web source folder, a system default starter site, and user defined templates (should you have your own templates to use). Blank site selection is for customized builds where needing to create a specific folder structure to your project.</li>
     <li><b>Project Files</b> - This is more of a helper panel for some basic folder strucutre and file creation. The Dev Management UI has some basic file templates for creating HTML, CSS or API files. If customizing your folder stuctures, you can follow up with configuring the site mappings (see website settings below)</li>
-    <li><b>Resolve</b> - This is when you either have a DNS server or using a local host file on your workstation to resolve to your server IP address or your server(s) are behind a load balancer virtual IP. DNS resolution uses the server settings environment variable and an FQDN name to map and reslove to a select site in your project. If you have a Dev, QA, Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
+Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
 </ul>
+
+![2024-08-27_18-20-32](https://github.com/user-attachments/assets/f8428eaa-01a8-415c-a015-4e9242eb6fa0)
+
+
 <p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would to use access your project code. These are broken into the following:</p>
 <ul>
     <li><b>General Settings</b> - Your site will usually have a default document or potentially need to ensure your site is secured. These settings allow you to define the default document, a maintenance splash page, SSL redirection and ability to toggle your site default doc to a maintenance page. Maintenance page doesn't disable all the sub paths of a site. Only the main index page or site root is altered with maintenance page (does not apply to site VHost preview). If needing to disable the entire site, optionally you can create a maintenance site and update the DNS resolution to point to maintenance instead which will disable all your APIs as well. You may still preview using the VHost link while the DNS is pointing to the maintence site.</li>
@@ -117,7 +121,18 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
     <li><b>Sub Map</b> - You can use this to map to another site in your project. Example might be where you need to have an API that communicates in XML for a legacy interface. You can configure that site to be all XML response from 
     that sub mapped site for anything API, error pages and maintenance page, while the rest of the site leverages JSON as it's primary communication.</li>
 </ul>
+
+![2024-08-27_18-21-30](https://github.com/user-attachments/assets/b831d349-ef67-43d7-bdb8-4c4ea71d23f3)
+
+
 <p>As a helper for any server side API, see the 'Project Files' tree, create a new file in your API folder, then select the API file type which will drop in a standard template (helper file) that is ready for developing your server side code. The helper will output a JSON return of the available server variables that can be used in your application. This may be used as a testor to validate headers, query parameters, etc. When layout out your website mapping, any folders and files that are not inside the mapping cannot be directly accessed by the client's browser. You may include classes and functions in your API files that would be used for server side execution.</p>
+
+![2024-08-27_18-23-11](https://github.com/user-attachments/assets/c879bf68-6439-4abd-abdf-23491e0c784f)
+
+<p>Resolve section helps with mapping Proxy domain and path or DNS FQDN to your project websites. Sub mapping in the website settings will map under the URL path automatically.</p>
+
+![2024-08-27_18-14-41](https://github.com/user-attachments/assets/575f64e3-914e-4691-bd4b-b5c641c7ad22)
+
 
 <b>The Manual Side of Things:</b><br />
 <p>From a manual configuration perspective, the server root has a general layout (below). Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. When starting your server for the first time, it will create these folders for your web source and templates. You can setup your own GitHub projects and import node modules into your project folders as required. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configuring your project config.json files with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this. The server can be script friendly if you plan on automating project and site pushes as the server detects new projects and refreshes it's mapping as long as the server auto refresh is enabled and set on a check interval.</p>
