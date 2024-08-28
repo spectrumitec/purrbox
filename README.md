@@ -1,9 +1,7 @@
 <b>Node JS Wonderbox</b>
 <br />
 <b>About:</b><br />
-<p>This project is currently meant to work as a web service which supports static site content or application code that is not written under a known framework (native Javascript back end coding). The goal of this is to create a service for 
-ease of standing up projects and websites for development or site creation. The management UI does not have a site editor which will require site and code developement using Visual Studio code. Each project is intended to be self contained and 
-portable, meaning you can create a website or multiple websites under project and move the project folder between environments (Dev, QA, Stage, and Prod). The server can be setup to auto load the project source and handles the mapping of static and server side execution automatically. There is no DNS registration built into the web service but you can point DNS FQDN names or map proxy URL and domain and path to the server IP which you can configure to map to your project and site in the Management UI.</p>
+<p>This project is currently meant to work as a web service which supports static site content or application code that is not written under a known framework (native Javascript back end coding). The goal of this is to create a service for ease of standing up projects and websites for development or site creation. The management UI does not have a site editor which will require site and code developement using Visual Studio code or preferred IDE. Each project is intended to be self contained and portable, meaning you can create a website or multiple websites under a project and move the project folder between environments (Dev, QA, Stage, and Prod). The server can be setup to auto load the project source and handles the mapping of static and server side execution automatically. There is no DNS registration built into the web service but you can point DNS FQDN names or map proxy URL and domain and path to the server IP which you can configure to map to your project and site in the Management UI.</p>
 
 <b>General Features:</b><br />
 <ul>
@@ -86,13 +84,6 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
     	}
     }
 </pre>
-
-<b>Managment UI Admin</b>
-<ul>
-    <li>User management and permissions</li>
-    <li>Mapping similation for testing URL routing in various environments (FQDN / Proxy testing)</li>
-    <li>Server configuration reference</li>
-</ul>
 
 <b>Current Limitations:</b><br />
 <ul>
@@ -212,3 +203,15 @@ root folder
 	}
 }
 </pre>
+
+<b>Managment UI Admin</b>
+<ul>
+    <li>User management and permissions</li>
+    <li>Mapping similation for testing URL routing in various environments (FQDN / Proxy testing)</li>
+    <li>Server configuration reference</li>
+</ul>
+
+![2024-08-27_18-17-57](https://github.com/user-attachments/assets/438247de-472f-4d77-a639-479a8d52edd6)
+
+![2024-08-27_18-16-33](https://github.com/user-attachments/assets/a2801832-675b-4d0b-914a-0c8790c236d0)
+
