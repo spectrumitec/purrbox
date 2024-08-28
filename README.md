@@ -1,16 +1,17 @@
 <b>Node JS Wonderbox</b>
-
 <br />
-<p>Note to users: This is a new project in development awaiting future features and dedicated website for helping users get started. There is minimum content available for information at the current time.</p>
-<p>I would appreciate any feedback or comments if currently using this tool!</p>
+<table>
+    <tr>
+        <td>![2024-08-27_17-11-25](https://github.com/user-attachments/assets/032c4035-fe77-48fe-bd84-e5325d6e58b6)</td>
+        <td>![2024-08-27_17-14-22](https://github.com/user-attachments/assets/eec46813-49ba-455f-8f2a-372b2c823b68)</td>
+        <td>![2024-08-27_17-15-03](https://github.com/user-attachments/assets/6c08b71f-1b77-4fea-b087-319ea49f22aa)</td>
+    </tr>
+</table>
 <br />
-
-![2024-08-27_17-11-25](https://github.com/user-attachments/assets/032c4035-fe77-48fe-bd84-e5325d6e58b6)
-![2024-08-27_17-14-22](https://github.com/user-attachments/assets/eec46813-49ba-455f-8f2a-372b2c823b68)
-
-
 <b>About:</b><br />
-<p>Wonderbox objective is to provide an easy way for setting up static sites or applications where users do not want to use a framework such as react or angular, or write code to start a web services. It is designed to support running multiple site projects under a single IP addres and port. Components include a web server engine and a web based Dev UI for management of your project settings. The system is built to support running multiple environments such as a Dev, QA, Stage and Prod via the server configuration settings. Web projects are configured for portability between environments to allow for promoting code from Dev to other environments with minimumal intervention. A template system is built into the management UI allowing users to create their own code templates for projects or packaging fully functional applications.</p>
+<p>This project is currently meant to work as a web service which supports static site content or application code that is not written under a known framework (native Javascript back end coding). The goal of this is to create a service for 
+ease of standing up projects and websites for development or site creation. The management UI does not have a site editor which will require site and code developement using Visual Studio code. Each project is intended to be self contained and 
+portable, meaning you can create a website or multiple websites under project and move the project folder between environments (Dev, QA, Stage, and Prod). The server can be setup to auto load the project source and handles the mapping of static and server side execution automatically. There is no DNS registration built into the web service but you can point DNS FQDN names or map proxy URL and domain and path to the server IP which you can configure to map to your project and site in the Management UI.</p>
 
 <b>General Features:</b><br />
 <ul>
