@@ -1,18 +1,5 @@
 <b>Node JS Wonderbox</b>
 <br />
-<table>
-    <tr>
-        <td>![2024-08-27_17-11-25](https://github.com/user-attachments/assets/fcc40271-9c32-44db-beb4-286969d8c9cb)</td>
-        <td>![2024-08-27_17-14-22](https://github.com/user-attachments/assets/125f70bf-a49a-42be-bf32-4455c8feb5f7)</td>
-        <td>![2024-08-27_17-15-03](https://github.com/user-attachments/assets/d0c1b873-7e4c-4fe0-9731-c101bf256c06)</td>
-    </tr>
-    <tr>
-        <td>![2024-08-27_17-15-47](https://github.com/user-attachments/assets/2cab6ff2-ec84-493c-8061-e8fe5ab2c79c)</td>
-        <td>![2024-08-27_17-16-31](https://github.com/user-attachments/assets/ef6283be-78c9-4fb8-a37f-0b6a48dcea40)</td>
-        <td><![2024-08-27_17-18-06](https://github.com/user-attachments/assets/b4b617ef-2524-42f0-a62e-52b0fbcd3089)</td>
-    </tr>
-</table>
-<br />
 <b>About:</b><br />
 <p>This project is currently meant to work as a web service which supports static site content or application code that is not written under a known framework (native Javascript back end coding). The goal of this is to create a service for 
 ease of standing up projects and websites for development or site creation. The management UI does not have a site editor which will require site and code developement using Visual Studio code. Each project is intended to be self contained and 
@@ -29,12 +16,15 @@ portable, meaning you can create a website or multiple websites under project an
     <li>Configurable option to unload cache content as you develop (server restart and monitoring modules not required)</li>
     <li>Configurable mapping for static content or server side execution</li>
     <li>Sub mapping under a project, create a sub folder resolving to another webite under current project</li>
+    <li>Special error pages and maintenance pages for custom error pages or blocking incoming requests and directing to maintenance page.</li>
     <li>Website source version cloning and preview ability (when working with code branches and feature changes)</li>
     <li>DNS resolution mapping (FQDN resolution to server IP can be mapped easily to site code)</li>
-    <li>Proxy friendly mapping without a need for regex complexity (does require site relative path for CSS, JS, Images, etc.)</li>
+    <li>Proxy friendly mapping without a need for regex rewrite complexity (does require site relative path for CSS, JS, Images, etc.)</li>
     <li>Server pre-processing of client and server details, headers, environment setting, query parsing, etc. and available for server side execute</li>
     <li>Optional default system site template or helper files from file management</li>
     <li>Ability for templating your starter code for new projects or fully functional sites for distribution</li>
+    <li>Logging system for local file or log server including stack trace logging</li>
+    <li>Admin panel for user access permissions for management, URL simulation testing to validate a site will load properly</li>
 </ul>
 
 <b>Installation:</b><br />
@@ -48,6 +38,8 @@ portable, meaning you can create a website or multiple websites under project an
 <p>4. Install node modules required to support this server. Newer versions of Node may already include 'crypto' module.</p>
 <pre>
     npm install ip bcrypt crypto jsonwebtoken syslog-client
+
+    ** cypto not needed in newer Node versions
 </pre>
 <p>5. Start Node JS Wonderbox</p>
 <pre>
@@ -63,8 +55,8 @@ portable, meaning you can create a website or multiple websites under project an
         "workers":1,
         "cache_on":false,
         "debug_mode_on":false,
-        "server_mode":"dev",
-        "server_dev_ui":[
+        "mgmt_mode":"dev",
+        "mgmt_ui":[
             "nodejs-dev",
             "nodejs-dev.network.local"
         ],
@@ -88,14 +80,19 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
     		"delete_older": "7d"
     	},
     	"server": {
-    		"ipaddr": "192.168.50.5",
+    		"ipaddr": "192.168.1.5",
     		"port": "1514",
     		"protocol": "udp"
     	}
     }
 </pre>
 
-<p>When you login to the Dev Management UI, there is a 'Server Settings' panel under 'Admin' tab that has some basic explaination for the uses of each setting.</p>
+<b>Managment UI Admin</b>
+<ul>
+    <li>User management and permissions</li>
+    <li>Mapping similation for testing URL routing in various environments (FQDN / Proxy testing)</li>
+    <li>Server configuration reference</li>
+</ul>
 
 <b>Current Limitations:</b><br />
 <ul>
@@ -111,7 +108,7 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
     <li><b>The root of the project</b> - This is where basic settings allow for changing description or enable / disable the project for DNS resolution settings. Here you can also preview your site creations under a special VHost path (/vhost/project::sitename/). Disabling your project does not disable the VHost preview function. Note: VHost preview is only available when server dev mode is active.</li>
     <li><b>Sites and Settings</b> - This is where you create a website under your project. All sites will appear under this tree selector when created. There are three general options here where you can create a blank empty web source folder, a system default starter site, and user defined templates (should you have your own templates to use). Blank site selection is for customized builds where needing to create a specific folder structure to your project.</li>
     <li><b>Project Files</b> - This is more of a helper panel for some basic folder strucutre and file creation. The Dev Management UI has some basic file templates for creating HTML, CSS or API files. If customizing your folder stuctures, you can follow up with configuring the site mappings (see website settings below)</li>
-    <li><b>DNS Resolution</b> - This is when you either have a DNS server or using a local host file on your workstation to resolve to your server IP address or your server(s) are behind a load balancer virtual IP. DNS resolution uses the server settings environment variable and an FQDN name to map and reslove to a select site in your project. If you have a Dev, QA, Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
+    <li><b>Resolve</b> - This is when you either have a DNS server or using a local host file on your workstation to resolve to your server IP address or your server(s) are behind a load balancer virtual IP. DNS resolution uses the server settings environment variable and an FQDN name to map and reslove to a select site in your project. If you have a Dev, QA, Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
 </ul>
 <p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would to use access your project code. These are broken into the following:</p>
 <ul>
@@ -121,6 +118,8 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
     <li><b>API Dynamic Path Mapping</b> - Allows for a sub path mapping to resolve to any API file in the folder tree structure. The server will map the URL path accordingly to the underlying filesystem path. API mappings is strictly server side execution and will not send source code to the client browser. (Do not map to the root path as the root path is reserved for static content)</li>
     <li><b>Static Content Path Mapping</b> - This will cover any static content like HTML, client side JavaScript, CSS, images, etc. The server will handle MIME types related to file extension. Any files that are in the root URL path and not located in API mapping paths are treated as static content except where overriden.</li>
     <li><b>Static Content Server Execute Override</b> - In some cases you may require a file at the root path to execute at the server and not be sent to client like static content. This allows to specify those file paths as an override. An example of this is a health check script used for a load balancer that might check modules, database connectivity, etc. and send the load balancer a status 500 error or other code to let it know this web server has a problem.</li>
+    <li><b>Sub Map</b> - You can use this to map to another site in your project. Example might be where you need to have an API that communicates in XML for a legacy interface. You can configure that site to be all XML response from 
+    that sub mapped site for anything API, error pages and maintenance page, while the rest of the site leverages JSON as it's primary communication.</li>
 </ul>
 <p>As a helper for any server side API, see the 'Project Files' tree, create a new file in your API folder, then select the API file type which will drop in a standard template (helper file) that is ready for developing your server side code. The helper will output a JSON return of the available server variables that can be used in your application. This may be used as a testor to validate headers, query parameters, etc. When layout out your website mapping, any folders and files that are not inside the mapping cannot be directly accessed by the client's browser. You may include classes and functions in your API files that would be used for server side execution.</p>
 
@@ -156,36 +155,55 @@ root folder
     <li>DNS names has the sections "dev", "qa", "stage" and "prod". You can have multiple DNS FQDNs under each environment section pointing to your site. Each DNS entry is mapped individually to a site. The Dev Management UI will prevent you from setting same DNS names to different sites or projects at the same time since the server will only resolve an FQDN to one site. Caveat here is to be aware if copying project source from different servers into one server for possible overlap of FQDN. You will want to make sure DNS mapping is properly set to each site. You can view the Dev Management UI 'Site Index' tab for FQDN mapping to make sure your sites are set to resolve correctly. A DNS name will resolve to only one site.</li>
 </ul>
 <pre>
-    {
-        "project_desc": "Project description",
-        "enabled": true,
-        "dns_names": {
-            "dev": {
-                "www-dev.network.local": "main-v1"
-            },
-            "prod": {
-                "www.network.local": "main-v1"
-            }
+{
+	"project_desc": "Description of project",
+	"enabled": true,
+	"proxy_map": {
+		"dev": {
+            "proxy.domain.com/path":"www"
         },
-        "websites": {
-            "main-v1": {
-                "ssl_redirect": true,
-                "maintenance": false,
-                "maintenance_page": "maintenance.html",
-                "default_doc": "index.html",
-                "default_errors": {
-                    "404": "404.html",
-                    "500": "500.html"
-                },
-                "apis_fixed_path": {},
-                "apis_dynamic_path": {
-                    "/api/": "/main-v1/api/"
-                },
-                "path_static": {
-                    "/": "/main-v1/"
-                },
-                "path_static_server_exec": {}
-            }
-        }
-    }
+		"qa": {},
+		"stage": {},
+		"prod": {}
+	},
+	"dns_names": {
+		"dev": {
+            "www.domain.com":"www"
+        },
+		"qa": {},
+		"stage": {},
+		"prod": {}
+	},
+	"websites": {
+		"www": {
+			"ssl_redirect": true,
+			"maintenance": {
+				"dev": false,
+				"qa": false,
+				"stage": false,
+				"prod": false
+			},
+			"maintenance_page": "maintenance.html",
+			"maintenance_page_api": "maintenance.json",
+			"default_doc": "index.html",
+			"default_errors": {
+				"user": {
+					"404": "404.html",
+					"500": "500.html"
+				},
+				"api": {
+					"404": "404.json",
+					"500": "500.json"
+				}
+			},
+			"apis_fixed_path": {},
+			"apis_dynamic_path": {},
+			"path_static": {
+				"/": "/www/"
+			},
+			"path_static_server_exec": {},
+			"sub_map": {}
+		}
+	}
+}
 </pre>
