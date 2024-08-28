@@ -107,10 +107,10 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
 </ul>
 
+<p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would to use access your project code. These are broken into the following:</p>
+
 ![2024-08-27_18-20-32](https://github.com/user-attachments/assets/f8428eaa-01a8-415c-a015-4e9242eb6fa0)
 
-
-<p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would to use access your project code. These are broken into the following:</p>
 <ul>
     <li><b>General Settings</b> - Your site will usually have a default document or potentially need to ensure your site is secured. These settings allow you to define the default document, a maintenance splash page, SSL redirection and ability to toggle your site default doc to a maintenance page. Maintenance page doesn't disable all the sub paths of a site. Only the main index page or site root is altered with maintenance page (does not apply to site VHost preview). If needing to disable the entire site, optionally you can create a maintenance site and update the DNS resolution to point to maintenance instead which will disable all your APIs as well. You may still preview using the VHost link while the DNS is pointing to the maintence site.</li>
     <li><b>Error Page Default Documents</b> - These allow you to specify a custom 404 or 500 error pages otherwise the server default error pages will be used</li>
@@ -123,7 +123,6 @@ Stage and Prod server environment as an example, copying or using git clone / pu
 </ul>
 
 ![2024-08-27_18-21-30](https://github.com/user-attachments/assets/b831d349-ef67-43d7-bdb8-4c4ea71d23f3)
-
 
 <p>As a helper for any server side API, see the 'Project Files' tree, create a new file in your API folder, then select the API file type which will drop in a standard template (helper file) that is ready for developing your server side code. The helper will output a JSON return of the available server variables that can be used in your application. This may be used as a testor to validate headers, query parameters, etc. When layout out your website mapping, any folders and files that are not inside the mapping cannot be directly accessed by the client's browser. You may include classes and functions in your API files that would be used for server side execution.</p>
 
