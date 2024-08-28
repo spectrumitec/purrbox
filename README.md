@@ -103,6 +103,8 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 
 <b>Quick Start Guide:</b><br />
 <p>To begin with a simple project, and let's not call it 'Hello World!'. You can start with logging into the Dev Management UI at 'https://your_ip_addres' or 'https://localhost', if you have not already setup the server configuration 'server_dev_ui' settings. On the main 'Projects' tab, there are four button on the left pane at the top. The 'box' icon allows you to create a new project. Supply a project 'Name' and 'Description' (optional) to create a base configuration. A new project should appear in the left pane.</p>
+![2024-08-27_18-00-49](https://github.com/user-attachments/assets/406b87fa-5f7c-48f0-b0f7-b61d275ffc94)
+
 <p>Select your project and you will see the project tree is broken into a few sections:</p>
 <ul>
     <li><b>The root of the project</b> - This is where basic settings allow for changing description or enable / disable the project for DNS resolution settings. Here you can also preview your site creations under a special VHost path (/vhost/project::sitename/). Disabling your project does not disable the VHost preview function. Note: VHost preview is only available when server dev mode is active.</li>
