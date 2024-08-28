@@ -103,7 +103,8 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 
 <b>Quick Start Guide:</b><br />
 <p>To begin with a simple project, and let's not call it 'Hello World!'. You can start with logging into the Dev Management UI at 'https://your_ip_addres' or 'https://localhost', if you have not already setup the server configuration 'server_dev_ui' settings. On the main 'Projects' tab, there are four button on the left pane at the top. The 'box' icon allows you to create a new project. Supply a project 'Name' and 'Description' (optional) to create a base configuration. A new project should appear in the left pane.</p>
-![2024-08-27_18-00-49](https://github.com/user-attachments/assets/44be3e61-de38-4333-86c8-8fdfcb6ffaf8)
+![2024-08-27_18-00-49](https://github.com/user-attachments/assets/ca4f3dec-311e-4b70-9cc1-b8fb0e329f4a)
+
 <br />
 <p>Select your project and you will see the project tree is broken into a few sections:</p>
 <ul>
