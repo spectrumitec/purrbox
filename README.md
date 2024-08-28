@@ -40,7 +40,7 @@ portable, meaning you can create a website or multiple websites under project an
     npm install ip bcrypt crypto jsonwebtoken syslog-client
 </pre>
 <i>** crypto module not needed for newer versions of node **</i>
-<br />
+<br /><br />
 <p>5. Start Node JS Wonderbox</p>
 <pre>
     node start_server
