@@ -107,7 +107,8 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
 </ul>
 
-![2024-08-27_18-20-32](https://github.com/user-attachments/assets/f8428eaa-01a8-415c-a015-4e9242eb6fa0)
+![2024-09-01_13-20-26](https://github.com/user-attachments/assets/1cd3303d-c9df-4de6-999e-827f935043cb)
+
 
 <p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would to use access your project code. These are broken into the following:</p>
 <ul>
@@ -133,6 +134,9 @@ Stage and Prod server environment as an example, copying or using git clone / pu
 
 ![2024-08-27_18-32-28](https://github.com/user-attachments/assets/e3aeaef1-aa16-4392-8c06-5093ee39783a)
 
+Once proxy mapping and DNS FQDN configurations are setup, a quick link option is available from the website management of a project to quickly change the resolution to specific sites.
+
+![2024-09-01_13-24-39](https://github.com/user-attachments/assets/e71a2f06-bf80-4410-b9fc-9b891b8f3729)
 
 <b>The Manual Side of Things:</b><br />
 <p>From a manual configuration perspective, the server root has a general layout (below). Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. When starting your server for the first time, it will create these folders for your web source and templates. You can setup your own GitHub projects and import node modules into your project folders as required. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configuring your project config.json files with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this. The server can be script friendly if you plan on automating project and site pushes as the server detects new projects and refreshes it's mapping as long as the server auto refresh is enabled and set on a check interval.</p>
