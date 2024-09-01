@@ -460,19 +460,18 @@ function project_manage_set_property(property, value) {
 function project_manage_fix_config() {
     log("project_manage_fix_config");
 
+    //Close dialog
+    $("#dialog").dialog("close");
+
     //Validate project focus
     if(focused_project == "") {
         dialog("Error", "Project is not selected");
         return;
     }
-
-    //Notice
-    dialog_title = "Notice";
-    dialog_message = `
-        The server will check configuration structure and will<br />
-        replace missing fields. This will not erase existing<br />
-        configuration settings.`;
-    dialog(dialog_title,dialog_message);
+    if(focused_project != $("#project_name").val()) {
+        dialog("Error", "Please confirm the project name to proceed with config file fix attempt");
+        return;
+    }
 
     //Send request to server
     project_manage("project_fix_config", {});
@@ -702,6 +701,9 @@ function website_manage(action, data={}) {
             json.map_type = data.map_type;
             json.web_path = data.web_path;
         break;
+        case "website_fix_default_pages":
+            json.page_type = data.page_type;
+        break;
         default:
             dialog("Error", `Invalid request action[<b>${action}]</b>`);
             return;
@@ -893,6 +895,37 @@ function website_manage_map_delete() {
 
     //Send data to website manage function
     website_manage("website_map_delete", data);
+}
+function website_manage_create_default_pages(page_type="") {
+    //Validate request
+    if(page_type == "") {
+        $("#dialog").dialog("close");
+        dialog("Error", "Invalid request type")
+        return;
+    }else if(!(page_type == "maintenance_page" || page_type == "error_pages")) {
+        $("#dialog").dialog("close");
+        dialog("Error", "Invalid request type")
+        return;
+    }
+    if(focused_project == "") {
+        $("#dialog").dialog("close");
+        dialog("Error", "Project is not selected")
+        return;
+    }
+    if(focused_site == "") {
+        $("#dialog").dialog("close");
+        dialog("Error", "Project website is not selected")
+        return;
+    }
+    $("#dialog").dialog("close");
+
+    //Set data type
+    data = {
+        "page_type":page_type
+    }
+
+    //Send request to server
+    website_manage("website_fix_default_pages", data);
 }
 
 //Get project files list
@@ -1741,6 +1774,51 @@ function ui_sidenav_btn_project_delete() {
 
     //Call dialog function
     dialog("Delete Project Confirm", html_dialog);
+}
+function ui_sidenav_btn_project_fix() {
+    log("ui_sidenav_btn_project_fix");
+
+    //API pre-check
+    if(api_check_global(["project_adm", "project_create"]) == false) { 
+        dialog("Error","You do not have permission to create a project");
+        return 
+    }
+
+    //Check if project selected
+    if(focused_project == "") {
+        dialog("Error", "A project is not selected. Please select a project to delete.");
+        return;
+    }
+
+    //Prompt user
+    let html_dialog = `
+        <p>
+        There are problems detected in the "config.json" file for project <b>${focused_project}</b>.<br />
+        <br />
+        These errors are not related to your files in the folder, only parameters in the<br />
+        configuration file.<br />
+        <br />
+        If upgrading from an older version, there are some changes to the fields in the configuration<br />
+        file. This function will add or update those fields. You may need to reconfigure some of<br />
+        website settings for your websites. Maintenance and Error pages are changed where you will now<br />
+        need to place custom error files in '_maintenance_page' and '_error_pages' sub folders of your website<br />
+        folder. See the website settings panel where there are some helper buttons to create these folders.<br />
+        <br />
+        If you have manually modified this file, there may be syntax errors. This function will replace<br />
+        missing fields. If there are any typos with these field names, they may be removed.<br />
+        <br />
+        <i class="font_red">Please make a backup of your configuration file before proceeding.</i><br />
+        <br />
+        Confirm delete by typing project name below:
+        </p>
+        <input id="project_name" type="text" value="" autocomplete="off">
+        <br /><br />
+        <input type="button" value="Proceed" onClick="project_manage_fix_config();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+        `;
+
+    //Call dialog function
+    dialog("Project Configuration File Fix Confirm", html_dialog);
 }
 
 //Project tree list
@@ -2596,7 +2674,7 @@ function ui_project_main() {
                 settings match what you have in your source files such as default document, maintenance page, and error document names 
                 otherwise the system may report errors.
                 <br /><br />
-                See websiite settings <img src="images/gear_icon.png" alt="" /> for '_maintenance_page' or '_error_pages' errors
+                See websiite settings <img src="images/world_icon.png" alt="" /> for '_maintenance_page' or '_error_pages' errors
                 <br /><br />
             `;
         }
@@ -2740,7 +2818,7 @@ function ui_project_main() {
         if(document.getElementById("project_config_fix") != undefined) {
             var lis_project_config_fix = document.getElementById("project_config_fix");
             lis_project_config_fix.addEventListener("click", function(event){
-                project_manage_fix_config()
+                ui_sidenav_btn_project_fix();
             }); 
         }
     }else{
@@ -3660,13 +3738,13 @@ function ui_website_settings() {
         if(document.getElementById("website_maint_create") != undefined) {
             var lis_website_maint_create = document.getElementById("website_maint_create");
             lis_website_maint_create.addEventListener("click", function(event){
-                website_manage("website_maint_page_create");
+                ui_website_fix_default_pages("maintenance_page");
             });
         }
         if(document.getElementById("website_errors_create") != undefined) {
             var lis_website_errors_create = document.getElementById("website_errors_create");
             lis_website_errors_create.addEventListener("click", function(event){
-                website_manage("website_errors_pages_create");
+                ui_website_fix_default_pages("error_pages");
             });
         }
     }else{
@@ -4009,9 +4087,6 @@ function ui_website_delete(website_name) {
     //Call dialog function
     dialog("Delete Website Confirm", html);
 }
-
-// website settings?
-
 function ui_website_map_new(map_type) {
     log("ui_website_map_new");
 
@@ -4199,6 +4274,37 @@ function ui_website_map_delete(map_type, path) {
         case "path_static_server_exec": dialog_label = "Map Static Path Override (Server Execute)"; break;
         case "sub_map":                 dialog_label = "Website Sub Mapping"; break;
     }
+    dialog(dialog_label, html);
+}
+function ui_website_fix_default_pages(page_type) {
+    log("ui_website_fix_default_pages");
+
+    //Set label
+    let label = "";
+    let dialog_label = "";
+    switch(page_type) {
+        case "maintenance_page":
+            label = "Maintenance Page";
+            dialog_label = "Website Default Maintenance Page";
+        break;
+        case "error_pages":
+            label = "Error Pages";
+            dialog_label = "Website Default Error Pages";
+        break;
+    }
+
+    //Create dialog HTML
+    html = `
+        <input type="hidden" id="default_page_type" value="${page_type}">
+    
+        <p>Confirm create default folder and files for ${label}?
+        
+        <br /><br />
+        <input type="button" value="Yes" onClick="website_manage_create_default_pages('${page_type}');">
+        <input type="button" value="No" onClick="$('#dialog').dialog('close');">
+    `;
+
+    //Call dialog function
     dialog(dialog_label, html);
 }
 

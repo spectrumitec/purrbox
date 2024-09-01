@@ -2349,13 +2349,14 @@ class manage_server {
             case "website_set_property":
                 result = this.website_manage_set_property(result, query);
             break;
-            // website_maint_page_create
-            // website_errors_pages_create
             case "website_map_add":
                 result = this.website_manage_map_add(result, query);
             break;
             case "website_map_delete":
                 result = this.website_manage_map_delete(result, query);
+            break;
+            case "website_fix_default_pages":
+                result = this.website_manage_fix_default_pages(result, query);
             break;
         }
 
@@ -2667,6 +2668,18 @@ class manage_server {
                         }
                     }
                 }
+            break;
+            case "website_fix_default_pages":
+                //Validate map type
+                if(query.page_type == undefined) {
+                    validate.result.error = `Website fix default page_type is not defined`;
+                    return validate;
+                }
+                if(!(query.page_type == "maintenance_page" || query.page_type == "error_pages")) {
+                    validate.result.error = `Website fix default page_type[${query.page_type}] is invalid`;
+                    return validate;
+                }
+
             break;
             default:
                 validate.result.error = "Invalid request actopm"
@@ -3392,6 +3405,281 @@ class manage_server {
             return result;
         }
     }
+    website_manage_fix_default_pages(result, query) {
+        //Get variables
+        let project_name = query.project;
+        let website_name = query.website;
+        let page_type = query.page_type;
+
+        //Get project config
+        let load_data = this.load_project_conf(project_name);
+        if(load_data.error != "") {
+            result.error = conf_data.error;
+            return result;
+        }
+        let conf_data = load_data.data;
+        let website_data = conf_data.websites[website_name];
+
+        //Set paths
+        let target_path = "";
+        let target_files = {}
+        let target_file = "";
+        if(page_type == "maintenance_page") {
+            target_path = path.join(this.paths.web_source, project_name, website_name, "_maintenance_page");
+            if(website_data.maintenance_page != undefined || website_data.maintenance_page != "") {
+                target_file = path.join(target_path, website_data.maintenance_page);
+                target_files["maintenance_page"] = {
+                    "type":"maintenance_doc",
+                    "api":false,
+                    "status":"200",
+                    "file":target_file,
+                    "extname":path.extname(target_file)
+                }
+            }
+            if(website_data.maintenance_page_api != undefined || website_data.maintenance_page_api != "") {
+                target_file = path.join(target_path, website_data.maintenance_page_api);
+                target_files["maintenance_page_api"] = {
+                    "type":"maintenance_doc",
+                    "api":true,
+                    "status":"200",
+                    "file":target_file,
+                    "extname":path.extname(target_file)
+                }
+
+            }
+        }else{
+            let error_docs = ["404", "500"]
+            target_path = path.join(this.paths.web_source, project_name, website_name, "_error_pages");
+            if(website_data.default_errors != undefined) {
+                for(let e in error_docs) {
+                    let error_doc = error_docs[e];
+                    if(website_data.default_errors.user != undefined) {
+                        if(website_data.default_errors.user[error_doc] != undefined || website_data.default_errors.user[error_doc] != "") {
+                            target_file = path.join(target_path, website_data.default_errors.user[error_doc]);
+                            target_files[`error_page_user_${error_doc}`] = {
+                                "type":"error_doc",
+                                "api":false,
+                                "status":error_doc,
+                                "file":target_file,
+                                "extname":path.extname(target_file)
+                            }
+                        }
+                    }
+                    if(website_data.default_errors.api != undefined) {
+                        if(website_data.default_errors.api[error_doc] != undefined || website_data.default_errors.api[error_doc] != "") {
+                            target_file = path.join(target_path, website_data.default_errors.api[error_doc]);
+                            target_files[`error_page_api_${error_doc}`] = {
+                                "type":"error_doc",
+                                "api":true,
+                                "status":error_doc,
+                                "file":target_file,
+                                "extname":path.extname(target_file)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //Create folder
+        if(fs.existsSync(target_path) == false) {
+            let is_created = this.make_directory(target_path);
+            if(is_created.error != "") {
+                result.error = is_created.error;
+                return result;
+            }
+        }
+
+        //Create files (basic placeholder)
+        for(let target in target_files) {
+            let this_target = target_files[target];
+            let file = this_target.file;
+
+            //Write file
+            if(fs.existsSync(file) == false) {
+                let content = this.website_manage_fix_default_pages_file_content(this_target);
+
+                let is_created = this.make_file(file, content);
+                if(is_created.error != "") {
+                    result.error = is_created.error;
+                    return result;
+                }
+            }
+        }
+
+        //Retrun result
+        return result;
+    }
+    website_manage_fix_default_pages_file_content(target_file) {
+        //
+        // Create placeholder content in files
+        //
+
+        //Get file details
+        let file_type = target_file.type;
+        let file_ext = target_file.extname;
+
+        //API interface
+        let is_api = target_file.api;
+
+        //Set status code
+        let status_code = target_file.status;
+        let status_message = "";
+
+        //Set status message
+        switch(status_code) {
+            case "200": status_message = "OK"; break;
+            case "404": status_message = "Not Found"; break;
+            case "500": status_message = "Internal Server Error"; break;
+        }
+
+        //Set different message for maintenance mode
+        if(file_type == "maintenance_doc") {
+            status_message = "Website in Maintenance Mode";
+        }
+
+        //Handle extension
+        let content = "";
+        switch(file_ext) {
+            case ".csv":
+                content = `${status_code},${status_message}`;
+            break;
+            case ".html": case ".htm":
+                content = `<!doctype html>
+                    <html lang="en">
+                        <head>
+                            <meta charset="utf-8">
+                            <title>${status_message}</title>
+                            <meta name="description" content="${status_message}">
+                            <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+                        </head>
+                        <body>
+                            Status ${status_code} - ${status_message}
+                        </body>
+                    </html>
+                `;
+            break;
+            case ".js":
+                //Check is API response
+                let response = `"Status ${status_code} - ${status_message}"`;
+                if(is_api == true) {
+                    response = `{"status":"${status_code}","message":"${status_message}"}`;
+                }
+
+                content = `//Set response data
+                    var _response = {
+                        "status_code":${status_code},
+                        "headers":{
+                            "Content-Type":"application/json"
+                        },
+                        "body":null
+                    }
+
+                    //Module request
+                    exports.request = async function(params={}) {
+                        //Set const
+                        const _env = params._server.environment;
+                        const _server = params._server;
+                        const _client = params._client;
+                        const _raw_headers = params._raw_headers;
+                        const _request = {
+                            "method":params.method,
+                            "http_version":params.http_version,
+                            "protocol":params.protocol,
+                            "hostname":params.hostname,
+                            "path":params.path,
+                            "query":params.query
+                        }
+                        const _query = params.query;
+
+                        //Validation checks
+                        //if(_request.method == undefined) { _error("Method undefined"); return _response;  }
+                        //if(_request.method != "GET") {     _error("Method invalid"); return _response; }
+
+                        //Dump variables from server
+                        _return(${response});
+
+                        //Return data
+                        return _response;
+                    }
+
+                    ///////////////////////////////////////////
+                    //Default function
+                    ///////////////////////////////////////////
+
+                    function _error(out, status_code=200) {
+                        //Default content type
+                        if(status_code != 200) {
+                            _response["status_code"] = status_code;
+                        }
+                        _response["body"] = JSON.stringify({"error":out});
+                    }
+                    function _return(out) {
+                        //Default content type
+                        let content_type = "application/json";
+                        let content = {}
+                        
+                        //Set response type
+                        switch(typeof(out)) {
+                            case "object":
+                                content_type = "application/json";
+                                try {
+                                    content = JSON.stringify(out);
+                                }catch{
+                                    content_type = "text/html";
+                                    content = out;
+                                }
+                            break;
+                            default:
+                                content_type = "text/html";
+                                content = out;
+                        }
+
+                        //Set response
+                        _response["headers"]["Content-Type"] = content_type;
+                        _response["body"] = content;
+                    }
+                `;
+            break;
+            case ".json": case ".jsonld":
+                content = `{"status":"${status_code}","message":"${status_message}"}
+                `;
+            break;
+            case ".txt":
+                content = `${status_code} ${status_message}`;
+            break;
+            case ".xhtml":
+                content = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+                        "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+                        <html xmlns="http://www.w3.org/1999/xhtml">
+                            <head>
+                                <meta charset="utf-8">
+                                <title>${status_message}</title>
+                                <meta name="description" content="${status_message}">
+                                <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+                            </head>
+                            <body>
+                                Status ${status_code} - ${status_message}
+                            </body>
+                        </html>
+                `;
+            break;
+            case ".xml":
+                content = `<?xml version="1.0"?>
+                    <root>
+                        <status>${status_code}</status>
+                        <message>${status_message}</message>
+                    </root>
+                `;
+            break;
+        }
+
+        //Remove string padding above for file output
+        content = content.replaceAll("                    ", "");
+
+        //Return content
+        return content;
+    }
 
     //Project files management
     files_restricted() {
@@ -3932,7 +4220,7 @@ class manage_server {
         // Do command ///////////////        
 
         //Remove path separator at end of line
-        if(target_path.substr(target_path.length - 1) == s) {
+        if(target_path.substr(target_path.length - 1) == path.sep) {
             target_path = target_path.substr(0, target_path.length - 1);
         }
 

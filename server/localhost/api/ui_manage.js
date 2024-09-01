@@ -118,10 +118,9 @@ exports.request = async function(params={}) {
 		case "website_clone":
 		case "website_delete":
 		case "website_set_property":
-		case "website_maint_page_create":
-		case "website_errors_pages_create":
 		case "website_map_add":
 		case "website_map_delete":
+		case "website_fix_default_pages":
 			api_response = mgmt.website_manage(_query);
 		break;
 
@@ -176,7 +175,7 @@ exports.request = async function(params={}) {
 	}
 
 	//Return response
-	_end(response);
+	_return(response);
 
 	//Return data
 	return _response;
@@ -193,18 +192,26 @@ function _error(out, status_code=200) {
     }
     _response["body"] = JSON.stringify({"error":out});
 }
-function _end(out) {
+function _return(out) {
     //Default content type
     let content_type = "application/json";
     let content = {}
-    
-    //Test JSON
-    try {
-        content = JSON.stringify(out);
-    }catch{
-        content_type = "text/html";
-        content = out;
-    }
+	
+	//Set response type
+	switch(typeof(out)) {
+		case "object":
+			content_type = "application/json";
+			try {
+				content = JSON.stringify(out);
+			}catch{
+				content_type = "text/html";
+				content = out;
+			}
+		break;
+        default:
+			content_type = "text/html";
+			content = out;
+	}
 
     //Set response
     _response["headers"]["Content-Type"] = content_type;

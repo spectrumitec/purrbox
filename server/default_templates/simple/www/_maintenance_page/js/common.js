@@ -34,9 +34,6 @@ function update_message(response) {
 		this_message = this_message.replaceAll("\\r\\n","<br />");
 		this_message = this_message.replaceAll("\\n","<br />");
 		
-		//Strip leading and end quotes
-		this_message = this_message.substring(1, this_message.length - 2);
-		
 		//Bold emphasized words *bold*
 		this_message = this_message.replace(/\*(.*?)\*/gm, "<b>$1</b>")
 	}
