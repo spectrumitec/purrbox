@@ -1762,7 +1762,7 @@ function ui_sidenav_btn_project_delete() {
     //Prompt user
     let html_dialog = `
         <p>
-        Are you sure you want to delete project <b>${focused_project}</b> ?
+        Are you sure you want to delete project <b>${focused_project}</b>?
         <br /><br />
         Confirm delete by typing project name below:
         </p>
@@ -4074,7 +4074,7 @@ function ui_website_delete(website_name) {
         <input type="hidden" id="select_website_name" value="${website_name}">
 
         <p>
-        Are you sure you want to delete site <b>${website_name}</b> ?
+        Are you sure you want to delete site <b>${website_name}</b>?
         <br /><br />
         Confirm delete by typing website name below:
         </p>
@@ -4748,7 +4748,7 @@ function ui_template_delete(template=null) {
         <input id="template_name" type="hidden" value="${template}" />
 
         <p>
-        Are you sure you want to delete template [<b>${template}</b>] ?
+        Are you sure you want to delete template <b>${template}</b>?
         <br /><br />
         Confirm delete by typing template name below:
         </p>
