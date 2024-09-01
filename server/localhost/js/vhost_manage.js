@@ -5367,7 +5367,7 @@ function ui_admin_server_settings(response) {
                 `;
             break;
             case "debug_mode_on": 
-                this_desc = "Output to server console to display more detail when developing code. You will still need to use 'console.log' in some cases.";
+                this_desc = "Output to server console to display more detail when developing code.";
             break;
             case "mgmt_mode": 
                 this_desc = "Enable this management UI by setting 'mgmt_mode' to 'true' in the server configuration";
