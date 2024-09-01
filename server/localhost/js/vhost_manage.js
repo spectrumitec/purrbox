@@ -2780,7 +2780,10 @@ function ui_project_main() {
         <div class="grid2 grid2_project_settings">
             <div class="grid2_head">Project Settings</div>
             <div class="grid1_col">Description</div>
-            <div class="grid1_col">${project_desc_html}</div>
+            <div class="grid1_col">
+                ${project_desc_html}<br />
+                <input id="project_desc_save" type="button" value="Save" />
+            </div>
             <div class="grid1_col"><div class="text_space_top_3">Enabled</div></div>
             <div class="grid1_col">
                 <div class="grid2_inner">
@@ -2803,9 +2806,9 @@ function ui_project_main() {
     //API pre-check
     if(panel_write_access == true) {  
         //Add listener
-        var lis_project_desc = document.getElementById("project_desc");
+        var lis_project_desc = document.getElementById("project_desc_save");
         var lis_project_enabled = document.getElementById("project_enabled");
-        lis_project_desc.addEventListener("change", function(event){
+        lis_project_desc.addEventListener("click", function(event){
             let this_project_desc = $("#project_desc").val()
             project_manage_set_property("project_desc", this_project_desc)
         });

@@ -28,7 +28,7 @@ textarea{
     vertical-align: top;
 }
 input[type=button]{
-    margin-left: 2px;
+    margin: 2px auto;
     border: 1px solid #aaaaaa;
     font-size: 13px;
     cursor: pointer;
