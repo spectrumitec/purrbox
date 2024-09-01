@@ -1469,24 +1469,30 @@ function ui_sidenav_btn_project_new() {
     }
 
     //Add option if user defined templates
-    let html_system_template = "";
-    let html_user_template = "";
-    if(system_template_count > 0) {
-        html_system_template = `
-            <div class="grid1_col">
-                <input type="radio" id="project_system_templates" name="project_create" value="system">
-                <label for="project_create">Create from system template</label>
-            </div>
-        `;
+    let disable_sys_radio = "";
+    let disable_sys_css = "";
+    let disable_user_radio = "";
+    let disable_user_css = "";
+    if(system_template_count == 0) {
+        disable_sys_radio = " disabled";
+        disable_sys_css = ` class="font_gray"`;
     }
-    if(user_template_count > 0) {
-        html_user_template = `
-            <div class="grid1_col">
-                <input type="radio" id="project_user_templates" name="project_create" value="template">
-                <label for="project_create">Create from user template</label>
-            </div>
-        `;
+    if(user_template_count == 0) {
+        disable_user_radio = " disabled";
+        disable_user_css = ` class="font_gray"`;
     }
+
+    //Create radio button HTML
+    let html_templates = `
+        <div class="grid1_col">
+            <input type="radio" id="project_system_templates" name="project_create" value="system" ${disable_sys_radio} />
+            <label for="project_create" ${disable_sys_css}>Create from system template</label>
+        </div>
+        <div class="grid1_col">
+            <input type="radio" id="project_user_templates" name="project_create" value="template" ${disable_user_radio} />
+            <label for="project_create" ${disable_user_css}>Create from user template</label>
+        </div>
+    `;
 
     //HTML dialog
     html = `
@@ -1502,8 +1508,7 @@ function ui_sidenav_btn_project_new() {
                         <input type="radio" id="project_blank" name="project_create" value="blank" checked>
                         <label for="project_create">Empty project folder</label>
                     </div>
-                    ${html_system_template}
-                    ${html_user_template}
+                    ${html_templates}
                 </div>
             </div>
             <div id="project_create_options" class="grid1_inner_col"></div>
@@ -3720,25 +3725,31 @@ function ui_website_create() {
         }
     }
 
-    //Add option if templates exist
-    let html_system_template = "";
-    let html_user_template = "";
-    if(system_template_count > 0) {
-        html_system_template = `
-            <div class="grid1_col">
-                <input type="radio" id="website_system_templates" name="website_create" value="system">
-                <label for="website_create">Create from system template</label>
-            </div>
-        `;
+    //Add option if user defined templates
+    let disable_sys_radio = "";
+    let disable_sys_css = "";
+    let disable_user_radio = "";
+    let disable_user_css = "";
+    if(system_template_count == 0) {
+        disable_sys_radio = " disabled";
+        disable_sys_css = ` class="font_gray"`;
     }
-    if(user_template_count > 0) {
-        html_user_template = `
-            <div class="grid1_col">
-                <input type="radio" id="website_user_templates" name="website_create" value="template">
-                <label for="website_create">Create from user template</label>
-            </div>
-        `;
+    if(user_template_count == 0) {
+        disable_user_radio = " disabled";
+        disable_user_css = ` class="font_gray"`;
     }
+
+    //Create radio button HTML
+    let html_templates = `
+        <div class="grid1_col">
+            <input type="radio" id="website_system_templates" name="website_create" value="system" ${disable_sys_radio} />
+            <label for="website_create" ${disable_sys_css}>Create from system template</label>
+        </div>
+        <div class="grid1_col">
+            <input type="radio" id="website_user_templates" name="website_create" value="template" ${disable_user_radio} />
+            <label for="website_create" ${disable_user_css}>Create from user template</label>
+        </div>
+    `;
 
     //Set HTML body
     html = `
@@ -3754,8 +3765,7 @@ function ui_website_create() {
                         <input type="radio" id="website_blank" name="website_create" value="blank" checked>
                         <label for="website_create">Empty website folder</label>
                     </div>
-                    ${html_system_template}
-                    ${html_user_template}
+                    ${html_templates}
                 </div>
                 <div id="template_select" class="grid1_inner"></div>
             </div>
