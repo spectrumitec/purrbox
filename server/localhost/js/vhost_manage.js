@@ -31,6 +31,8 @@ var protected_paths = {};
 
 var website_projects = {};
 var website_project_errors = {}
+var templates_system = {};
+var templates_user = {};
 
 var focused_project = "";
 var focused_panel = "";
@@ -249,7 +251,7 @@ function get_configs() {
     //Set call parameters
     let params = {
         "id":"get_configs",
-        "func_call":ui_build_page_content,
+        "func_call":ui_page_content,
         "method":"GET",
         "url":url,
         "query":json
@@ -259,139 +261,8 @@ function get_configs() {
     web_calls(params)
 }
 
-//Manage projects
-function project_new() {
-    log("project_new");
-
-    //Get fields
-    let this_project = $("#project_new_name").val();
-    let this_desc = $("#project_new_desc").val();
-    $("#dialog").dialog("close");
-
-    //Validate field
-    if(this_project == "") {
-        dialog("Error","Project Name cannot be blank")
-        return;
-    }
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"project_new",
-        "project_name":this_project,
-        "project_desc":this_desc
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"project_new",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
-}
-function project_clone() {
-    log("project_clone");
-
-    //Get fields
-    let project_name = $("#project_name").val();
-    $("#dialog").dialog("close");
-
-    //Validate field
-    if(project_name == "") {
-        dialog("Error","Project Name cannot be blank")
-        return;
-    }
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"project_clone",
-        "project_selected":focused_project,
-        "project_name":project_name
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"project_clone",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    console.log(json)
-
-    //Execute call
-    web_calls(params)
-}
-function project_rename() {
-    log("project_rename");
-
-    //Get fields
-    let project_name = $("#project_name").val();
-    $("#dialog").dialog("close");
-
-    //Validate field
-    if(project_name == "") {
-        dialog("Error","Project Name cannot be blank")
-        return;
-    }
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"project_rename",
-        "project_selected":focused_project,
-        "project_name":project_name
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"project_rename",
-        "func_call":project_focus_reset,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    console.log(json)
-
-    //Execute call
-    web_calls(params)
-}
-function project_delete() {
-    log("project_delete");
-
-    //Close dialog
-    $("#dialog").dialog("close");
-
-    // Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"project_delete",
-        "project_selected":focused_project
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"project_delete",
-        "func_call":project_focus_reset,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    console.log(json)
-
-    //Execute call
-    web_calls(params)
-}
-function project_focus_reset() {
+//Resets focus (project deletes, renames)
+function focus_reset() {
     //Clear management page
     $("#project_title").html("");
     $("#project_panel").html("");
@@ -400,24 +271,64 @@ function project_focus_reset() {
     focused_project = "";
     focused_panel = "";
     focused_site = "";
+
+    //Rebuild page
     get_configs();
 }
-function project_set_property(property, value) {
-    log("project_set_property")
+
+//Manage projects
+function project_manage(action, data={}) {
+    log("project_new");
+
+    //Set default json
+    let json = {
+        "action":action
+    }
+
+    //Add to query for action type
+    let callback = get_configs;
+    switch(action) {
+        case "project_new":
+            json["type"] = data.type;
+            json["project_name"] = data.project_name;
+            json["project_desc"] = data.project_desc;
+            if(data.type == "system_template" || data.type == "user_template") {
+                json["template"] = data.template;
+            }
+        break;
+        case "project_rename": 
+            json["project_selected"] = data.project_selected;
+            json["project_name"] = data.project_name;
+            callback = focus_reset;
+        break;
+        case "project_clone":
+            json["project_selected"] = data.project_selected;
+            json["project_name"] = data.project_name;
+        break;
+        case "project_delete":
+            json["project_selected"] = focused_project;
+            callback = focus_reset;
+        break;
+        case "project_set_property":
+            json["project_name"] = focused_project;
+            json["property"] = data.property;
+            json["value"] = data.value;
+        break;
+        case "project_fix_config":
+            json["project_name"] = focused_project;
+        break;
+        default:
+            dialog("Error","Project manage invalid request action")
+            return;
+    }
 
     //Set URL
     let url = "api/ui_manage";
-    let json = {
-        "action":"project_set_property",
-        "project":focused_project,
-        "property":property,
-        "value":value
-    }
 
     //Set call parameters
     let params = {
-        "id":"project_set_property",
-        "func_call":get_configs,
+        "id":"project_new",
+        "func_call":callback,
         "method":"GET",
         "url":url,
         "query":json
@@ -426,104 +337,181 @@ function project_set_property(property, value) {
     //Execute call
     web_calls(params)
 }
-function project_fix_config() {
-    log("project_fix_config");
+function project_manage_create() {
+    log("project_manage_create");
+
+    //Get dialog properties
+    let create_type = $("#create_type").val();
+    let template_name = $("#template_name").val();
+    let project_name = $("#project_name").val();
+    let project_desc = $("#project_desc").val();
+    $("#dialog").dialog("close");
+
+    //Check parameters
+    if(!(create_type == "blank" || create_type == "system_template" || create_type == "user_template")) {
+        dialog("Error","New project create type is invalid");
+        return;
+    }
+    if(project_name == "") {
+        dialog("Error","Please specify a project name");
+        return;
+    }
+    if((create_type == "system_template" || create_type == "user_template") && template_name == "") {
+        dialog("Error","Please select a template that the project will be created from");
+        return;
+    }
+
+    //Get properties
+    let data = {
+        "type":create_type,
+        "project_name":project_name,
+        "project_desc":project_desc
+    }
+    if(create_type == "system_template" || create_type == "user_template") {
+        data["template"] = template_name;
+    }
+
+    //Send to server
+    project_manage("project_new", data);
+}
+function project_manage_rename_clone() {
+    log("project_manage_clone");
+
+    //Get dialog properties
+    let project_rename_clone = $("#project_rename_clone").val();
+    let project_name = $("#project_name").val();
+    $("#dialog").dialog("close");
+
+    //Define action
+    let action = "";
+    if(project_rename_clone == "clone") {
+        action = "project_clone";
+    }else if(project_rename_clone == "rename") {
+        action = "project_rename";
+    }else{
+        dialog("Error","Invalid action, clone or rename needed");
+        return;
+    }
+
+    //Check parameters
+    if(focused_project == "") {
+        dialog("Error","Please select a project name");
+        return;
+    }
+    if(project_name == "") {
+        dialog("Error","Please specify a project name");
+        return;
+    }
+
+    //Get properties
+    let data = {
+        "project_selected":focused_project,
+        "project_name":project_name
+    }
+
+    //Send to server
+    project_manage(action, data);
+}
+function project_manage_delete() {
+    log("project_delete");
+
+    //Close dialog
+    let project_name = $("#project_name").val();
+    $("#dialog").dialog("close");
+
+    //Validate confirm delete
+    if(project_name != focused_project) {
+        dialog("Error", "Project name entered does not match selected project")
+        return;
+    }
+
+    //Send request to server
+    project_manage("project_delete", {});
+}
+function project_manage_set_property(property, value) {
+    log("project_manage_set_property")
+
+    //Validate
+    if(property == undefined || property == "") {
+        dialog("Error","Project property is invalid");
+        return;
+    }
+    if(value == undefined) {
+        dialog("Error","Project property value is invalid");
+        return;
+    }else{
+        if(property == "project_enabled") {
+            if(!(value == true || value == false)) {
+                dialog("Error",`Project property[${property}] value[${value}] is invalid`);
+                return;
+            }
+        }
+    }
+
+    //Set data
+    let data = {
+        "property":property,
+        "value":value
+    }
+
+    //Send request to server
+    project_manage("project_set_property", data);
+}
+function project_manage_fix_config() {
+    log("project_manage_fix_config");
+
+    //Close dialog
+    $("#dialog").dialog("close");
 
     //Validate project focus
     if(focused_project == "") {
         dialog("Error", "Project is not selected");
         return;
     }
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"project_config_fix",
-        "project":focused_project
+    if(focused_project != $("#project_name").val()) {
+        dialog("Error", "Please confirm the project name to proceed with config file fix attempt");
+        return;
     }
 
-    //Set call parameters
-    let params = {
-        "id":"project_config_fix",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Notice
-    dialog_title = "Notice";
-    dialog_message = `
-        The server will check configuration structure and will<br />
-        replace missing fields. This will not erase existing<br />
-        configuration settings.`;
-    dialog(dialog_title,dialog_message);
-
-    //Execute call
-    web_calls(params)
+    //Send request to server
+    project_manage("project_fix_config", {});
 }
 
 //Templates tab
-function templates_list() {
-    log("templates_list")
+function template_manage(action, data={}) {
+    log("template_manage");
 
-    //Set URL
-    let url = "api/ui_manage";
+    //Set default json
     let json = {
-        "action":"templates_list"
+        "action":action
     }
 
-    //Set call parameters
-    let params = {
-        "id":"templates_list",
-        "func_call":ui_templates_list,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
-}
-
-//Templates management
-function template_create() {
-    log("template_create");
-
-    //API check done at UI dialog
-
-    //Get fields
-    let this_name = $("#template_name").val();
-    let this_desc = $("#template_desc").val();
-
-    //Loop all checkboxes
-    let this_sites = []
-    $("input:checkbox").each(function(){
-        if($(this).attr('id') == "template_site") {
-            if(this.checked == true) {
-                let this_value = $(this).attr('value'); 
-                this_sites.push(this_value)
+    //Add to query for action type
+    switch(action) {
+        case "template_new":
+            json["type"] = data.type;
+            json["project_name"] = data.project_name;
+            json["template_name"] = data.template_name;
+            json["description"] = data.description;
+            if(data.type == "website") {
+                json["websites"] = data.websites;
             }
-        }
-    });
-
-    //Close dialog
-    $("#dialog").dialog("close");
+        break;
+        case "template_delete":
+            json["template_name"] = data.template_name;
+        break;
+        default:
+            dialog("Error","Template manage invalid request action")
+            return;
+    }
 
     // Set URL
     let url = "api/ui_manage";
-    let json = {
-        "action":"template_create",
-        "project":focused_project,
-        "template": this_name,
-        "desc": this_desc,
-        "sites": this_sites
-    }
 
     //Set call parameters
     let params = {
         "id":"template_create",
-        "func_call":null,
+        "func_call":template_manage_refresh,
         "method":"GET",
         "url":url,
         "query":json
@@ -532,305 +520,412 @@ function template_create() {
     //Execute call
     web_calls(params)
 }
-function template_delete() {
-    log("template_delete");
-    
-    //API check done at UI dialog
+function template_manage_create() {
+    log("template_manage_create");
 
-    //Get tempalte name
-    let this_template = $("#template_name").val();
-
-    $("#dialog").dialog("close");
-
-    // Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"template_delete",
-        "template":this_template
+    let data = {
+        "type":"",
+        "project_name":focused_project,
+        "template_name":"",
+        "description":"",
+        "websites":[]
     }
 
-    //Set call parameters
-    let params = {
-        "id":"template_delete",
-        "func_call":templates_list,
-        "method":"GET",
-        "url":url,
-        "query":json
+    //Get type checkboxes
+    if(document.getElementById("template_type_website").checked == true) {
+        data.type = "website";
+    }
+    if(document.getElementById("template_type_project").checked == true) {
+        data.type = "project";
+    }
+    if(data.type == "") {
+        dialog("Error","Please select a <b>Template Type</b>")
+        return;
     }
 
-    //Execute call
-    web_calls(params)
-}
+    //Get template name and description
+    data.template_name = $("#template_name").val();
+    data.description = $("#template_desc").val();
 
-//Manage project websites
-function website_new_blank() {
-    log("website_new_blank");
-    
-    //Get fields
-    let this_type = $("#new_site_type").val();
-    let this_site = $("#new_site_name").val();
+    //Check name
+    if(data.template_name == "") {
+        dialog("Error","Please define a <b>Template Name</b>")
+        return;
+    }
+
+    //Create select list
+    if(data.type == "website") {
+        let project_data = website_projects[focused_project];
+        for(website in project_data["websites"]) {
+            let list_id = `select_website::${website}`;
+            let list_val = document.getElementById(list_id).checked;
+            if(list_val == true) {
+                data.websites.push(website);
+            }
+        }
+    }
+
+    //Check website list
+    if(data.type == "website") {
+        if(data.websites.length == 0) {
+            dialog("Error","Please select websites to be included in the template")
+            return;
+        }
+    }
 
     //Close dialog
     $("#dialog").dialog("close");
 
-    //Validate
-    if(this_site == "") {
-        dialog("Error","Site name cannot be blank")
+    //Send to server
+    template_manage("template_new", data);
+}
+function template_manage_delete() {
+    log("template_manage_delete");
+
+    //Confirm delete
+    let template_name = $("#template_name").val();
+    let confirm_template_name = $("#confirm_template_name").val();
+    if(template_name != confirm_template_name) {
+        dialog("Error","Confirmation of template name does not match selected")
         return;
     }
+
+    //Set data
+    let data = {
+        "template_name":template_name
+    }
+
+    //Close dialog
+    $("#dialog").dialog("close");
+
+    //Send request to server
+    template_manage("template_delete", data);
+}
+function template_manage_refresh(data) {
+    log("template_manage_refresh");
+
+    //Update templates data
+    if(data.system != undefined) {
+        templates_system = data.system;
+    }
+    if(data.user != undefined) {
+        templates_user = data.user;
+    }
+
+    //Refresh page
+    ui_templates_list();
+}
+
+//Manage website functions
+function website_manage(action, data={}) {
+    log(`website_manage :: ${action}`)
 
     //Set URL
     let url = "api/ui_manage";
     let json = {
-        "action":"website_new",
-        "type":this_type,
+        "action":action,
         "project":focused_project,
-        "site":this_site
+        "website":focused_site
+    }
+
+    //Set query properties
+    switch(action) {
+        case "website_new":
+            //Remove website focus field
+            delete json.website;
+
+            //Process data returned
+            json.type = data.type;
+            switch(data.type) {
+                case "blank":
+                    json.website_name = data.website_name;
+                break;
+                case "system_template": case "user_template":
+                    json.template_name = data.template_name;
+                    json.template_websites = data.template_websites;
+                break;
+                default:
+                    dialog("Error", `Function error, invalid website type`);
+                    return;
+            }
+        break;
+        case "website_rename": case "website_clone": case "website_delete":
+            //Remove website focus field
+            delete json.website;
+
+            //Get parameters
+            json.select_website_name = data.select_website_name;
+            if(action == "website_rename" || action == "website_clone") {
+                json.new_website_name = data.new_website_name;
+            }
+        break;
+        case "website_set_property":
+            try{
+                switch(data.property) {
+                    case "ssl_redirect":
+                    case "maintenance_page":
+                    case "maintenance_page_api":
+                    case "default_doc":
+                        json.property = data.property;
+                        json.value = data.value;
+                    break;
+                    case "maintenance":
+                        json.property = data.property;
+                        json.value = data.value;
+                        json.env = data.env;
+                    break;
+                    case "error_page":
+                        json.property = data.property;
+                        json.type = data.type;
+                        json.page = data.page;
+                        json.value = data.value;
+                    break;
+                    default:
+                        dialog("Error", `Invalid request action[<b>${action}</b>] property[<b>${data.property}</b>]`);
+                        return;
+                }
+            }catch(err) {
+                dialog("Error", `Function request error: ${err}`);
+                return;
+            }
+        break;
+        case "website_maint_page_create": case "website_errors_pages_create": 
+            //No added query fields needed
+        break;
+        case "website_map_add":
+            json.map_type = data.map_type;
+            json.web_path = data.web_path;
+            json.map_path = data.map_path;
+        break;
+        case "website_map_delete":
+            json.map_type = data.map_type;
+            json.web_path = data.web_path;
+        break;
+        case "website_fix_default_pages":
+            json.page_type = data.page_type;
+        break;
+        default:
+            dialog("Error", `Invalid request action[<b>${action}]</b>`);
+            return;
+    }
+
+    //Makes sure no json parameters are undefined
+    for(let key in json) {
+        if(json[key] == undefined) {
+            dialog("Error", `Function error: key[<b>${key}</b>] value[<b>${json[key]}]</b>`);
+            return;
+        }
     }
 
     //Set call parameters
     let params = {
-        "id":"website_new_blank",
+        "id":"website_manage",
         "func_call":get_configs,
         "method":"GET",
         "url":url,
         "query":json
     }
 
+    console.log(json)
+
     //Execute call
     web_calls(params)
 }
-function website_new_from_template() {
-    log("website_new_from_template");
-    
-    //Get fields
-    let this_template = "";
+function website_manage_create() {
+    log(`website_manage_create`)
 
-    //Get radio button settings
-    $("input:radio").each(function(){
-        if($(this).attr('id') == "new_site_template") {
-            if(this.checked == true) {
-                this_template = $(this).attr('value');
+    //Get dialog properties
+    let create_type = $("#create_type").val()
+    let template_name = $("#template_name").val()
+
+    //Get properties
+    let data = {
+        "type":create_type
+    }
+    switch(create_type) {
+        case "blank":
+            //Get website name from dialog
+            let website_name = $("#website_name").val();
+            if(website_name == "") {
+                $("#dialog").dialog("close");
+                dialog("Error", "Please specify a website name")
+                return;
+            }else{
+                data["website_name"] = website_name;
+            }
+        break;
+        case "system_template": case "user_template":
+            //Create websites create list
+            data["template_name"] = template_name;
+            data["template_websites"] = {}
+
+            //Determine templates to use
+            let template_websites = {};
+            if(create_type == "system_template") {
+                template_websites = templates_system[template_name]["conf"]["websites"];
+            }else if(create_type == "user_template") {
+                template_websites = templates_user[template_name]["conf"]["websites"];
+            }
+
+            //Get selected websites and name overrides from template
+            let list_website_names = []
+            for(let website in template_websites) {
+                //Set ID names in dialog
+                let chkbox_id = `website::${website}::checkbox`;
+                let txtbox_id = `website::${website}::text`;
+
+                //Get checked values
+                let checked = document.getElementById(chkbox_id).checked;
+                let override = document.getElementById(txtbox_id).value;
+
+                //Get website name or override
+                let website_name = website;
+                if(override != "") {
+                    website_name = override;
+                }
+
+                //Add to dataset
+                if(checked == true) {
+                    //Check if website_name has been defined more than once
+                    if(list_website_names.includes(website_name)) {
+                        $("#dialog").dialog("close");
+                        dialog("Error", "The new website names were defined more than once")
+                        return;
+                    }else{
+                        list_website_names.push(website_name);
+                    }
+
+                    //Add website
+                    data["template_websites"][website] = website_name;
+                }
+            }
+
+            //Check if websites is empty
+            if(Object.keys(data["template_websites"]).length == 0) {
+                $("#dialog").dialog("close");
+                dialog("Error", "No websites are selected from the template")
+                return;
+            }
+        break;
+        default:
+            $("#dialog").dialog("close");
+            dialog("Error", "System error, invalid create type")
+            return;
+    }
+    $("#dialog").dialog("close");
+
+    //Send data to website manage function
+    website_manage("website_new", data)
+}
+function website_manage_rename_clone_delete(request=null) {
+    log(`website_manage_rename_clone_delete`)
+    
+    //Get properties
+    let action = "";
+    let data = {}
+
+    //Verify action
+    if(request == null) {
+        $("#dialog").dialog("close");
+        dialog("Error", "Invalid request")
+        return;
+    }else{
+        //Define action
+        if(request == "rename") {
+            action = "website_rename";
+        }else if(request == "clone") {
+            action = "website_clone";
+        }else if(request == "delete") {
+            action = "website_delete";
+        }
+
+        //Get selected website
+        let select_website_name = $("#select_website_name").val();
+        data["select_website_name"] = select_website_name;
+
+        //Get form details
+        if(request == "rename" || request == "clone") {
+            let new_website_name = $("#new_website_name").val();
+            if(new_website_name == "") {
+                $("#dialog").dialog("close");
+                dialog("Error", "Please specify a new website name")
+                return;
+            }else{
+                data["new_website_name"] = new_website_name;
+            }
+        }else{
+            let confirm_website_name = $("#confirm_website_name").val();
+            if(select_website_name != confirm_website_name) {
+                $("#dialog").dialog("close");
+                dialog("Error", "Website confirm name must match the name you are deleting")
+                return;
+            }else{
+                data["selected_website"] = select_website_name;
             }
         }
-    });            
-
+    }
     $("#dialog").dialog("close");
 
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"website_new",
-        "type":"template",
-        "project":focused_project,
-        "template":this_template
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"website_new_from_template",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
+    //Send data to website manage function
+    website_manage(action, data);
 }
-function website_new_templates_list() {
-    log("templates_list_dialog")
-
-    //API check not needed, called from template create dialog
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"templates_list"
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"templates_get",
-        "func_call":ui_website_new_templates_list,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
-}
-function website_delete(site_name) {
-    log("website_delete");
-
-    //Get fields
-    $("#dialog").dialog("close");
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"website_delete",
-        "project":focused_project,
-        "site":site_name
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"website_delete",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
-}
-function website_rename_clone(action) {
-    log("website_rename_clone");
+function website_manage_map_add() {
+    log("website_manage_map_add");
     
     //Get fields
-    let curr_site = $("#current_site_name").val();
-    let new_site = $("#new_site_name").val();
+    let data = {
+        "map_type":$("#website_map_type").val(),
+        "web_path":encodeURIComponent($("#website_web_path").val()),
+        "map_path":encodeURIComponent($("#website_map_path").val()),
+    }
     $("#dialog").dialog("close");
 
-    //Validate
-    if(new_site == "") {
-        dialog("Error","Site name cannot be blank")
-        return;
-    }
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":`website_${action}`,
-        "project":focused_project,
-        "curr_site":curr_site,
-        "new_site":new_site
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"website_rename_clone",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
+    //Send data to website manage function
+    website_manage("website_map_add", data)
 }
-
-//Manage project website settings
-function website_set_property(property, value, env=null) {
-    log("website_set_property")
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"website_set_property",
-        "project":focused_project,
-        "site":focused_site,
-        "property":property,
-        "value":value
-    }
-
-    //Maintenance mode use property
-    if(property == "maintenance_enabled") {
-        json["env"] = env
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"website_property",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
-}
-
-//Manage project website mapping
-function website_path_mapping_add() {
-    log("website_path_mapping_add");
-    
-    //Get fields
-    let this_web_path = $("#website_web_path").val();
-    let this_map_path = $("#website_map_path").val();
-    let this_type = $("#website_map_type").val();
-    $("#dialog").dialog("close");
-
-    //Check form fields
-    if(this_web_path == "" || this_web_path == null) {
-        dialog("Error", "Web path is blank, cancel change");
-        return;
-    }
-    if(this_map_path == "" || this_map_path == null) {
-        dialog("Error", "Map path is blank, cancel change");
-        return;
-    }
-    if(this_type == "" || this_type == null) {
-        dialog("Error", "Undefined set type, cancel change");
-        return;
-    }
-
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"website_map_new",
-        "project":focused_project,
-        "site":focused_site,
-        "type":this_type,
-        "web_path":encodeURIComponent(this_web_path),
-        "map_path":encodeURIComponent(this_map_path)
-    }
-
-    //Set call parameters
-    let params = {
-        "id":"website_path_mapping_add",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
-}
-function website_path_mapping_delete() {
-    log("website_path_mapping_delete");
+function website_manage_map_delete() {
+    log("website_manage_map_delete");
             
     //Get fields
-    let this_type = $("#delete_map_type").val();
-    let this_path = $("#delete_map_path").val();
+    let data = {
+        "map_type":$("#delete_map_type").val(),
+        "web_path":encodeURIComponent($("#delete_map_path").val())
+    }
     $("#dialog").dialog("close");
 
-    //Set URL
-    let url = "api/ui_manage";
-    let json = {
-        "action":"website_map_delete",
-        "project":focused_project,
-        "site":focused_site,
-        "type":this_type,
-        "web_path":encodeURIComponent(this_path)
+    //Send data to website manage function
+    website_manage("website_map_delete", data);
+}
+function website_manage_create_default_pages(page_type="") {
+    //Validate request
+    if(page_type == "") {
+        $("#dialog").dialog("close");
+        dialog("Error", "Invalid request type")
+        return;
+    }else if(!(page_type == "maintenance_page" || page_type == "error_pages")) {
+        $("#dialog").dialog("close");
+        dialog("Error", "Invalid request type")
+        return;
+    }
+    if(focused_project == "") {
+        $("#dialog").dialog("close");
+        dialog("Error", "Project is not selected")
+        return;
+    }
+    if(focused_site == "") {
+        $("#dialog").dialog("close");
+        dialog("Error", "Project website is not selected")
+        return;
+    }
+    $("#dialog").dialog("close");
+
+    //Set data type
+    data = {
+        "page_type":page_type
     }
 
-    //Set call parameters
-    let params = {
-        "id":"website_path_mapping_delete",
-        "func_call":get_configs,
-        "method":"GET",
-        "url":url,
-        "query":json
-    }
-
-    //Execute call
-    web_calls(params)
+    //Send request to server
+    website_manage("website_fix_default_pages", data);
 }
 
 //Get project files list
@@ -1146,73 +1241,6 @@ function ui_panel_read_only() {
     return html_read_only_banner;
 }
 
-//Build initial page layout
-function ui_projects_page_html() {
-    log("ui_projects_page_html")
-
-    //Set HTML
-    let html = `
-        <div class="project_list">
-            <div id="project_menu" class="project_menu"></div>
-            <div class="project_tree" id="project_tree"></div>
-        </div>
-        <div class="project_manage" id="project_manage">
-            <div class="project_title" id="project_title"></div>
-            <div class="project_panel" id="project_panel"></div>
-        </div>
-    `;
-
-    //Update panel
-    $("#projects").html(html);
-}
-
-//Build page content
-function ui_build_page_content(data) {
-    log("ui_build_page_content")
-
-    //Store configs
-    server_configs = data.server;
-
-    //Paths
-    server_paths = data.paths;
-    protected_paths = data.protected_paths;
-
-    //Project Data
-    website_projects = data.projects;
-    website_project_errors = data.project_error;
-
-    //Get user settings
-    if(data.user_authorize != undefined) {
-        user_authorize = data.user_authorize;
-    }
-
-    //Check user is admin
-    if(jwt_auth_mode == true) {
-        $("#tabs .ui-tabs-nav a").each(function(index, element){
-            //Hide Admin for non-admin
-            if($(this).html() == "Admin") { 
-                if(user_authorize.admin == false) {
-                    $(this).hide();
-                }else{
-                    $(this).show();
-                }
-            }
-        });
-    }
-
-    //Build button bar over tree navigation
-    ui_build_nav_menu_buttons();
-
-    //Build navigation tree
-    ui_build_tree_nav();
-
-    //Build panel window
-    ui_build_content_panel();
-
-    //Re-select first tab
-    $("#tabs").tabs("option", "active", 0);
-}
-
 //Format directory list for jsTree output
 // files='no_files' removes the file type from directory
 //
@@ -1306,11 +1334,81 @@ function ui_dir_jstree_state(dir) {
     return dir;
 }
 
-//Project nav buttons above tree
-function ui_build_nav_menu_buttons() {
-    log("ui_build_nav_menu_buttons")
+//Build initial page layout
+function ui_page_layout() {
+    log("ui_page_layout")
 
-    //Check sites and settings permissions
+    //Set HTML
+    let html = `
+        <div class="project_list">
+            <div id="project_menu" class="project_menu"></div>
+            <div class="project_tree" id="project_tree"></div>
+        </div>
+        <div class="project_manage" id="project_manage">
+            <div class="project_title" id="project_title"></div>
+            <div class="project_panel" id="project_panel"></div>
+        </div>
+    `;
+
+    //Update panel
+    $("#projects").html(html);
+}
+
+//Build page content
+function ui_page_content(data) {
+    log("ui_page_content")
+
+    //Store configs
+    server_configs = data.server;
+
+    //Paths
+    server_paths = data.paths;
+    protected_paths = data.protected_paths;
+
+    //Project Data
+    website_projects = data.projects;
+    website_project_errors = data.project_error;
+
+    templates_system = data.templates.system;
+    templates_user = data.templates.user;
+
+    //Get user settings
+    if(data.user_authorize != undefined) {
+        user_authorize = data.user_authorize;
+    }
+
+    //Check user is admin
+    if(jwt_auth_mode == true) {
+        $("#tabs .ui-tabs-nav a").each(function(index, element){
+            //Hide Admin for non-admin
+            if($(this).html() == "Admin") { 
+                if(user_authorize.admin == false) {
+                    $(this).hide();
+                }else{
+                    $(this).show();
+                }
+            }
+        });
+    }
+
+    //Build button bar over tree navigation
+    ui_sidenav_btns_top();
+
+    //Build navigation tree
+    ui_sidenav_tree();
+
+    //Build panel window
+    ui_content_panel();
+
+    //Re-select first tab
+    $("#tabs").tabs("option", "active", 0);
+}
+
+//Project nav buttons above tree
+function ui_sidenav_btns_top() {
+    log("ui_sidenav_btns_top")
+
+    //Check project permissions
     let admin_access = api_check_global(["project_adm"]);
     let create_access = api_check_global(["project_create"]);
     let no_admin = " project_menu_btn_transparent";
@@ -1350,16 +1448,16 @@ function ui_build_nav_menu_buttons() {
         var lis_project_rename = document.getElementById("project_rename");
         var lis_project_delete = document.getElementById("project_delete");
         lis_project_new.addEventListener("click", function(event){
-            ui_project_new();
+            ui_sidenav_btn_project_new();
         });
         lis_project_clone.addEventListener("click", function(event){
-            ui_project_clone();
+            ui_sidenav_btn_project_rename_clone("clone");
         });
         lis_project_rename.addEventListener("click", function(event){
-            ui_project_rename();
+            ui_sidenav_btn_project_rename_clone("rename");
         });
         lis_project_delete.addEventListener("click", function(event){
-            ui_project_delete();
+            ui_sidenav_btn_project_delete();
         });
     }
     if(admin_access == true) {
@@ -1369,17 +1467,370 @@ function ui_build_nav_menu_buttons() {
         });
     }
 }
+function ui_sidenav_btn_project_new() {
+    log("ui_sidenav_btn_project_new");
+
+    //API pre-check
+    if(api_check_global(["project_adm", "project_create"]) == false) {
+        dialog("Error","You do not have permission to create a project");
+        return 
+    }
+
+    //Loop tempaltes and look for website types
+    let system_template_count = 0;
+    let user_template_count = 0;
+    let types = ["system", "user"]
+    for(let t in types) {
+        let type = types[t];
+        let templates = null;
+        if(type == "system") {
+            templates = templates_system;
+        }else{
+            templates = templates_user;
+        }
+
+        //Count templates
+        for(let template in templates) {
+            if(templates[template]["type"] == "project") {
+                if(type == "system") {
+                    system_template_count = system_template_count + 1;
+                }else{
+                    user_template_count = user_template_count + 1;
+                }
+            }
+        }
+    }
+
+    //Add option if user defined templates
+    let disable_sys_radio = "";
+    let disable_sys_css = "";
+    let disable_user_radio = "";
+    let disable_user_css = "";
+    if(system_template_count == 0) {
+        disable_sys_radio = " disabled";
+        disable_sys_css = ` class="font_gray"`;
+    }
+    if(user_template_count == 0) {
+        disable_user_radio = " disabled";
+        disable_user_css = ` class="font_gray"`;
+    }
+
+    //Create radio button HTML
+    let html_templates = `
+        <div class="grid1_col">
+            <input type="radio" id="project_system_templates" name="project_create" value="system" ${disable_sys_radio} />
+            <label for="project_create" ${disable_sys_css}>Create from system template</label>
+        </div>
+        <div class="grid1_col">
+            <input type="radio" id="project_user_templates" name="project_create" value="template" ${disable_user_radio} />
+            <label for="project_create" ${disable_user_css}>Create from user template</label>
+        </div>
+    `;
+
+    //HTML dialog
+    html = `
+        <input id="create_type" type="hidden" value="blank" />
+        <input id="template_name" type="hidden" value="" />
+        <div class="grid2_inner grid2_project_create">
+            <div class="grid1_inner_col">
+                <div class="grid1_inner">
+                    <div class="grid1_col">
+                        <b>1- Select Type:</b>
+                    </div>
+                    <div class="grid1_col">
+                        <input type="radio" id="project_blank" name="project_create" value="blank" checked>
+                        <label for="project_create">Empty project folder</label>
+                    </div>
+                    ${html_templates}
+                </div>
+            </div>
+            <div id="project_create_options" class="grid1_inner_col"></div>
+        </div>
+    `;
+
+    //Call dialog function
+    dialog(`Create Project`, html);
+
+    //Default blank template
+    ui_sidenav_btn_project_new_blank();
+
+    //Set listener
+    var lis_project_blank = document.getElementById("project_blank");
+    lis_project_blank.addEventListener("click", function(event){
+        $("#create_type").val("blank");
+        $("#template_name").val("");
+        ui_sidenav_btn_project_new_blank();        
+    });
+
+    //When user templates
+    if(system_template_count > 0) {
+        var lis_project_system_templates = document.getElementById("project_system_templates");
+        lis_project_system_templates.addEventListener("click", function(event){
+            $("#create_type").val("system_template");
+            $("#template_name").val("");
+            ui_sidenav_btn_project_new_from("system");
+        });
+    }
+    if(user_template_count > 0) {
+        var lis_project_user_templates = document.getElementById("project_user_templates");
+        lis_project_user_templates.addEventListener("click", function(event){
+            $("#create_type").val("user_template");
+            $("#template_name").val("");
+            ui_sidenav_btn_project_new_from("user");
+        });
+    }
+}
+function ui_sidenav_btn_project_new_blank() {
+    log("ui_sidenav_btn_project_new_blank");
+
+    //Create dialog HTML
+    html = `
+        <div class="grid1_inner">
+            <div class="grid1_col">
+                <b>2- New Project Details:</b>
+            </div>
+            <div class="grid1_col">
+                <div class="grid1_inner">
+                    <div class="grid1_col_inner">Project Name:</div>
+                    <div class="grid1_col">
+                        <input type="text" id="project_name" value="" autocomplete="off">
+                    </div>
+                    <div class="grid1_col_inner">Project Description:</div>
+                    <div class="grid1_col">
+                        <textarea id="project_desc"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+        <br /><br />
+        <input type="button" value="Create" onClick="project_manage_create();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+    `;
+
+    //Call dialog function
+    $("#project_create_options").html(html);
+    dialog_center();
+}
+function ui_sidenav_btn_project_new_from(type="") {
+    log(`ui_sidenav_btn_project_new_from [${type}]`);
+
+    //Set table label
+    let templates = {}
+    if(type == "system") {
+        templates = templates_system;
+    }else{
+        templates = templates_user;
+    }
+
+    //Loop templates
+    let listeners = {}
+    let template_list = "";
+    let description = "";
+    for(let template in templates) {
+        if(templates[template]["type"] == "project") {
+            //Key name
+            let key_name = `template::${template}`;
+            listeners[key_name] = template;
+
+            //Create HTML list
+            description = templates[template]["conf"]["description"];
+            template_list += `
+                <div class="grid1_col">
+                    <input type="radio" id="${key_name}" name="template_list" value="${type}::${template}">
+                    <label for="template_list">${template}</label><br>
+                </div>
+                <div class="grid1_col">
+                    <div class="text_space_top_3">${description}</div>
+                </div>
+            `;
+        }
+    }
+
+    //Set label
+    let label = "";
+    if(type == "system") {
+        label = "System";
+    }else{
+        label = "User";
+    }
+
+    //Create HTML for dialog (website_create_options)
+    let html = `
+        <div class="grid2 grid2_project_create_templates">
+            <div class="grid2_col">
+                <b>2- Select ${label} template:</b>
+            </div>
+            <div class="grid1_sub_head">Template Name</div>
+            <div class="grid1_sub_head">Description</div>
+            ${template_list}
+        </div>
+        <br /><br />
+        <div class="grid1_inner">
+            <div class="grid1_col">
+                <b>3- New Project Details:</b>
+            </div>
+            <div class="grid1_col">
+                <div class="grid1_inner">
+                    <div class="grid1_col_inner">Project Name:</div>
+                    <div class="grid1_col">
+                        <input type="text" id="project_name" value="" autocomplete="off">
+                    </div>
+                    <div class="grid1_col_inner">Project Description:</div>
+                    <div class="grid1_col">
+                        <textarea id="project_desc"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+        <br /><br />
+        <input type="button" value="Create" onClick="project_manage_create();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+    `;
+    
+    //Update the right column with the templates selector table
+    $("#project_create_options").html(html);
+    dialog_center();
+
+    //Add listeners
+    for(let key in listeners) {
+        let template = listeners[key];
+        listeners[key] = document.getElementById(key);
+        listeners[key].addEventListener("click", function(event){
+            $("#template_name").val(template);
+        });
+    }
+}
+function ui_sidenav_btn_project_rename_clone(type="") {
+    log("ui_sidenav_btn_project_clone");
+
+    //API pre-check
+    if(api_check_global(["project_adm", "project_create"]) == false) { 
+        dialog("Error","You do not have permission to create a project");
+        return 
+    }
+
+    //Check if project selected
+    if(focused_project == "") {
+        dialog("Error", "A project is not selected. Please select a project to clone.");
+        return;
+    }
+
+    //Determine label
+    let label = "Rename"
+    if(type == "clone") {
+        label = "Clone"
+    }
+
+    //Create dialog HTML
+    html = `
+        <input id="project_rename_clone" type="hidden" value="${type}" />
+
+        <div class="grid2_inner">
+            <div class="grid1_col">Selected Project:</div>
+            <div class="grid1_col">${focused_project}</div>
+            <div class="grid1_col">Name of Clone:</div>
+            <div class="grid1_col">
+                <input type="text" id="project_name" value="" autocomplete="off">
+            </div>
+        </div>
+        
+        <br /><br />
+        <input type="button" value="${label}" onClick="project_manage_rename_clone();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+    `;
+
+    //Call dialog function
+    dialog(`${label} Project`, html);
+}
+function ui_sidenav_btn_project_delete() {
+    log("ui_sidenav_btn_project_delete");
+
+    //API pre-check
+    if(api_check_global(["project_adm", "project_create"]) == false) { 
+        dialog("Error","You do not have permission to create a project");
+        return 
+    }
+
+    //Check if project selected
+    if(focused_project == "") {
+        dialog("Error", "A project is not selected. Please select a project to delete.");
+        return;
+    }
+
+    //Prompt user
+    let html_dialog = `
+        <p>
+        Are you sure you want to delete project <b>${focused_project}</b>?
+        <br /><br />
+        Confirm delete by typing project name below:
+        </p>
+        <input id="project_name" type="text" value="" autocomplete="off">
+        <br /><br />
+        <input type="button" value="Delete" onClick="project_manage_delete();">
+        <input type="button" value="No" onClick="$('#dialog').dialog('close');">
+        `;
+
+    //Call dialog function
+    dialog("Delete Project Confirm", html_dialog);
+}
+function ui_sidenav_btn_project_fix() {
+    log("ui_sidenav_btn_project_fix");
+
+    //API pre-check
+    if(api_check_global(["project_adm", "project_create"]) == false) { 
+        dialog("Error","You do not have permission to create a project");
+        return 
+    }
+
+    //Check if project selected
+    if(focused_project == "") {
+        dialog("Error", "A project is not selected. Please select a project to delete.");
+        return;
+    }
+
+    //Prompt user
+    let html_dialog = `
+        <p>
+        There are problems detected in the "config.json" file for project <b>${focused_project}</b>.<br />
+        <br />
+        These errors are not related to your files in the folder, only parameters in the<br />
+        configuration file.<br />
+        <br />
+        If upgrading from an older version, there are some changes to the fields in the configuration<br />
+        file. This function will add or update those fields. You may need to reconfigure some of<br />
+        website settings for your websites. Maintenance and Error pages are changed where you will now<br />
+        need to place custom error files in '_maintenance_page' and '_error_pages' sub folders of your website<br />
+        folder. See the website settings panel where there are some helper buttons to create these folders.<br />
+        <br />
+        If you have manually modified this file, there may be syntax errors. This function will replace<br />
+        missing fields. If there are any typos with these field names, they may be removed.<br />
+        <br />
+        <i class="font_red">Please make a backup of your configuration file before proceeding.</i><br />
+        <br />
+        Confirm delete by typing project name below:
+        </p>
+        <input id="project_name" type="text" value="" autocomplete="off">
+        <br /><br />
+        <input type="button" value="Proceed" onClick="project_manage_fix_config();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+        `;
+
+    //Call dialog function
+    dialog("Project Configuration File Fix Confirm", html_dialog);
+}
 
 //Project tree list
-function ui_build_tree_nav() {
-    log("ui_build_tree_nav");
+function ui_sidenav_tree() {
+    log("ui_sidenav_tree");
 
     //Build tree view base
     let project_all = [];
 
     //Loop projects
     for(project in website_projects) {
-        log(`ui_build_tree_nav :: project[${project}]`)
+        log(`ui_sidenav_tree :: project[${project}]`)
 
         let this_project = null;
         if(website_projects[project]["state"] == "disabled") {
@@ -1411,7 +1862,7 @@ function ui_build_tree_nav() {
                     "opened" : this_opened,
                     "selected" : false
                 },
-                "children": ui_build_project_tree(project, website_projects[project])
+                "children": ui_sidenav_tree_projects(project, website_projects[project])
             }
         }
         
@@ -1458,11 +1909,11 @@ function ui_build_tree_nav() {
     //Set listener
     $("#project_tree").on("changed.jstree", function (e, data) {
         project_files_selected_object = "";
-        ui_project_tree_click(data);
+        ui_sidenav_tree_click(data);
     });
     $("#project_tree").on("open_node.jstree", function (e, data) {
         project_files_selected_object = "";
-        ui_project_tree_click(data);
+        ui_sidenav_tree_click(data);
     });
     $("#project_tree").on("close_node.jstree", function () {
         project_files_selected_object = "";
@@ -1470,14 +1921,14 @@ function ui_build_tree_nav() {
         $("#project_panel").html("");
     });
 }
-function ui_build_project_tree(project_name, project_data) {
-    log(`ui_build_project_tree :: ${project_name}`);
+function ui_sidenav_tree_projects(project_name, project_data) {
+    log(`ui_sidenav_tree_projects :: ${project_name}`);
 
     //Build tree view base
     let project_tree = [
         {
-            "id" : `project_mapping::${project_name}`,
-            "text" : "Sites and Settings",
+            "id" : `project_websites::${project_name}`,
+            "text" : "Websites",
             "icon" : "images/mapping_icon.png",
             "state" : {
                 "opened" : true,
@@ -1495,7 +1946,7 @@ function ui_build_project_tree(project_name, project_data) {
     //Get sites
     for(let site in project_data.websites) {
         let this_site = {
-                "id":`project_site::${project_name}::${site}`,
+                "id":`project_website::${project_name}::${site}`,
                 "parent":"project_websites",
                 "text":`${site}`,
                 "icon" : "images/world_icon.png"
@@ -1508,15 +1959,15 @@ function ui_build_project_tree(project_name, project_data) {
     //Return tree
     return project_tree;
 }
-function ui_project_tree_click(data) {
+function ui_sidenav_tree_click(data) {
     //Get ID string from tree view
     let tree_id = data.node.id;
 
-    log(`ui_project_tree_click :: ${tree_id}`);
+    log(`ui_sidenav_tree_click :: ${tree_id}`);
 
     //Tree selection
     if(tree_id.startsWith("project::")) {
-        log("ui_project_tree_click :: select project");
+        log("ui_sidenav_tree_click :: select project");
 
         //Selected project
         let this_project = tree_id.replace("project::", "");
@@ -1551,11 +2002,11 @@ function ui_project_tree_click(data) {
                     focused_project = "";
                     focused_site = "";
                     break;
-                case "project_mapping":
-                    focused_panel = "project_panel_mapping";
+                case "project_websites":
+                    focused_panel = "project_panel_websites";
                     focused_site = "";
                     break;
-                case "project_site":
+                case "project_website":
                     focused_panel = "project_panel_website";
                     focused_project = parse_tree_id[1];
                     focused_site = parse_tree_id[2];
@@ -1586,137 +2037,20 @@ function ui_project_tree_click(data) {
     $("#project_panel").html("");
 
     //Determine panel load
-    ui_build_content_panel();
-}
-
-//Project dialogs
-function ui_project_new() {
-    log("ui_project_new");
-
-    //API pre-check
-    if(api_check_global(["project_adm", "project_create"]) == false) { return }
-
-    //Create dialog HTML
-    html = `
-        <div class="grid2_inner">
-            <div class="grid1_col">Project Name:</div>
-            <div class="grid1_col">
-                <input type="text" id="project_new_name" value="" autocomplete="off">
-            </div>
-            <div class="grid1_col">Project Description:</div>
-            <div class="grid1_col">
-                <textarea id="project_new_desc"></textarea>
-            </div>
-        </div>
-        
-        <br /><br />
-        <input type="button" value="Create" onClick="project_new();">
-        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
-    `;
-
-    //Call dialog function
-    dialog("New Project", html);
-}
-function ui_project_clone() {
-    log("ui_project_clone");
-
-    //API pre-check
-    if(api_check_global(["project_adm", "project_create"]) == false) { return }
-
-    console.log(user_authorize)
-
-    //Check if project selected
-    if(focused_project == "") {
-        dialog("Error", "A project is not selected. Please select a project to clone.");
-        return;
-    }
-
-    //Create dialog HTML
-    html = `
-        <div class="grid2_inner">
-            <div class="grid1_col">Selected Project:</div>
-            <div class="grid1_col">${focused_project}</div>
-            <div class="grid1_col">Name of Clone:</div>
-            <div class="grid1_col">
-                <input type="text" id="project_name" value="" autocomplete="off">
-            </div>
-        </div>
-        
-        <br /><br />
-        <input type="button" value="Clone" onClick="project_clone();">
-        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
-    `;
-
-    //Call dialog function
-    dialog("Clone Project", html);
-}
-function ui_project_rename() {
-    log("ui_project_rename");
-
-    //API pre-check
-    if(api_check_global(["project_adm", "project_create"]) == false) { return }
-
-    console.log(user_authorize)
-
-    //Check if project selected
-    if(focused_project == "") {
-        dialog("Error", "A project is not selected. Please select a project to clone.");
-        return;
-    }
-
-    //Create dialog HTML
-    html = `
-        <div class="grid2_inner">
-            <div class="grid1_col">Selected Project:</div>
-            <div class="grid1_col">${focused_project}</div>
-            <div class="grid1_col">Rename to:</div>
-            <div class="grid1_col">
-                <input type="text" id="project_name" value="" autocomplete="off">
-            </div>
-        </div>
-        
-        <br /><br />
-        <input type="button" value="Rename" onClick="project_rename();">
-        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
-    `;
-
-    //Call dialog function
-    dialog("Rename Project", html);
-}
-function ui_project_delete() {
-    log("ui_project_delete");
-
-    //API pre-check
-    if(api_check_global(["project_adm", "project_create"]) == false) { return }
-
-    //Check if project selected
-    if(focused_project == "") {
-        dialog("Error", "A project is not selected. Please select a project to delete.");
-        return;
-    }
-
-    //Prompt user
-    let html_dialog = `
-        <div>Are you sure you want to delete project [<b>${focused_project}</b>] ?</div><br />
-        <input type="button" value="Yes" onClick="project_delete();">
-        <input type="button" value="No" onClick="$('#dialog').dialog('close');">
-        `;
-
-    //Call dialog function
-    dialog("Delete Project Confirm", html_dialog);
+    ui_content_panel();
 }
 
 //Load panel UIs
-function ui_build_content_panel() {
+function ui_content_panel() {
 
     //
-    // focused_project defined @ ui_project_tree_click
-    // focused_panel defined @ ui_project_tree_click
+    // focused_project defined @ ui_sidenav_tree_click
+    // focused_panel defined @ ui_sidenav_tree_click
     //
 
-    log(`ui_build_content_panel :: Panel   : ${focused_panel}`)
-    log(`ui_build_content_panel :: Project : ${focused_project}`)
-    log(`ui_build_content_panel :: Website : ${focused_site}`)
+    log(`ui_content_panel :: Panel   : ${focused_panel}`)
+    log(`ui_content_panel :: Project : ${focused_project}`)
+    log(`ui_content_panel :: Website : ${focused_site}`)
 
     //Check if projects is empty
     if(Object.keys(website_projects).length == 0) {
@@ -1734,8 +2068,8 @@ function ui_build_content_panel() {
             case "project_panel":           ui_project_index(); break;
             
             case "project_panel_main":      ui_project_main(); break;
-            case "project_panel_mapping":   ui_project_sites_and_settings(); break;
-            case "project_panel_website":   ui_project_site(); break;
+            case "project_panel_websites":  ui_websites(); break;
+            case "project_panel_website":   ui_website_settings(); break;
             case "project_panel_files":     ui_project_files(); break;
 
             case "resolve_panel":           ui_resolve_panel(); break;
@@ -1892,7 +2226,7 @@ function ui_project_index() {
 function ui_resolve_panel() {
     log(`ui_resolve_panel`)
     
-    //Check sites and settings permissions
+    //Check resolve permissions
     let panel_write_access = api_check_global(["dns_adm"]);
     let read_access = "";
     if(panel_write_access == false) {
@@ -2340,7 +2674,7 @@ function ui_project_main() {
                 settings match what you have in your source files such as default document, maintenance page, and error document names 
                 otherwise the system may report errors.
                 <br /><br />
-                See websiite settings <img src="images/gear_icon.png" alt="" /> for '_maintenance_page' or '_error_pages' errors
+                See websiite settings <img src="images/world_icon.png" alt="" /> for '_maintenance_page' or '_error_pages' errors
                 <br /><br />
             `;
         }
@@ -2446,7 +2780,10 @@ function ui_project_main() {
         <div class="grid2 grid2_project_settings">
             <div class="grid2_head">Project Settings</div>
             <div class="grid1_col">Description</div>
-            <div class="grid1_col">${project_desc_html}</div>
+            <div class="grid1_col">
+                ${project_desc_html}<br />
+                <input id="project_desc_save" type="button" value="Save" />
+            </div>
             <div class="grid1_col"><div class="text_space_top_3">Enabled</div></div>
             <div class="grid1_col">
                 <div class="grid2_inner">
@@ -2469,30 +2806,30 @@ function ui_project_main() {
     //API pre-check
     if(panel_write_access == true) {  
         //Add listener
-        var lis_project_desc = document.getElementById("project_desc");
+        var lis_project_desc = document.getElementById("project_desc_save");
         var lis_project_enabled = document.getElementById("project_enabled");
-        lis_project_desc.addEventListener("change", function(event){
+        lis_project_desc.addEventListener("click", function(event){
             let this_project_desc = $("#project_desc").val()
-            project_set_property("project_desc", this_project_desc)
+            project_manage_set_property("project_desc", this_project_desc)
         });
         lis_project_enabled.addEventListener("change", function(event){
             let this_project_enabled = document.getElementById("project_enabled").checked
-            project_set_property("project_enabled", this_project_enabled)
+            project_manage_set_property("project_enabled", this_project_enabled)
         });
 
         //Add listener for fix button
         if(document.getElementById("project_config_fix") != undefined) {
             var lis_project_config_fix = document.getElementById("project_config_fix");
             lis_project_config_fix.addEventListener("click", function(event){
-                project_fix_config()
+                ui_sidenav_btn_project_fix();
             }); 
         }
     }else{
         document.getElementById("project_enabled").disabled = true;
     }
 }
-function ui_project_sites_and_settings() {
-    log("ui_project_sites_and_settings");
+function ui_websites() {
+    log("ui_websites");
 
     //Focused site
     let project_data = website_projects[focused_project];
@@ -2501,7 +2838,7 @@ function ui_project_sites_and_settings() {
     //Set default HTML
     let html = "";
 
-    //Check sites and settings permissions
+    //Check websites permissions
     let website_admin_access = api_check_project(["project_adm", "website_adm"]);
     let website_settings_write_access = api_check_project(["project_adm", "website_adm", "website_set"]);
 
@@ -2516,29 +2853,6 @@ function ui_project_sites_and_settings() {
             html_read_only_banner += "Website Settings<br />";
         }
         html_read_only_banner += "</p>";
-    }
-
-    let html_create_site = "";
-    if(website_admin_access == true) {
-        //Create site buttons
-        html_create_site = `
-            <div class="grid3">
-                <div class="grid3_head">Create Website</div>
-                <div class="grid1_col">
-                    <input id="project_new_website_empty" class="project_site_new_btn" type="button" value="Create Site as Empty Folder (blank)"><br />
-                    <div class="project_site_new_arrow"><img src="images/arrow_double_down_icon.png" alt="" /></div>
-                </div>
-                <div class="grid1_col">
-                    <input id="project_new_website_default" class="project_site_new_btn" type="button" value="Create Site From Default Template"><br />
-                    <div class="project_site_new_arrow"><img src="images/arrow_double_down_icon.png" alt="" /></div>
-                </div>
-                <div class="grid1_col">
-                    <input id="project_new_website_template" class="project_site_new_btn" type="button" value="Create Site From User Template"><br />
-                    <div class="project_site_new_arrow"><img src="images/arrow_double_down_icon.png" alt="" /></div>
-                </div>
-            </div>
-            <br />
-        `;
     }
 
     //Generate list of websites
@@ -2644,26 +2958,44 @@ function ui_project_sites_and_settings() {
         }
     }
 
+    //No websites row
     if(html_website_rows == "") {
-        html_website_rows = `<div class="grid4_col">** No existing sites **</div>`;
+        html_website_rows = `<div class="grid4_col">** No existing websites **</div>`;
     }
+
+    //Create website row
+    let html_create_website = "";
+    if(website_admin_access == true) {
+        html_create_website = `
+            <div class="grid4_sub_head">
+                <div class="grid2_inner">
+                    <div class="grid1_inner_col">
+                        <div id="create_website" class="icon icon_size icon_add"></div>
+                    </div>
+                    <div class="grid1_inner_col"><b>Create Website</b></div>
+                </div>
+            </div>
+        `;
+    }
+
+    //HTML Table
     html_website_table = `
         <div class="grid4">
             <div class="grid4_head">Websites</div>
-            <div class="grid1_sub_head">Site Name</div>
+            <div class="grid1_sub_head">Website Name</div>
             <div class="grid1_sub_head">SSL Redirect</div>
             <div class="grid1_sub_head">Maintenance Mode (per Environment)</div>
             <div class="grid1_sub_head">Website Preview</div>
             ${html_website_rows}
+            ${html_create_website}
         </div>
     `;
 
     //Get VHOST and FQDN mapping
-    let html_site_resolve_table = ui_project_site_resolve();
+    let html_site_resolve_table = ui_websites_resolve();
 
     //Add VHOST and DNS mapping
     html = html_read_only_banner +
-           html_create_site + 
            html_website_table +
            html_site_resolve_table;
 
@@ -2692,53 +3024,65 @@ function ui_project_sites_and_settings() {
             chk_listeners[ssl_redirect_key].addEventListener("click", function(event){
                 let parse_id = this.id.split("::");                 //Get site
                 focused_site = parse_id[1]                          //Focus Site
-                website_set_property("ssl_redirect", this.checked)  //Update property value
+                let data = {
+                    "property": "ssl_redirect",
+                    "value": this.checked
+                }
+                website_manage("website_set_property", data);
                 focused_site = "";                                  //Un-focus Site
             });
             chk_listeners[maint_mode_key_dev].addEventListener("click", function(event){
                 let parse_id = this.id.split("::");
                 focused_site = parse_id[1]
-                this_env = parse_id[2]
-                website_set_property("maintenance_enabled", this.checked, this_env)
+                let data = {
+                    "property": "maintenance",
+                    "env": parse_id[2],
+                    "value": this.checked
+                }
+                website_manage("website_set_property", data);
                 focused_site = "";
             });
             chk_listeners[maint_mode_key_qa].addEventListener("click", function(event){
                 let parse_id = this.id.split("::");
                 focused_site = parse_id[1]
-                this_env = parse_id[2]
-                website_set_property("maintenance_enabled", this.checked, this_env)
+                let data = {
+                    "property": "maintenance",
+                    "env": parse_id[2],
+                    "value": this.checked
+                }
+                website_manage("website_set_property", data);
                 focused_site = "";
             });
             chk_listeners[maint_mode_key_stage].addEventListener("click", function(event){
                 let parse_id = this.id.split("::");
                 focused_site = parse_id[1]
-                this_env = parse_id[2]
-                website_set_property("maintenance_enabled", this.checked, this_env)
+                let data = {
+                    "property": "maintenance",
+                    "env": parse_id[2],
+                    "value": this.checked
+                }
+                website_manage("website_set_property", data);
                 focused_site = "";
             });
             chk_listeners[maint_mode_key_prod].addEventListener("click", function(event){
                 let parse_id = this.id.split("::");
                 focused_site = parse_id[1]
-                this_env = parse_id[2]
-                website_set_property("maintenance_enabled", this.checked, this_env)
+                let data = {
+                    "property": "maintenance",
+                    "env": parse_id[2],
+                    "value": this.checked
+                }
+                website_manage("website_set_property", data);
                 focused_site = "";
             });
         }
 
         //Add listener - project site create
-        var lis_project_new_website_empty = document.getElementById("project_new_website_empty");
-        var lis_project_new_website_default = document.getElementById("project_new_website_default");
-        var lis_project_new_website_template = document.getElementById("project_new_website_template");
+        var lis_create_website = document.getElementById("create_website");
+        lis_create_website.addEventListener("click", function(event){
+            ui_website_create();
+        });
 
-        lis_project_new_website_empty.addEventListener("click", function(event){
-            ui_website_new_default('empty');
-        });
-        lis_project_new_website_default.addEventListener("click", function(event){
-            ui_website_new_default('default');
-        });
-        lis_project_new_website_template.addEventListener("click", function(event){
-            ui_website_new_template();
-        });
     }
 
     //Add listeners - Project Mapping 
@@ -2771,13 +3115,13 @@ function ui_project_sites_and_settings() {
         }
     }
 }
-function ui_project_site_resolve() {
-    log("ui_project_site_resolve");
+function ui_websites_resolve() {
+    log("ui_websites_resolve");
 
     //Focused site
     let project_data = website_projects[focused_project];
 
-    //Check sites and settings permissions
+    //Check websites permissions
     let panel_write_access = api_check_project(["project_adm", "website_adm", "website_set"]);
     if(panel_write_access == false) {
         panel_write_access = api_check_global(["dns_adm"]);
@@ -2927,7 +3271,7 @@ function ui_project_site_resolve() {
                         <div class="grid1_col">${resolve_url}</div>
                         <div class="grid1_col">${this_http_a}</div>
                         <div class="grid1_col">${this_https_a}</div>
-                        <div class="grid2_col">${this_site}</div>
+                        <div class="grid1_col">${this_site}</div>
                     `;
                 }
             }
@@ -2972,10 +3316,10 @@ function ui_project_site_resolve() {
     //Return HTML
     return html_fqdn_table;
 }
-function ui_project_site() {
-    log("ui_project_site");
+function ui_website_settings() {
+    log("ui_website_settings");
 
-    //Check sites and settings permissions
+    //Check websites permissions
     let panel_write_access = api_check_project(["project_adm", "website_adm", "website_set"]);
 
     //Panel Read Access note
@@ -3009,7 +3353,7 @@ function ui_project_site() {
         }
         maint_state_env += `
                 <div class="grid1_inner_col">
-                    <input id="maintenance_${env}_enabled" type="checkbox"${maint_checked}>
+                    <input id="maintenance_${env}" type="checkbox"${maint_checked}>
                 </div>
                 <div class="grid1_inner_col">
                     ${env}&nbsp;&nbsp;&nbsp;
@@ -3110,10 +3454,10 @@ function ui_project_site() {
 
         if(panel_write_access == true) {
             if(site_error.maintenance_page_exists == false) {
-                fix_maint_page_btn = `<input id="website_maint_fix" class="project_fix_btn" type="button" value="Fix" />`;
+                fix_maint_page_btn = `<input id="website_maint_create" class="project_fix_btn" type="button" value="Create maintenance page" />`;
             }
             if(site_error.default_errors_exists == false) {
-                fix_error_page_btn = `<input id="website_errors_fix" class="project_fix_btn" type="button" value="Fix" />`;
+                fix_error_page_btn = `<input id="website_errors_create" class="project_fix_btn" type="button" value="Create error pages" />`;
             }
         }
     }
@@ -3141,20 +3485,20 @@ function ui_project_site() {
             <div class="grid1_col">Maintenance Mode (environments)</div>
             <div class="grid1_col">${maint_state_env}</div>
             <div class="grid1_col">
-                <div class="grid3_inner">
+                <div class="grid2_inner">
                     <div class="grid1_inner_col">Maintenance Page</div>
                     <div class="grid1_inner_col">${state_maint_page}</div>
-                    <div class="grid1_inner_col">${fix_maint_page_btn}</div>
+                    <div class="grid2_inner_col">${fix_maint_page_btn}</div>
                 </div>
             </div>
             <div class="grid1_col">
                 ${maint_page}
             </div>
             <div class="grid1_col">
-                <div class="grid3_inner">
+                <div class="grid2_inner">
                     <div class="grid1_inner_col">Error Pages</div>
                     <div class="grid1_inner_col">${state_error_pages}</div>
-                    <div class="grid1_inner_col">${fix_error_page_btn}</div>
+                    <div class="grid2_inner_col">${fix_error_page_btn}</div>
                 </div>
             </div>
             <div class="grid1_col">
@@ -3281,46 +3625,74 @@ function ui_project_site() {
         var lis_ssl_redirect = document.getElementById("ssl_redirect");
         var lis_default_doc_text = document.getElementById("default_doc_text");
         lis_ssl_redirect.addEventListener("change", function(event){
-            let this_checked = document.getElementById("ssl_redirect").checked;
-            website_set_property("ssl_redirect", this_checked);
+            let data = {
+                "property": "ssl_redirect",
+                "value": document.getElementById("ssl_redirect").checked
+            }
+            website_manage("website_set_property", data);
         });
         lis_default_doc_text.addEventListener("change", function(event){
-            let this_text = $("#default_doc_text").val();
-            website_set_property("default_doc", this_text);
+            let data = {
+                "property": "default_doc",
+                "value": $("#default_doc_text").val()
+            }
+            website_manage("website_set_property", data);
         });
 
         //Set listener for maintenance mode checkboxes
-        var lis_maintenance_dev_enabled = document.getElementById("maintenance_dev_enabled");
-        var lis_maintenance_qa_enabled = document.getElementById("maintenance_qa_enabled");
-        var lis_maintenance_stage_enabled = document.getElementById("maintenance_stage_enabled");
-        var lis_maintenance_prod_enabled = document.getElementById("maintenance_prod_enabled");
-        lis_maintenance_dev_enabled.addEventListener("change", function(event){
-            let this_checked = document.getElementById("maintenance_dev_enabled").checked;
-            website_set_property("maintenance_enabled", this_checked, "dev");
+        var lis_maintenance_dev = document.getElementById("maintenance_dev");
+        var lis_maintenance_qa = document.getElementById("maintenance_qa");
+        var lis_maintenance_stage = document.getElementById("maintenance_stage");
+        var lis_maintenance_prod = document.getElementById("maintenance_prod");
+        lis_maintenance_dev.addEventListener("change", function(event){
+            let data = {
+                "property": "maintenance",
+                "env": "dev",
+                "value": document.getElementById("maintenance_dev").checked
+            }
+            website_manage("website_set_property", data);
         });
-        lis_maintenance_qa_enabled.addEventListener("change", function(event){
-            let this_checked = document.getElementById("maintenance_qa_enabled").checked;
-            website_set_property("maintenance_enabled", this_checked, "qa");
+        lis_maintenance_qa.addEventListener("change", function(event){
+            let data = {
+                "property": "maintenance",
+                "env": "qa",
+                "value": document.getElementById("maintenance_qa").checked
+            }
+            website_manage("website_set_property", data);
         });
-        lis_maintenance_stage_enabled.addEventListener("change", function(event){
-            let this_checked = document.getElementById("maintenance_stage_enabled").checked;
-            website_set_property("maintenance_enabled", this_checked, "stage");
+        lis_maintenance_stage.addEventListener("change", function(event){
+            let data = {
+                "property": "maintenance",
+                "env": "stage",
+                "value": document.getElementById("maintenance_stage").checked
+            }
+            website_manage("website_set_property", data);
         });
-        lis_maintenance_prod_enabled.addEventListener("change", function(event){
-            let this_checked = document.getElementById("maintenance_prod_enabled").checked;
-            website_set_property("maintenance_enabled", this_checked, "prod");
+        lis_maintenance_prod.addEventListener("change", function(event){
+            let data = {
+                "property": "maintenance",
+                "env": "prod",
+                "value": document.getElementById("maintenance_prod").checked
+            }
+            website_manage("website_set_property", data);
         });
 
         //Set listener for maintenance mode documents
         var lis_maintenance_page_text = document.getElementById("maintenance_page_text");
         var lis_maintenance_page_api_text = document.getElementById("maintenance_page_api_text");
         lis_maintenance_page_text.addEventListener("change", function(event){
-            let this_text = $("#maintenance_page_text").val();
-            website_set_property("maintenance_page", this_text);
+            let data = {
+                "property": "maintenance_page",
+                "value": $("#maintenance_page_text").val()
+            }
+            website_manage("website_set_property", data);
         });
         lis_maintenance_page_api_text.addEventListener("change", function(event){
-            let this_text = $("#maintenance_page_api_text").val();
-            website_set_property("maintenance_page_api", this_text);
+            let data = {
+                "property": "maintenance_page_api",
+                "value": $("#maintenance_page_api_text").val()
+            }
+            website_manage("website_set_property", data);
         });
 
         //Set listener for error documents
@@ -3329,29 +3701,63 @@ function ui_project_site() {
         var lis_error_page_500_user = document.getElementById("error_page_500_user");
         var lis_error_page_500_api = document.getElementById("error_page_500_api");
         lis_error_page_404_user.addEventListener("change", function(event){
-            let this_text = $("#error_page_404_user").val();
-            website_set_property("error_page_404_user", this_text);
+            let data = {
+                "property": "error_page",
+                "type": "user",
+                "page": "404",
+                "value": $("#error_page_404_user").val()
+            }
+            website_manage("website_set_property", data);
         });
         lis_error_page_404_api.addEventListener("change", function(event){
-            let this_text = $("#error_page_404_api").val();
-            website_set_property("error_page_404_api", this_text);
+            let data = {
+                "property": "error_page",
+                "type": "api",
+                "page": "404",
+                "value": $("#error_page_404_api").val()
+            }
+            website_manage("website_set_property", data);
         });
         lis_error_page_500_user.addEventListener("change", function(event){
-            let this_text = $("#error_page_500_user").val();
-            website_set_property("error_page_500_user", this_text);
+            let data = {
+                "property": "error_page",
+                "type": "user",
+                "page": "500",
+                "value": $("#error_page_500_user").val()
+            }
+            website_manage("website_set_property", data);
         });
         lis_error_page_500_api.addEventListener("change", function(event){
-            let this_text = $("#error_page_500_api").val();
-            website_set_property("error_page_500_api", this_text);
+            let data = {
+                "property": "error_page",
+                "type": "api",
+                "page": "500",
+                "value": $("#error_page_500_api").val()
+            }
+            website_manage("website_set_property", data);
         });
+
+        //Set listeners for maintenance and error pages fix
+        if(document.getElementById("website_maint_create") != undefined) {
+            var lis_website_maint_create = document.getElementById("website_maint_create");
+            lis_website_maint_create.addEventListener("click", function(event){
+                ui_website_fix_default_pages("maintenance_page");
+            });
+        }
+        if(document.getElementById("website_errors_create") != undefined) {
+            var lis_website_errors_create = document.getElementById("website_errors_create");
+            lis_website_errors_create.addEventListener("click", function(event){
+                ui_website_fix_default_pages("error_pages");
+            });
+        }
     }else{
         document.getElementById("ssl_redirect").disabled = true;
         document.getElementById("default_doc_text").disabled = true;
 
-        document.getElementById("maintenance_dev_enabled").disabled = true;
-        document.getElementById("maintenance_qa_enabled").disabled = true;
-        document.getElementById("maintenance_stage_enabled").disabled = true;
-        document.getElementById("maintenance_prod_enabled").disabled = true;
+        document.getElementById("maintenance_dev").disabled = true;
+        document.getElementById("maintenance_qa").disabled = true;
+        document.getElementById("maintenance_stage").disabled = true;
+        document.getElementById("maintenance_prod").disabled = true;
 
         document.getElementById("maintenance_page_text").disabled = true;
         document.getElementById("maintenance_page_api_text").disabled = true;
@@ -3364,92 +3770,267 @@ function ui_project_site() {
 }
 
 //Project website management UI
-function ui_website_new_default(type="empty") {
-    log("ui_website_new_default");
+function ui_website_create() {
+    log("ui_website_create");
 
-    //Create dialog HTML
-    html = `
-        <input id="new_site_type" type="hidden" value="${type}">
-
-        <div class="grid2_inner">
-            <div class="grid1_col">Site Name:</div>
-            <div class="grid1_col">
-                <input type="text" id="new_site_name" value="" autocomplete="off">
-            </div>
-        </div>
-        
-        <br /><br />
-        <input type="button" value="Create" onClick="website_new_blank();">
-        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
-    `;
-
-    //Set title
-    let title = "Empty Folder";
-    if(type == "default") {
-        title = "Default Template";
+    //Loop tempaltes and look for website types
+    let template_count = 0;
+    for(let template in templates_user) {
+        if(templates_user[template]["type"] == "website") {
+            template_count = template_count + 1;
+        }
     }
 
-    //Call dialog function
-    dialog(`New Site (${title})`, html);
-}
-function ui_website_new_template() {
-    log("ui_website_new_template");
+    //Loop tempaltes and look for website types
+    let system_template_count = 0;
+    let user_template_count = 0;
+    let types = ["system", "user"]
+    for(let t in types) {
+        let type = types[t];
+        let templates = null;
+        if(type == "system") {
+            templates = templates_system;
+        }else{
+            templates = templates_user;
+        }
 
-    //API pre-check
-    if(api_check_project(["website_adm"]) == false) { return }
+        //Count templates
+        for(let template in templates) {
+            if(templates[template]["type"] == "website") {
+                if(type == "system") {
+                    system_template_count = system_template_count + 1;
+                }else{
+                    user_template_count = user_template_count + 1;
+                }
+            }
+        }
+    }
 
-    //Create dialog HTML
-    html = `
-        <div class="grid2_inner">
-            <div class="grid1_col">Select Template:</div>
-            <div class="grid1_col" id="new_site_select_template">
-                [LOADING]
-            </div>
+    //Add option if user defined templates
+    let disable_sys_radio = "";
+    let disable_sys_css = "";
+    let disable_user_radio = "";
+    let disable_user_css = "";
+    if(system_template_count == 0) {
+        disable_sys_radio = " disabled";
+        disable_sys_css = ` class="font_gray"`;
+    }
+    if(user_template_count == 0) {
+        disable_user_radio = " disabled";
+        disable_user_css = ` class="font_gray"`;
+    }
+
+    //Create radio button HTML
+    let html_templates = `
+        <div class="grid1_col">
+            <input type="radio" id="website_system_templates" name="website_create" value="system" ${disable_sys_radio} />
+            <label for="website_create" ${disable_sys_css}>Create from system template</label>
         </div>
-        
-        <br /><br />
-        <input type="hidden" value="Create" onClick="website_new_from_template(null,'create');" id="new_site_ok">
-        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+        <div class="grid1_col">
+            <input type="radio" id="website_user_templates" name="website_create" value="template" ${disable_user_radio} />
+            <label for="website_create" ${disable_user_css}>Create from user template</label>
+        </div>
+    `;
+
+    //Set HTML body
+    html = `
+        <input id="create_type" type="hidden" value="blank" />
+        <input id="template_name" type="hidden" value="" />
+        <div class="grid2_inner grid2_project_create">
+            <div class="grid1_inner_col">
+                <div class="grid1_inner">
+                    <div class="grid1_col">
+                        <b>1- Select Type:</b>
+                    </div>
+                    <div class="grid1_col">
+                        <input type="radio" id="website_blank" name="website_create" value="blank" checked>
+                        <label for="website_create">Empty website folder</label>
+                    </div>
+                    ${html_templates}
+                </div>
+                <div id="template_select" class="grid1_inner"></div>
+            </div>
+            <div id="website_create_options" class="grid1_inner_col"></div>
+        </div>
     `;
 
     //Call dialog function
-    dialog("New Site(s) From Template", html);
+    dialog(`Create Website`, html);
 
-    //Call function to get templates list
-    website_new_templates_list();
+    //Default blank site
+    ui_website_create_blank();
+
+    //Set listener
+    var lis_website_blank = document.getElementById("website_blank");
+    lis_website_blank.addEventListener("click", function(event){
+        $("#create_type").val("blank");
+        $("#template_name").val("");
+        ui_website_create_blank();        
+    });
+    if(system_template_count > 0) {
+        var lis_website_system_templates = document.getElementById("website_system_templates");
+        lis_website_system_templates.addEventListener("click", function(event){
+            $("#create_type").val("system_template");
+            $("#template_name").val("");
+            ui_website_create_from("system");
+        });
+    }
+    if(user_template_count > 0) {
+        var lis_website_user_templates = document.getElementById("website_user_templates");
+        lis_website_user_templates.addEventListener("click", function(event){
+            $("#create_type").val("user_template");
+            $("#template_name").val("");
+            ui_website_create_from("user");
+        });
+    }
 }
-function ui_website_new_templates_list(templates) {
-    log("ui_website_new_templates_list");
+function ui_website_create_blank() {
+    log("ui_website_create_blank");
 
-    //Get templates rows
-    let html_rows = "";
-    let tab = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+    //Blank out template selection
+    $("#template_select").html("");
+
+    //Create HTML for dialog (website_create_options)
+    let html = `
+        <div class="grid1_inner">
+            <div class="grid1_col">
+                <b>2- Create empty website folder:</b>
+            </div>
+            <div class="grid1_col">
+                <div class="grid1_inner">
+                    <div class="grid1_col_inner">Website Name:</div>
+                    <div class="grid1_col">
+                        <input type="text" id="website_name" value="" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br /><br />
+        <input type="button" value="Create" onClick="website_manage_create();">
+        <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+    `;
+
+    //Populate the options
+    $("#website_create_options").html(html);
+    dialog_center();
+}
+function ui_website_create_from(type="") {
+    log(`ui_website_create_from [${type}]`);
+
+    //Clear options
+    $("#website_create_options").html("");
+
+    //Set table label
+    let template_type = "";
+    let templates = {}
+    if(type == "system") {
+        template_type = "System";
+        templates = templates_system;
+    }else{
+        template_type = "User";
+        templates = templates_user;
+    }
+
+    //Loop templates
+    let listeners = {}
+    let template_list = "";
     for(let template in templates) {
-        //Get site list
-        let site_list = "";
-        for(let site in templates[template]["websites"]) {
-            site_list += `${tab}${tab}${site}<br />`;
-        }
-        if(site_list != "") {
-            site_list = `
-                ${tab}${tab}<b>Site List:</b><br />
-                ${site_list}
+        if(templates[template]["type"] == "website") {
+            //Key name
+            let key_name = `template::${template}`;
+            listeners[key_name] = template;
+
+            //Set list
+            template_list += `
+                <div class="grid1_col">
+                    <input type="radio" id="${key_name}" name="template_list" value="${type}::${template}">
+                    <label for="template_list">${template}</label><br>
+                </div>
             `;
         }
-
-        let this_desc = templates[template]["description"];
-        html_rows += `
-            <input type="radio" id="new_site_template" name="template_selector" value="${template}">
-            <label for="template_selector"><b>${template}</b> [${this_desc}]</label><br>
-            ${site_list}
-        `;
     }
 
-    //Set the template selection
-    $("#new_site_select_template").html(html_rows);
-    $("#new_site_ok").attr("type","button");
+    //Set label
+    let label = "";
+    if(type == "system") {
+        label = "System";
+    }else{
+        label = "User";
+    }
+
+    //Create HTML for dialog (website_create_options)
+    let html = `
+        <div class="grid1_col">
+            <b>2- Select ${label} template:</b>
+        </div>
+        ${template_list}
+    `;
+
+    //Update the right column with the templates selector table
+    $("#template_select").html(html);
+    dialog_center();
+
+
+    //Add listeners
+    for(let key in listeners) {
+        let template = listeners[key];
+        listeners[key] = document.getElementById(key);
+        listeners[key].addEventListener("click", function(event){
+            //Set hidden field
+            $("#template_name").val(template);
+
+            //Get templates
+            let selected_template = {}
+            if(type == "system") {
+                selected_template = templates_system[template];
+            }else{
+                selected_template = templates_user[template];
+            }
+
+            //Build table of websites
+            let template_desc = selected_template["conf"]["description"]
+            let website_rows = "";
+            for(let website in selected_template["conf"]["websites"]) {
+                website_rows += `
+                    <div class="grid1_col">
+                        <input id="website::${website}::checkbox" type="checkbox" />
+                    </div>
+                    <div class="grid1_col">
+                        ${website}
+                    </div>
+                    <div class="grid1_col">
+                        <input id="website::${website}::text" type="text" value="" />
+                    </div>
+                `;
+            }
+
+            //Generate table
+            let html_template_websites = `
+                <div class="grid2 grid3_site_create_template">
+                    <div class="grid3_col">
+                        <b>3- Select websites to deply to your project:</b>
+                    </div>
+                    <div class="grid3_sub_head"><b>Template Description</b></div>
+                    <div class="grid3_col">${template_desc}</div>
+                    <div class="grid1_sub_head">Select</div>
+                    <div class="grid1_sub_head">Website Name</div>
+                    <div class="grid1_sub_head">Name Override</div>
+                    ${website_rows}
+                </div>
+            
+                <br /><br />
+                <input type="button" value="Create" onClick="website_manage_create();">
+                <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
+            `;
+
+            //Insert template select options
+            $("#website_create_options").html(html_template_websites);
+            dialog_center();
+        });
+    }
 }
-function ui_website_rename_clone(site_name, action) {
+function ui_website_rename_clone(website_name, action) {
     log("ui_website_rename_clone");
 
     //API pre-check
@@ -3463,18 +4044,18 @@ function ui_website_rename_clone(site_name, action) {
 
     //Rename dialog HTML
     html = `
-        <input type="hidden" id="current_site_name" value="${site_name}">
+        <input type="hidden" id="select_website_name" value="${website_name}">
 
         <div class="grid2_inner">
-            <div class="grid2_col">Current Site Name: ${site_name}</div>
-            <div class="grid1_col">New Site Name:</div>
+            <div class="grid2_col">Current Site Name: <b>${website_name}</b></div>
+            <div class="grid1_col">New Website Name:</div>
             <div class="grid1_col">
-                <input type="text" id="new_site_name" value="" autocomplete="off">
+                <input type="text" id="new_website_name" value="" autocomplete="off">
             </div>
         </div>
         
         <br /><br />
-        <input type="button" value="${btn_label}" onClick="website_rename_clone('${action}');">
+        <input type="button" value="${btn_label}" onClick="website_manage_rename_clone_delete('${action}');">
         <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
     `;
 
@@ -3485,7 +4066,7 @@ function ui_website_rename_clone(site_name, action) {
         dialog("Clone Site", html);
     }
 }
-function ui_website_delete(site_name) {
+function ui_website_delete(website_name) {
     log("ui_website_new_default");
 
     //API pre-check
@@ -3493,18 +4074,22 @@ function ui_website_delete(site_name) {
 
     //Create dialog HTML
     html = `
-        <p>Are you sure you want to delete site '${site_name}'?
-        
+        <input type="hidden" id="select_website_name" value="${website_name}">
+
+        <p>
+        Are you sure you want to delete site <b>${website_name}</b>?
         <br /><br />
-        <input type="button" value="Yes" onClick="website_delete('${site_name}');">
+        Confirm delete by typing website name below:
+        </p>
+        <input id="confirm_website_name" type="text" value="" autocomplete="off">
+        <br /><br />
+        <input type="button" value="Delete" onClick="website_manage_rename_clone_delete('delete');">
         <input type="button" value="No" onClick="$('#dialog').dialog('close');">
     `;
 
     //Call dialog function
-    dialog("Delete Site", html);
+    dialog("Delete Website Confirm", html);
 }
-
-//Project website settings UI
 function ui_website_map_new(map_type) {
     log("ui_website_map_new");
 
@@ -3535,7 +4120,7 @@ function ui_website_map_new(map_type) {
 
         <input id="website_map_type" class="hidden_field" type="hidden" value="${map_type}">
 
-        <div class="grid2">
+        <div class="grid2_inner">
             <div class="grid1_col">Web URL Sub Path:</div>
             <div class="grid1_col">
                 <input type="text" id="website_web_path" value="" autocomplete="off">
@@ -3549,7 +4134,7 @@ function ui_website_map_new(map_type) {
             </div>
         </div>
         <br />
-        <input type="button" value="Map Path" onClick="website_path_mapping_add();">
+        <input type="button" value="Map Path" onClick="website_manage_map_add();">
         <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
     `;
 
@@ -3650,7 +4235,7 @@ function ui_website_sub_map_new() {
 
         <p><i>Map a URI path to a website under the same project.</i></p>
 
-        <div class="grid2">
+        <div class="grid2_inner">
             <div class="grid1_col">Web URL Sub Path:</div>
             <div class="grid1_col">
                 <input type="text" id="website_web_path" value="" autocomplete="off">
@@ -3660,15 +4245,14 @@ function ui_website_sub_map_new() {
                 ${website_select}
             </div>
         </div>
-        <br />
-        <input type="button" value="Map Path" onClick="website_path_mapping_add();">
+        <br /><br />
+        <input type="button" value="Map Path" onClick="website_manage_map_add();">
         <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
     `;
 
     //Call dialog function
     dialog(dialog_label, html);
 }
-
 function ui_website_map_delete(map_type, path) {
     log("ui_website_map_delete");
 
@@ -3680,7 +4264,7 @@ function ui_website_map_delete(map_type, path) {
         <p>Are you sure you want to delete path '${path}'?
         
         <br /><br />
-        <input type="button" value="Yes" onClick="website_path_mapping_delete();">
+        <input type="button" value="Yes" onClick="website_manage_map_delete();">
         <input type="button" value="No" onClick="$('#dialog').dialog('close');">
     `;
 
@@ -3695,12 +4279,43 @@ function ui_website_map_delete(map_type, path) {
     }
     dialog(dialog_label, html);
 }
+function ui_website_fix_default_pages(page_type) {
+    log("ui_website_fix_default_pages");
+
+    //Set label
+    let label = "";
+    let dialog_label = "";
+    switch(page_type) {
+        case "maintenance_page":
+            label = "Maintenance Page";
+            dialog_label = "Website Default Maintenance Page";
+        break;
+        case "error_pages":
+            label = "Error Pages";
+            dialog_label = "Website Default Error Pages";
+        break;
+    }
+
+    //Create dialog HTML
+    html = `
+        <input type="hidden" id="default_page_type" value="${page_type}">
+    
+        <p>Confirm create default folder and files for ${label}?
+        
+        <br /><br />
+        <input type="button" value="Yes" onClick="website_manage_create_default_pages('${page_type}');">
+        <input type="button" value="No" onClick="$('#dialog').dialog('close');">
+    `;
+
+    //Call dialog function
+    dialog(dialog_label, html);
+}
 
 //Project files management UI
 function ui_project_files() {
     log("ui_project_files");
 
-    //Check sites and settings permissions
+    //Check project files permissions
     let panel_write_access = api_check_project(["project_adm", "files_adm"]);
 
     //Panel Read Access note
@@ -4025,12 +4640,15 @@ function ui_resolve_delete_map(value=null) {
     dialog("Delete Website Map", html);
 }
 
-//Templates UI
+//Templates management from project panel
 function ui_template_create() {
     log("ui_template_create");
 
     //API pre-check
-    if(api_check_global(["template_adm"]) == false) { return }
+    if(api_check_global(["template_adm"]) == false) { 
+        dialog("Error", "You do not have permission to complete this action");
+        return;
+    }
 
     //Check if project selected
     if(focused_project == "") {
@@ -4050,102 +4668,200 @@ function ui_template_create() {
         }
     }
 
-    //Create select list
-    let select_site = "";
-    for(website in project_data["websites"]) {
-        select_site += `<input id="template_site" type="checkbox" value="${website}"> ${website}<br />`;
-    }
-
     //Create dialog HTML
     html = `
-        <div class="grid2">
-            <div class="grid1_col">Template Name:</div>
+        <div class="grid2_inner">
+            <div class="grid1_col"><b>Selected Project:</b></div>
+            <div class="grid1_col">${focused_project}</div>
+            <div class="grid1_col"><b>Template Type:</b></div>
+            <div class="grid1_col">
+                <input type="radio" id="template_type_project" name="template_type" value="project">
+                <label for="template_type">Project (Includes all files and folders)</label><br />
+                <input type="radio" id="template_type_website" name="template_type" value="website">
+                <label for="template_type">Website (Only website folders and files)</label>
+            </div>
+            <div class="grid1_col"><b>Template Name:</b></div>
             <div class="grid1_col"><input type="text" id="template_name" value="" autocomplete="off"></div>
-            <div class="grid1_col">Template Description:</div>
+            <div class="grid1_col"><b>Template Description:</b></div>
             <div class="grid1_col"><textarea id="template_desc"></textarea></div>
-            <div class="grid1_col">Site Select:</div>
-            <div class="grid1_col">${select_site}</div>
+            <div id="template_website_label" class="grid1_col"></div>
+            <div id="template_website_list" class="grid1_col"></div>
         </div>
         
         <br /><br />
-        <input type="button" value="Create" onClick="template_create(null, 'create');">
+        <input type="button" value="Create" onClick="template_manage_create();">
         <input type="button" value="Cancel" onClick="$('#dialog').dialog('close');">
     `;
     
     //Call dialog function
-    dialog(`Create Template from '${focused_project}'`, html);    
+    dialog(`Create Template`, html);
+
+    //Set listener
+    var lis_template_website = document.getElementById("template_type_website");
+    var lis_template_project = document.getElementById("template_type_project");
+    lis_template_website.addEventListener("click", function(event){
+        ui_template_create_website();
+    });
+    lis_template_project.addEventListener("click", function(event){
+        $("#template_website_label").html("");
+        $("#template_website_list").html("");
+        dialog_center();
+    });    
+}
+function ui_template_create_website() {
+    //Label
+    let html_label = `
+        <b>Select Websites:</b><br />
+        (What will be included<br />
+        in the template)
+    `;
+
+    //Create select list
+    let project_data = website_projects[focused_project];
+    let website_list = "";
+    for(website in project_data["websites"]) {
+        let list_id = `select_website::${website}`;
+        website_list += `<input id="${list_id}" type="checkbox" value="${website}"> ${website}<br />`;
+    }
+
+    //Populate fields
+    $("#template_website_label").html(html_label);
+    $("#template_website_list").html(website_list);
+
+    dialog_center();
 }
 function ui_template_delete(template=null) {
     log("ui_template_delete");
 
     //API pre-check
-    if(api_check_global(["template_adm"]) == false) { return }
+    if(api_check_global(["template_adm"]) == false) { 
+        dialog("Error", "You do not have permission to complete this action");
+        return;
+    }
 
     //Check if project selected
     if(template == "") {
-        dialog("Error", "Template name is empty");
+        dialog("Error", "Template name parameter is empty");
         return;
     }
 
     //Prompt user
-    let html_dialog = `
+    let html = `
 
-        <input type="hidden" value="${template}" id="template_name" />
+        <input id="template_name" type="hidden" value="${template}" />
 
-        <div>Are you sure you want to delete template [<b>${template}</b>] ?</div><br />
-        <input type="button" value="Yes" onClick="template_delete();">
+        <p>
+        Are you sure you want to delete template <b>${template}</b>?
+        <br /><br />
+        Confirm delete by typing template name below:
+        </p>
+        <input id="confirm_template_name" type="text" value="" autocomplete="off" />
+        <br /><br />
+
+        <input type="button" value="Delete" onClick="template_manage_delete();">
         <input type="button" value="No" onClick="$('#dialog').dialog('close');">
-        `;
+    `;
 
-    dialog("Delete Template Confirm", html_dialog);
+    dialog("Delete Template Confirm", html);
 }
 
 //////////////////////////////////////
 // Templates UI Tab
 //////////////////////////////////////
 
-function ui_templates_list(templates) {
-    //Build HTML
-    let html_rows = "";
-    for(let template in templates) {
-        //Get template description
-        let this_desc = templates[template]["description"];
-
-        //Get site list
-        let this_sites = "";
-        for(site in templates[template]["websites"]) {
-            this_sites += `${site}<br />`;
-        }
-
-        html_rows += `
-            <div class="grid1_col">${template}</div>
-            <div class="grid1_col">${this_sites}</div>
-            <div class="grid1_col">${this_desc}</div>
-            <div class="grid1_col">
-                <img class="icon icon_size" src="images/trash_icon.png" alt="" onClick="ui_template_delete('${template}');" title="Delete Template: ${template}" /> 
-            </div>
-        `;
-    }
+function ui_templates_list() {
+    log("ui_templates_list");
+    
+    //Get Templates
+    let templates_system = ui_template_list_type("system");
+    let templates_user = ui_template_list_type("user");
 
     //Update HTML
-    if(html_rows == "") {
-        html_rows = `<div class="grid4_col">*** No templates exist ***</div>`;
-    }
     let html = `
-        <div class='vhost_panel'>
-            <div class="grid4">
-                <div class="grid4_head">Templates List</div>
-                <div class="grid1_sub_head">Template Name</div>
-                <div class="grid1_sub_head">Sites List</div>
-                <div class="grid1_sub_head">Description</div>
-                <div class="grid1_sub_head"></div>
-                ${html_rows}
-            </div>
-        </div>
+        ${templates_system}
+        <br />
+        ${templates_user}
     `;
 
     //Update panel
     $("#templates").html(html);
+}
+function ui_template_list_type(type="system") {
+    log(`ui_template_list_type :: ${type}`);
+
+    //Get permissions
+    let panel_access = api_check_global(["template_adm"]);
+
+    //Focus templates
+    let templates = {}
+    let table_title = "";
+    if(type == "system") {
+        templates = templates_system;
+        table_title = "Default System Templates";
+    }else{
+        templates = templates_user;
+        table_title = "User Defined Templates";
+    }
+
+    //Build HTML
+    let html_rows = "";
+    let tbl_cols = 4;
+    let col_last = 1;
+    for(let template in templates) {
+        //Template
+        let this_template = templates[template];
+        let this_type = this_template["type"];
+        let this_desc = this_template["conf"]["description"];
+
+        //Get site list
+        let this_sites = "";
+        for(site in this_template["conf"]["websites"]) {
+            this_sites += `${site}<br />`;
+        }
+
+        //User templage delete button only
+        let btn_delete = "";
+        if(panel_access == true) {
+            if(type == "user") {
+                tbl_cols = 5;
+                col_last = 2;
+                btn_delete = `
+                    <div class="grid1_col">
+                        <img class="icon icon_size" src="images/trash_icon.png" alt="" onClick="ui_template_delete('${template}');" title="Delete Template: ${template}" /> 
+                    </div>
+                `;
+            }
+        }
+        html_rows += `
+            <div class="grid1_col">${template}</div>
+            <div class="grid1_col">${this_type}</div>
+            <div class="grid1_col">${this_sites}</div>
+            <div class="grid1_col">${this_desc}</div>
+            ${btn_delete}
+        `;
+    }
+
+    //Check if empty
+    if(html_rows == "") {
+        html_rows = `
+            <div class="grid${tbl_cols}_col">** No templates exists **</div>
+        `;
+    }
+
+    //Build table
+    let html = `
+        <div class="grid${tbl_cols} grid${tbl_cols}_template_list">
+            <div class="grid${tbl_cols}_head">${table_title}</div>
+            <div class="grid1_sub_head">Template Name</div>
+            <div class="grid1_sub_head">Template Type</div>
+            <div class="grid1_sub_head">Website(s)</div>
+            <div class="grid${col_last}_sub_head">Description</div>
+            ${html_rows}
+        </div>
+    `;
+
+    //Return HTML
+    return html;
 }
 
 //////////////////////////////////////
@@ -4654,7 +5370,7 @@ function ui_admin_server_settings(response) {
                 `;
             break;
             case "debug_mode_on": 
-                this_desc = "Output to server console to display more detail when developing code. You will still need to use 'console.log' in some cases.";
+                this_desc = "Output to server console to display more detail when developing code.";
             break;
             case "mgmt_mode": 
                 this_desc = "Enable this management UI by setting 'mgmt_mode' to 'true' in the server configuration";
@@ -4740,9 +5456,6 @@ function ui_admin_server_url_mapping(response) {
     }else{
         web_mapping = response["web_mapping"];
     }
-
-    console.log(web_configs)
-    console.log(web_mapping)
 
     //Counter
     let match_count = 1;
@@ -4896,7 +5609,8 @@ function ui_admin_server_url_mapping(response) {
     if(html_mgmtui_hostnames == "" && 
        html_mgmtui_vhosts == "" && 
        html_mgmtui_vhosts == "" && 
-       html_proxy_map == "") {
+       html_proxy_map == "" &&
+       html_dns_map == "") {
         html_no_data = `
             ** There is no mapping configuration for this environment **<br /><br />
             &nbsp;&nbsp;&nbsp;&nbsp;Websites are not accessible in this environment.
@@ -5099,10 +5813,28 @@ function ui_admin_server_url_mapping_websites(project_name, website_name, projec
     //Get Parameters
     let this_enabled = project_params.enabled;
     let this_maintenance = website_params.maintenance;
-    let this_maintenance_page = website_params.maintenance_page;
+
+    //Maintenance docs
+    let this_maintenance_page = `<i>user</i>: ${website_params.maintenance_page}<br /><i>api</i>: ${website_params.maintenance_page_api}`;
+
+    //Default document
     let this_default_doc = website_params.default_doc;
-    let this_default_404 = website_params.default_errors["404"];
-    let this_default_500 = website_params.default_errors["500"];
+
+    //Error documents
+    let this_error_docs = website_params.default_errors;
+    let this_default_404 = "";
+    let this_default_500 = "";
+    let error_docs = ["404", "500"];
+    for(let e in error_docs) {
+        let error_doc = error_docs[e];
+        let error_doc_list = `<i>user</i>: ${this_error_docs["user"][error_doc]}<br /><i>api</i>: ${this_error_docs["api"][error_doc]}`;
+        if(error_doc == "404") {
+            this_default_404 = error_doc_list;
+        }
+        if(error_doc == "500") {
+            this_default_500 = error_doc_list;
+        }
+    }
 
     //Highlight red or green
     if(this_enabled == false) {

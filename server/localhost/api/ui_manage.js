@@ -93,51 +93,35 @@ exports.request = async function(params={}) {
 			}
 		break;
 
-		//Projects
-		case "project_new": case "project_clone": case "project_rename": case "project_delete":
+		//Project manage
+		case "project_new": 
+		case "project_clone": 
+		case "project_rename": 
+		case "project_delete":
+		case "project_set_property":
+		case "project_fix_config":
 			api_response = mgmt.project_manage(_query);
 		break;
-		case "project_set_property":
-			api_response = mgmt.project_set_property(_query)
-		break;
-		case "project_config_fix":
-			api_response = mgmt.project_config_fix(_query)
-		break;
 
-		//Templates
-		case "templates_list":
-			api_response = mgmt.template_list();
+		//Template manage
+		case "template_new":
+		case "template_delete":
+			api_response = mgmt.template_manage(_query);
 			if(api_response.data != undefined) {
 				response.data = api_response.data;
 			}
 		break;
-		case "template_create":
-			api_response = mgmt.template_create(_query);
-		break;
-		case "template_delete":
-			api_response = mgmt.template_delete(_query);
-		break;
 
 		//Websites manage
 		case "website_new":
-			api_response = mgmt.website_new(_query);
-		break;
-		case "website_rename": case "website_clone":
-			api_response = mgmt.website_rename_clone(_query);
-		break;
+		case "website_rename":
+		case "website_clone":
 		case "website_delete":
-			api_response = mgmt.website_delete(_query);
-		break;
-
-		//Websites settings
 		case "website_set_property":
-			api_response = mgmt.website_set_property(_query);
-		break;
-		case "website_map_new":
-			api_response = mgmt.website_path_mapping_add(_query);
-		break;
+		case "website_map_add":
 		case "website_map_delete":
-			api_response = mgmt.website_path_mapping_delete(_query);
+		case "website_fix_default_pages":
+			api_response = mgmt.website_manage(_query);
 		break;
 
 		//File Management
@@ -164,8 +148,10 @@ exports.request = async function(params={}) {
 		break;
 
 		//Mapping updates
-		case "resolve_add": case "resolve_update": case "resolve_delete":
-			api_response = mgmt.resolve_add_update_delete(_query);
+		case "resolve_add": 
+		case "resolve_update": 
+		case "resolve_delete":
+			api_response = mgmt.resolve_manage(_query);
 		break;
 
 		//Default mismatch action
@@ -189,7 +175,7 @@ exports.request = async function(params={}) {
 	}
 
 	//Return response
-	_end(response);
+	_return(response);
 
 	//Return data
 	return _response;
@@ -206,18 +192,26 @@ function _error(out, status_code=200) {
     }
     _response["body"] = JSON.stringify({"error":out});
 }
-function _end(out) {
+function _return(out) {
     //Default content type
     let content_type = "application/json";
     let content = {}
-    
-    //Test JSON
-    try {
-        content = JSON.stringify(out);
-    }catch{
-        content_type = "text/html";
-        content = out;
-    }
+	
+	//Set response type
+	switch(typeof(out)) {
+		case "object":
+			content_type = "application/json";
+			try {
+				content = JSON.stringify(out);
+			}catch{
+				content_type = "text/html";
+				content = out;
+			}
+		break;
+        default:
+			content_type = "text/html";
+			content = out;
+	}
 
     //Set response
     _response["headers"]["Content-Type"] = content_type;

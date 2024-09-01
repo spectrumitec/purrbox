@@ -145,7 +145,7 @@ class vhost_server {
             let conf_data = {
                 "workers":1,
                 "cache_on":false,
-                "debug_mode_on":true,
+                "debug_mode_on":false,
                 "mgmt_mode": true,
 	            "mgmt_ui": [],
                 "environment":"dev",

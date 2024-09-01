@@ -408,6 +408,8 @@ class vhost_mapping {
         //Define mapping for mgmt UI
         if(this.mgmt_mode == true) {
             this.web_mapping.resolve.mgmtui_map = this.map_resolve_mgmtui();
+        }else{
+            this.web_mapping.resolve.mgmtui_map = {}
         }
 
         //Resolve Proxy and DNS Mapping
@@ -718,10 +720,10 @@ class vhost_mapping {
         //Check project enabled
         if(project_data["enabled"] == undefined) {
             this.validate_project_flag_error(project, null, "error", `Config File: Porject Enable [enabled=boolean] is not defined`)
-            this.web_configs.projects[project]["enabled"] = false;
+            this.web_configs.projects[project]["enabled"] = true;
         }else if(typeof(project_data["enabled"]) != "boolean") {
             this.validate_project_flag_error(project, null, "error", `Config File: Project Enable [enabled=boolean] is wrong data type`)
-            this.web_configs.projects[project]["enabled"] = false;
+            this.web_configs.projects[project]["enabled"] = true;
         }
 
         //Check project proxy map

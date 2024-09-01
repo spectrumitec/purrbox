@@ -1,18 +1,5 @@
 {
-	"project_desc": "",
-	"enabled": false,
-	"proxy_map": {
-		"dev": {},
-		"qa": {},
-		"stage": {},
-		"prod": {}
-	},
-	"dns_names": {
-		"dev": {},
-		"qa": {},
-		"stage": {},
-		"prod": {}
-	},
+	"description": "Simple website",
 	"websites": {
 		"www": {
 			"ssl_redirect": true,

@@ -1,12 +1,6 @@
-/////////////////////////////////////////////////
-// Your Imports Here
 //
-
-//Imports
-const fs = require("fs");
-const path = require("path");
-
-/////////////////////////////////////////////////
+// Your imports
+//
 
 //Set response data
 var _response = {
@@ -38,27 +32,19 @@ exports.request = async function(params={}) {
     if(_request.method == undefined) { _error("Method undefined"); return _response;  }
     if(_request.method != "GET") {     _error("Method invalid"); return _response; }
 
-	/////////////////////////////////////////////////
-	// Your Code Here
-	//
-	
-	//Message file
-	let message_file = path.join(path.dirname(__dirname), "message.txt");
-
-    //Get file
-	let message = "";
-	if(fs.existsSync(message_file)) {
-		try{
-			message = (fs.readFileSync(message_file)).toString();
-		}catch(err) {
-			message = "Failed to retreive user message";
-		}
-	}
-
-	/////////////////////////////////////////////////
+    //
+    // Your code here
+    //
 
     //Dump variables from server
-    _return(message);
+    _return({
+        "_env":_env,
+        "_server":_server,
+        "_client":_client,
+        "_raw_headers":_raw_headers,
+        "_request":_request,
+        "_query":_query
+    });
 
     //Return data
     return _response;
@@ -80,21 +66,28 @@ function _return(out) {
     //Default content type
     let content_type = "application/json";
     let content = {}
-    
-    //Test JSON
-    try {
-        content = JSON.stringify(out);
-    }catch{
-        content_type = "text/html";
-        content = out;
-    }
+	
+	//Set response type
+	switch(typeof(out)) {
+		case "object":
+			content_type = "application/json";
+			try {
+				content = JSON.stringify(out);
+			}catch{
+				content_type = "text/html";
+				content = out;
+			}
+		break;
+        default:
+			content_type = "text/html";
+			content = out;
+	}
 
     //Set response
     _response["headers"]["Content-Type"] = content_type;
     _response["body"] = content;
 }
 
-/////////////////////////////////////////////////
-// Your Functions Here
 //
-
+// Your functions here
+//

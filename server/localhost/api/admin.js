@@ -151,7 +151,7 @@ exports.request = async function(params={}) {
 	}
 
     //Return response
-    _end(api_response);
+    _return(api_response);
     return _response;
 }
 
@@ -166,18 +166,26 @@ function _error(out, status_code=200) {
     }
     _response["body"] = JSON.stringify({"error":out});
 }
-function _end(out) {
+function _return(out) {
     //Default content type
     let content_type = "application/json";
     let content = {}
-    
-    //Test JSON
-    try {
-        content = JSON.stringify(out);
-    }catch{
-        content_type = "text/html";
-        content = out;
-    }
+	
+	//Set response type
+	switch(typeof(out)) {
+		case "object":
+			content_type = "application/json";
+			try {
+				content = JSON.stringify(out);
+			}catch{
+				content_type = "text/html";
+				content = out;
+			}
+		break;
+        default:
+			content_type = "text/html";
+			content = out;
+	}
 
     //Set response
     _response["headers"]["Content-Type"] = content_type;

@@ -31,6 +31,7 @@ var jwt_user = {
     "name":"",
     "email":""
 }
+var jwt_auth_state = "";
 
 //User application authorize (pre-check for UI notification)
 var user_authorize = {};
@@ -41,12 +42,63 @@ $(document).ready(function() {
     $("#tabs").tabs();
 
     //Check auth
-    auth_check()
+    auth_check();
+    auth_heartbeat();
 });
 
 /////////////////////////
 // Auth Functions
 /////////////////////////
+
+//Inactivity check
+var inactivity = 0;
+addEventListener("mousemove", (event) => {
+    inactivity = 0;
+});
+function auth_heartbeat() {
+    if(jwt_auth_state == "OK" || jwt_auth_state == "refresh") {
+        if(inactivity == 5) {
+            log("Inactive for 5 minutes, start inactivity check");
+        }
+        if(inactivity > 5) {
+            auth_check_idle();
+        }
+    }
+    inactivity = inactivity + 1;
+    setTimeout(auth_heartbeat, 60000);
+}
+function auth_check_idle(response=null) {
+    if(response == null) {
+        log("auth_check_idle")
+
+        //Define JSON request
+        let url = "api/auth";
+        let json = {
+            "action":"check"
+        }
+
+        //Set web_connector parameters
+        let request = {
+            "method":"POST",
+            "url":url,
+            "query":json,
+            "callback":auth_check_idle
+        }
+
+        //Call web_connector
+        new web_connector(request);
+    }else{
+        if(response.json != undefined) {
+            if(response.json.state != undefined) {
+                jwt_auth_state = response.json.state;
+                if(!(jwt_auth_state == "OK" || jwt_auth_state == "refresh")) {
+                    auth_user_reset();
+                    auth_dialog();
+                }
+            }
+        }
+    }
+}
 
 //Auth check
 function auth_check(response=null) {
@@ -90,12 +142,18 @@ function auth_check(response=null) {
                     jwt_auth_mode = false;
                     init();
                 }else{
+                    //Set auth check state
+                    jwt_auth_state = response.json.state;
+
                     //Handle error
                     if(auth_init.error != "") {
                         dialog("Error",auth_init.error);
                     }else if(auth_init.authenticated == false){
                         auth_dialog();
                     }else{
+                        //Set JWT auth state
+                        jwt_auth_state = auth_init.state;
+
                         //Handle states
                         switch(auth_init.state) {
                             case "OK": case "refresh":
@@ -471,7 +529,7 @@ function auth_api_check(permission=null) {
 //Init page
 function init() {
     //Init project page
-    ui_projects_page_html();
+    ui_page_layout();
 
     //Get configs
     get_configs();
@@ -570,4 +628,10 @@ function dialog(this_title="", this_html="") {
 	});
     $("#dialog").dialog("open");
 }
-
+function dialog_center() {
+	$("#dialog").dialog({
+		width:"auto",
+        height: "auto"
+	});
+    $("#dialog").dialog("open");
+}
