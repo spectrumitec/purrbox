@@ -4488,7 +4488,7 @@ class manage_server {
                                 "env": query.env,
                                 "url": query.url
                             }
-                            let del_result = this.resolve_add_update_delete(del_query);
+                            let del_result = this.resolve_manage(del_query);
 
                             //Check if user has permission to move proxy_map or dns_names
                             if(del_result.error != "") { 
@@ -4503,7 +4503,7 @@ class manage_server {
                                     "url": query.url,
                                     "site": ""              //Set site to blank, user select after re-assign
                                 }
-                                let add_result = this.resolve_add_update_delete(add_query);
+                                let add_result = this.resolve_manage(add_query);
 
                                 //No need to write config in this type of update, handled above
                                 if(add_result.error != "") { 
