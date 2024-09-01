@@ -5694,10 +5694,28 @@ function ui_admin_server_url_mapping_websites(project_name, website_name, projec
     //Get Parameters
     let this_enabled = project_params.enabled;
     let this_maintenance = website_params.maintenance;
-    let this_maintenance_page = website_params.maintenance_page;
+
+    //Maintenance docs
+    let this_maintenance_page = `<i>user</i>: ${website_params.maintenance_page}<br /><i>api</i>: ${website_params.maintenance_page_api}`;
+
+    //Default document
     let this_default_doc = website_params.default_doc;
-    let this_default_404 = website_params.default_errors["404"];
-    let this_default_500 = website_params.default_errors["500"];
+
+    //Error documents
+    let this_error_docs = website_params.default_errors;
+    let this_default_404 = "";
+    let this_default_500 = "";
+    let error_docs = ["404", "500"];
+    for(let e in error_docs) {
+        let error_doc = error_docs[e];
+        let error_doc_list = `<i>user</i>: ${this_error_docs["user"][error_doc]}<br /><i>api</i>: ${this_error_docs["api"][error_doc]}`;
+        if(error_doc == "404") {
+            this_default_404 = error_doc_list;
+        }
+        if(error_doc == "500") {
+            this_default_500 = error_doc_list;
+        }
+    }
 
     //Highlight red or green
     if(this_enabled == false) {
