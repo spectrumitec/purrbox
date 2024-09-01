@@ -1411,24 +1411,40 @@ function ui_sidenav_btns_top() {
     //Check project permissions
     let admin_access = api_check_global(["project_adm"]);
     let create_access = api_check_global(["project_create"]);
-    let no_admin = " project_menu_btn_transparent";
-    let no_create = " project_menu_btn_transparent";
+    let template_access = api_check_global(["template_adm"]);
+
+    //Dim settings
+    let dim_new = " project_menu_btn_transparent";
+    let dim_clone = " project_menu_btn_transparent";
+    let dim_rename = " project_menu_btn_transparent";
+    let dim_template = " project_menu_btn_transparent";
+    let dim_delete = " project_menu_btn_transparent";
 
     //Unhide certain buttons
     if(admin_access == true) {
-        no_admin = "";
-        no_create = "";
-    }else if(create_access == true) {
-        no_create = "";
+        dim_new = "";
+        dim_clone = "";
+        dim_rename = "";
+        dim_template = "";
+        dim_delete = "";
+    }
+    if(create_access == true) {
+        dim_new = "";
+        dim_clone = "";
+        dim_rename = "";
+        dim_delete = "";
+    }
+    if(template_access == true) {
+        dim_template = "";
     }
 
     //HTML buttons
     let html = `
-        <div id="project_new" class="project_menu_btn icon_box${no_create}" title="New Project"></div>
-        <div id="project_clone" class="project_menu_btn icon_box_clone${no_create}" title="Clone Project"></div>
-        <div id="project_rename" class="project_menu_btn icon_write${no_create}" title="Rename Project"></div>
-        <div id="template_new" class="project_menu_btn icon_template${no_admin}" title="Create Website Template"></div>
-        <div id="project_delete" class="project_menu_btn icon_trash${no_create}" title="Delete Project"></div>
+        <div id="project_new" class="project_menu_btn icon_box${dim_new}" title="New Project"></div>
+        <div id="project_clone" class="project_menu_btn icon_box_clone${dim_clone}" title="Clone Project"></div>
+        <div id="project_rename" class="project_menu_btn icon_write${dim_rename}" title="Rename Project"></div>
+        <div id="template_new" class="project_menu_btn icon_template${dim_template}" title="Create Website Template"></div>
+        <div id="project_delete" class="project_menu_btn icon_trash${dim_delete}" title="Delete Project"></div>
         <div id="project_reload" class="project_menu_btn icon_reload" title="Reload Projects"></div>
     `;
 
@@ -1460,7 +1476,7 @@ function ui_sidenav_btns_top() {
             ui_sidenav_btn_project_delete();
         });
     }
-    if(admin_access == true) {
+    if(admin_access == true || template_access == true) {
         var lis_template_new = document.getElementById("template_new");
         lis_template_new.addEventListener("click", function(event){
             ui_template_create();

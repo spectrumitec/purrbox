@@ -53,7 +53,7 @@
         "workers":1,
         "cache_on":false,
         "debug_mode_on":false,
-        "mgmt_mode":"dev",
+        "mgmt_mode":true,
         "mgmt_ui":[
             "nodejs-dev",
             "nodejs-dev.network.local"
