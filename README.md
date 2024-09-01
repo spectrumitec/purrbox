@@ -107,7 +107,8 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
 </ul>
 
-![2024-08-27_18-20-32](https://github.com/user-attachments/assets/f8428eaa-01a8-415c-a015-4e9242eb6fa0)
+![2024-09-01_13-20-26](https://github.com/user-attachments/assets/1cd3303d-c9df-4de6-999e-827f935043cb)
+
 
 <p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would to use access your project code. These are broken into the following:</p>
 <ul>
