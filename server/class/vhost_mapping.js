@@ -408,6 +408,8 @@ class vhost_mapping {
         //Define mapping for mgmt UI
         if(this.mgmt_mode == true) {
             this.web_mapping.resolve.mgmtui_map = this.map_resolve_mgmtui();
+        }else{
+            this.web_mapping.resolve.mgmtui_map = {}
         }
 
         //Resolve Proxy and DNS Mapping

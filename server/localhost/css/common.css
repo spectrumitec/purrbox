@@ -23,7 +23,7 @@ textarea{
     font-size: 13px;
     background-color: rgb(218, 241, 255);
     height: 100px;
-    width: 400px;
+    width: 300px;
     text-align: left;
     vertical-align: top;
 }
@@ -268,6 +268,18 @@ p {
 }
 .tooltip:hover {
     visibility: visible;
+}
+
+/* TEMP */
+.auth_state {
+    position: absolute;
+    top: 15px;
+    left: calc(50% - 50px);
+    width: 100px;
+    height: 25px;
+    text-align: center;
+    border: 1px solid red;
+    z-index: 500;
 }
 
 /* User auth */
@@ -682,10 +694,14 @@ p {
 	height: 16px;
 	width: 16px;
 }
+.project_site_map_path {
+    border-bottom: 1px solid #bbbbbb;
+    height: 18px;
+}
 
 .project_fix_btn {
     height: 18px;
-    border-radius: 8px;
+    border-radius: 3px;
     -webkit-box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.3); 
     box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.3);
 }
@@ -1175,6 +1191,17 @@ p {
 .grid7_project_index{
     grid-template-columns: max-content max-content max-content 500px max-content max-content max-content;
 }
+.grid2_project_create {
+    grid-template-columns: 220px minmax(200px, max-content);
+    min-height: 250px;
+    min-width: 350px;
+}
+.grid2_project_create_templates {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 0px;
+    grid-template-columns: minmax(120px, max-content) 200px;
+}
 .grid2_project_settings{
     grid-template-columns: 150px 420px;
 }
@@ -1199,22 +1226,28 @@ p {
 .grid4_site_mapping {
     grid-template-columns: 25px minmax(225px, max-content) minmax(225px, max-content) max-content;
 }
+.grid2_site_create {
+    grid-template-columns: 220px minmax(200px, max-content);
+    min-height: 250px;
+}
+.grid3_site_create_template {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 0px;
+    grid-template-columns: 60px minmax(100px, max-content) minmax(170px, max-content);
+}
 .grid3_inner_site_mapping_err_maint {
     grid-template-columns: 35px minmax(175px, max-content) minmax(175px, max-content);
 }
-.grid4_vhost_panel {
-    grid-template-columns: 235px max-content max-content max-content;
+.grid4_template_list {
+    grid-template-columns: minmax(100px, max-content) minmax(75px, max-content) minmax(175px, max-content) minmax(350px, max-content);
 }
-.grid5_vhost_panel {
-    grid-template-columns: 235px max-content max-content max-content max-content;
-}
-.grid6_vhost_panel {
-    grid-template-columns: 235px max-content max-content max-content max-content max-content;
+.grid5_template_list {
+    grid-template-columns: minmax(100px, max-content) minmax(75px, max-content) minmax(175px, max-content) minmax(350px, max-content) 30px;
 }
 .grid3_server_settings {
     grid-template-columns: max-content max-content 500px;
 }
-
 .grid2_admin_user_management {
     grid-template-columns: max-content 500px;
 }

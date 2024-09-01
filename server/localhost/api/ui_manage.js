@@ -93,51 +93,36 @@ exports.request = async function(params={}) {
 			}
 		break;
 
-		//Projects
-		case "project_new": case "project_clone": case "project_rename": case "project_delete":
+		//Project manage
+		case "project_new": 
+		case "project_clone": 
+		case "project_rename": 
+		case "project_delete":
+		case "project_set_property":
+		case "project_fix_config":
 			api_response = mgmt.project_manage(_query);
 		break;
-		case "project_set_property":
-			api_response = mgmt.project_set_property(_query)
-		break;
-		case "project_config_fix":
-			api_response = mgmt.project_config_fix(_query)
-		break;
 
-		//Templates
-		case "templates_list":
-			api_response = mgmt.template_list();
+		//Template manage
+		case "template_new":
+		case "template_delete":
+			api_response = mgmt.template_manage(_query);
 			if(api_response.data != undefined) {
 				response.data = api_response.data;
 			}
 		break;
-		case "template_create":
-			api_response = mgmt.template_create(_query);
-		break;
-		case "template_delete":
-			api_response = mgmt.template_delete(_query);
-		break;
 
 		//Websites manage
 		case "website_new":
-			api_response = mgmt.website_new(_query);
-		break;
-		case "website_rename": case "website_clone":
-			api_response = mgmt.website_rename_clone(_query);
-		break;
+		case "website_rename":
+		case "website_clone":
 		case "website_delete":
-			api_response = mgmt.website_delete(_query);
-		break;
-
-		//Websites settings
 		case "website_set_property":
-			api_response = mgmt.website_set_property(_query);
-		break;
-		case "website_map_new":
-			api_response = mgmt.website_path_mapping_add(_query);
-		break;
+		case "website_maint_page_create":
+		case "website_errors_pages_create":
+		case "website_map_add":
 		case "website_map_delete":
-			api_response = mgmt.website_path_mapping_delete(_query);
+			api_response = mgmt.website_manage(_query);
 		break;
 
 		//File Management
@@ -164,8 +149,10 @@ exports.request = async function(params={}) {
 		break;
 
 		//Mapping updates
-		case "resolve_add": case "resolve_update": case "resolve_delete":
-			api_response = mgmt.resolve_add_update_delete(_query);
+		case "resolve_add": 
+		case "resolve_update": 
+		case "resolve_delete":
+			api_response = mgmt.resolve_manage(_query);
 		break;
 
 		//Default mismatch action
