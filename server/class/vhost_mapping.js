@@ -2570,7 +2570,7 @@ class vhost_mapping {
             file_exist = this.match_file_exists(target_file);
         }else{
             //File and path not matched to site rules
-            match.log += `      No matching rules found\n`;
+            match.log += `    No matching rules found\n`;
         }
 
         //Handle missing
@@ -2724,6 +2724,7 @@ class vhost_mapping {
 
         //Check filename is not blank
         if(target_file == "" || match.file_match_type == "") {
+            match.log += `      No default error page defined, use system default\n`;
             match = this.match_default_system_404(match);
         }else{
             //Set error page target
