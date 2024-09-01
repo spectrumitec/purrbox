@@ -2562,10 +2562,15 @@ class vhost_mapping {
         //Check file exists
         let file_exist = false;
         if(!(match.file_path == "" || match.file_name == "")) {
+            //Get target file
             let target_file = path.join(match.file_path, match.file_name);
+            match.log += `    Target file: ${target_file}\n`;
+
+            //Check if file exists
             file_exist = this.match_file_exists(target_file);
         }else{
-            match.log += `      No matching rules\n`;
+            //File and path not matched to site rules
+            match.log += `      No matching rules found\n`;
         }
 
         //Handle missing
@@ -2594,7 +2599,6 @@ class vhost_mapping {
             match.log += `        File:    ${match.file_name}\n`;
         }else{
             match.log += `    Content file exists, continue to serve request'\n`;
-            match.log += `    Target file: ${target_file}\n`;
         }
 
         //Return match
