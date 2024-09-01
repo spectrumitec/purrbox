@@ -2594,6 +2594,7 @@ class vhost_mapping {
             match.log += `        File:    ${match.file_name}\n`;
         }else{
             match.log += `    Content file exists, continue to serve request'\n`;
+            match.log += `    Target file: ${target_file}\n`;
         }
 
         //Return match
