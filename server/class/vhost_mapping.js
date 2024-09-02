@@ -2559,28 +2559,33 @@ class vhost_mapping {
         //         - If website default 404 does not exist, use default system 404
         //
 
-        //Set target file
-        let target_file = path.join(match.file_path, match.file_name);
-        match.log += `    Target file: ${target_file}\n`;
-
         //Check file exists
-        let file_exist = this.match_file_exists(target_file);
+        let file_exist = false;
+        if(!(match.file_path == "" || match.file_name == "")) {
+            //Get target file
+            let target_file = path.join(match.file_path, match.file_name);
+            match.log += `    Target file: ${target_file}\n`;
+
+            //Check if file exists
+            file_exist = this.match_file_exists(target_file);
+        }else{
+            //File and path not matched to site rules
+            match.log += `    No matching rules found\n`;
+        }
+
+        //Handle missing
         if(file_exist == false) {
             match.log += `      Content file not found\n`;
 
             //Determine target path
             if(match.file_path.includes("default_system")) {
                 match = this.match_file_not_exist_default_system(match);
-
             }else if(match.file_path.includes("_maintenance_page")) {
                 match = this.match_file_not_exist_maintenance_page(match);
-
             }else if(match.file_path.includes("_error_pages")) {
                 match = this.match_file_not_exist_error_pages(match);
-
             }else if(match.project == "mgmtui") {
                 match = this.match_file_not_exist_mgmtui(match);
-
             }else{
                 match = this.match_file_not_exist_website_content(match);
             }
@@ -2718,7 +2723,8 @@ class vhost_mapping {
         }
 
         //Check filename is not blank
-        if(target_file == "") {
+        if(target_file == "" || match.file_match_type == "") {
+            match.log += `      No default error page defined, use system default\n`;
             match = this.match_default_system_404(match);
         }else{
             //Set error page target
