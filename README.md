@@ -99,6 +99,3 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 
 ![2024-08-27_18-00-49](https://github.com/user-attachments/assets/65066c8f-2d63-41c2-a34f-aa3c3b141843)
 
-<b>Help Documentation:</b><br />
-
-
