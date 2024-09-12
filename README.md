@@ -59,6 +59,7 @@
             "nodejs-dev.network.local"
         ],
         "environment":"dev",
+	"environment_name":"testing",
         "http_on":true,
         "http_port":80,
         "https_on":true,
