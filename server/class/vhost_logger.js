@@ -187,12 +187,17 @@ class vhost_logger {
 
         //Get fields from payload
         log_data.source = data.source;
-        if(data.source == "error_trace" || data.source == "system" || data.source == "mapper") {
+        if(data.source == "system" || data.source == "mapper") {
             this.file_text = `${data.source}_${filedatetime}.log`;
             this.file_json = `${data.source}_${filedatetime}.json`;
         }else{
-            this.file_text = `${data.source}-request_${filedatetime}.log`;
-            this.file_json = `${data.source}-request_${filedatetime}.json`;
+            if(data.status_code == 500) {
+                this.file_text = `${data.source}_error_${filedatetime}.log`;
+                this.file_json = `${data.source}_error_${filedatetime}.json`;
+            }else{
+                this.file_text = `${data.source}_request_${filedatetime}.log`;
+                this.file_json = `${data.source}_request_${filedatetime}.json`;
+            }
         }
         if(data.state != undefined) {
             log_data.state = data.state
@@ -212,7 +217,9 @@ class vhost_logger {
         this.log_file_cleanup()
 
         //Write log
-        if(this.syslog_use == "file") {
+        if(this.syslog_use == "none") {
+            return;
+        }else if(this.syslog_use == "file") {
             this.log_file(log_data)
         }else if(this.syslog_use == "server") {
             this.log_server(log_data)

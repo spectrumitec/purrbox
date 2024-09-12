@@ -1,0 +1,185 @@
+<h1>System Logging</h1>
+<h3>File Based Logging</h3>
+<p>
+    When the system is set for file based logging, the following types of files are created and stored as per the server configuration settings. By default, the start up of the server will create the base configuration which is file logging for 7 days of retention. There are 2 types of files which is a text ".log" file which is only the log message. The ".json" file contains a lot more details. The ".json" file has a JSON string per line so is not meant to be opened as one large file. This is done for performacne reasons. Multiple servers should leverage a log server to centrailize logging.
+</p>
+<pre>
+   root folder
+     └ logs                                                Log files when set for file logging
+         ├ system_[date].log                               General system logs (simple output)
+         ├ system_[date].json                              General system logs (JSON format more detail)
+         ├ mapper_[date].log                               General mapping logs capture project changes (simple output)
+         ├ mapper_[date].json                              General mapping logs capture project changes (JSON format more detail)
+         ├ mgmt-ui_request_[date].log                      Management UI web request log (simple output)
+         ├ mgmt-ui_request_[date].json                     Management UI web request log (JSON format more detail)
+         ├ project_name-website_name_request_[date].log    Project website request log (simple output)
+         ├ project_name-website_name_request_[date].json   Project website request log (JSON format more detail)
+         ├ project_name-website_name_error_[date].log      Project website error log (simple output)
+         └ project_name-website_name_error_[date].json     Project website error log with stack trace (JSON format more detail)         
+</pre>
+<br />
+<h3>Server Based Logging</h3>
+<p>
+See the 'Server Settings' page for more details, the following would be an example of a log server. Changes to the configuration will need a server restart. <b>NOTE</b>: All server based logging is only in JSON format.
+</p>
+<pre>
+    {
+       "use": "<hl>server</hl>",
+       "file": {
+          "delete_older": "7d"
+       },
+       "server": {
+          "ipaddr": "<hl>192.168.1.95</hl>",
+          "port": "<hl>514</hl>",
+          "protocol": "<hl>udp</hl>"
+       }
+    }
+</pre>
+<br />
+<h3>JSON Log Detail Example (request or error logs)</h3>
+<p>
+    The following is a formatted JSON error log from '<blue>project_name</blue>' and '<blue>website_name</blue>' as an example. This is very similar to a request log with the difference that there is an additional field of '<hl>stack_trace</hl>' for capturing the fault itself in code. The common JSON field data contains a lot of detail about the server process and version, what project and website, state, error code, request and client details, time in milliseconds, and some matching logic of how the server matched the incoming request. Highlighted below is the stack trace example.
+</p>
+<pre>
+    {
+        "_timestamp": "2024-09-05T21:55:25.692Z",
+        "_server": "localhost",
+        "_process_id": 11140,
+        "_node_version": "v20.11.1",
+        "source": "project_name-website_name",
+        "state": "error",
+        "message": "Request Time [1 ms] > https://localhost/vhost/project_name::website_name/api/test",
+        "environment": "dev",
+        "full_url": "https://localhost/vhost/project_name::website_name/api/test",
+        "server_ipv4": "192.168.1.50",
+        "server_ipv6": "fe80::b6e3:cf7e:e380:9716",
+        "client_ip": "localhost",
+        "client_ip_xff": null,
+        "client_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "req_method": "GET",
+        "req_http_version": "1.1",
+        "req_http_protocol": "https",
+        "req_hostname": "localhost",
+        "req_port": "",
+        "req_path": "/vhost/project_name::website_name/api/test",
+        "req_query": "null",
+        "status_code": 500,
+        "status_msg": "500 Internal Server Error: /webserver/web_source/project_name/website_name/api/test.js",
+        "match_error": false,
+        "match_website": "website_name",
+        "match_hostname": "localhost",
+        "match_vhost": "/vhost/project_name::website_name/",
+        "match_proxyuri": "",
+        "match_submap": "",
+        "match_file_type": "apis_dynamic_path",
+        "match_file_exec": "server",
+        "match_file_path": "/webserver/web_source/project_name/website_name/api",
+        "match_file_name": "test.js",
+        "match_log": "> Server Management Mode ON\n> ....",
+        "time": 1,
+        "<hl>stack_trace</hl>": "ReferenceError: ...."
+    }    
+</pre>
+<br />
+<p>
+    Extracted from the log above, a stack trace will contain the problem and location of the errors for any back end coding gone wrong. This is aimed at helping the development of applications and not having to worry too much about building in logging within the application itself if one needs to do so.
+</p>
+<pre>
+    ReferenceError: <hl>syntax_error_example</hl> is not defined
+        at exports.request (/webserver/web_source/project_name/website_name/api/test.js:<hl>39:5</hl>)
+        at vhost_server.exec_server_side (/webserver/server/class/vhost_server.js:864:50)
+        at vhost_server.client_request (/webserver/server/class/vhost_server.js:833:22)
+        at Server.<anonymous> (/webserver/server/class/vhost_server.js:578:20)
+        at Server.emit (node:events:518:28)
+        at parserOnIncoming (node:_http_server:1151:12)
+        at HTTPParser.parserOnHeadersComplete (node:_http_common:119:17)
+</pre>
+<br />
+<h3>Match Log Details</h3>
+<p>
+    In addition to normal logging of the request, there is also a '<blue>match_log</blue>' field that will contain the process of the system matching logic. If there are any issues and unsure why a website is not loading, this might help give some insight into why a website or content might be having some troubles. 
+</p>
+<pre>
+> Server Management Mode ON
+> Environment Dev
+> Request URL [https://localhost/vhost/project_name::website_name/api/test]
+    protocol :: https:
+    hostname :: localhost
+    port     :: 443
+    basepath :: /vhost/project_name::website_name/api/test/
+    query    :: 
+    filename :: 
+
+--- Stage 1 ---
+> Resolve Host, FQDN or Proxy
+> Check against Managment UI Hostnames
+    Target hostname: localhost
+    NO: Management UI hostname[127.0.0.1] not matched
+    NO: Management UI hostname[192.168.1.50] not matched
+    NO: Management UI hostname[::1] not matched
+    YES: Management UI hostname[localhost] matched
+         Map to 'Management UI'
+> Check against Management UI VHost paths
+    Target URI: /vhost/project_name::website_name/api/test
+    NO: Management UI VHost path[/vhost/project1::www/] not matched
+    NO: Management UI VHost path[/vhost/project2::bookstore/] not matched
+    NO: Management UI VHost path[/vhost/project3::music_store/] not matched
+    YES: Management UI VHost path [/vhost/project_name::website_name/] matched
+         Map to project[project_name] website[website_name]
+> Check website sub mapping for project[project_name] website[website_name]
+
+--- Stage 2 ---
+> Resolve success
+> Get website parameters
+> Match request to website mapping
+    Request URI path[/vhost/project_name::website_name/api/test/]
+> Match 'apis_fixed_path' :: project[project_name] website[website_name]
+    No rules for [apis_fixed_path]
+> Match 'apis_dynamic_path' :: project[project_name] website[website_name]
+    Process rules [apis_dynamic_path]
+    - YES: Rule [/api/] matched [/api/test/]
+           Target Path [/website_name/api/]
+           Execute: server
+           Path:    /webserver/web_source/project_name/website_name/api
+           File:    test.js
+> Check website maintenance mode
+    Maintenance mode is disabled
+> Check website error page mapping
+> Check website source request
+    Target file: /webserver/web_source/project_name/website_name/api/test.js
+    Content file exists, continue to serve request'
+
+--- Result ---
+    Matched Hostname      :: localhost
+    Matched MgmtUI VHost  :: /vhost/project_name::website_name/
+    Matched Proxy URI     :: 
+    Matched Sub Map       :: 
+    Project               :: project_name
+    Website               :: website_name
+    SSL redirect          :: true
+    Website Root Path     :: /webserver/web_source/project_name/website_name
+    Website URI Path      :: /vhost/project_name::website_name/api/test/
+    Website URI Prefix    :: /vhost/project_name::website_name/
+    Website URI Suffix    :: /api/test/
+    Default Doc           :: index.html
+    Default 404 User      :: 404.html
+    Default 404 API       :: 404.json
+    Default 500 User      :: 404.html
+    Default 500 API       :: 404.json
+    Maintenance Mode      :: false
+    Maintenance Page      :: maintenance.html
+    Match State           :: true
+    Match Type            :: apis_dynamic_path
+    File Execute          :: server
+    File Path             :: /webserver/web_source/project_name/website_name/api
+    File Name             :: test.js
+    Error                 :: false
+    Status Code           :: 200
+    Status Message        :: 
+</pre>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

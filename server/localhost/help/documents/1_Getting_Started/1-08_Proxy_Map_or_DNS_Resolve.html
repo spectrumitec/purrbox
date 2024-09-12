@@ -1,0 +1,25 @@
+<h1>Proxy Map or DNS Resolve</h1>
+<h3>General Scenario</h3>
+<p>
+	There are a multitude of ways one might need to configure the website under a domain name. There can be cost limitations where limited to a single domain and certificate. Perhaps security reasons for not having a SAN certificate or wildcard certificate. A proxy service might be required to setup a folder path to resolve to a server or load balancer with multiple servers behind it (like '<blue>www.domain.com/app1</blue>' and '<blue>www.domain.com/app2</blue>'). Maybe there is a need to use different hostnames like '<blue>www.domain.com</blue>' and '<blue>forum.domain.com</blue>' or completely different domain names altogether. This can create a lot of confusion for some and how to manage these.<br />
+	<br />
+	This system provides a method for mapping domain names or proxy configurations to your website. As long as the website content leverages relative path for CSS, JavaScript and Images, most proxy mapping doesn't require any special configuration with path rewrite at the proxy server. That can be quite complex to deal with and your network administrator may not understand the web application needs fully to make it work. You may not know what the result will be once the website is sitting behind a proxy service either. There are configuration options in this system for '<blue>Proxy Map</blue>' and '<blue>DNS FQDN</blue>' which allows for full testing and compatibility, ease of deployment in more complex networking environments. Reference to the diagram below, it can be possible to have the network administrator deal with a less complexity to setup and allow the developer to do more with the web services. This may also apply in Kubernetes environments.<br />
+	<br />
+	In addition to Proxy or DNS FQDN mapping, you can also setup Sub Mapping if your project has multiple websites that are meant to work together. You can design one of your websites to be the primary of the project, which will allow you to setup a single Proxy or DNS Name mapping to resolve to it. In the primary website settings you can configure the mapping of a sub folder to the secondary websites. This can further simplify the network configurations in order to get your project online and less need to work with a network administrator to configure additional URI paths.<br />
+	<br />
+</p>
+<h3>Example of Proxy and DNS Mapping</h3>
+<p>
+	The following shows a left side leveraging HAProxy with ACL resolving to server IPs in different ways having a minimal configuration. On the right side, the platform can set Proxy URL paths in different way which can resolve to project and websites including leveraging sub path mapping resolution to other websites in same project.
+</p>
+<br />
+<img src="/help/images/1_proxy_dns_example.png" alt="" />
+<br />
+<br />
+<p>See Section '<b>6 Proxy and DNS Resolution</b>' for details on configuration and uses.</p>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

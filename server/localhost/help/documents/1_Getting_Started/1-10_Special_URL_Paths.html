@@ -1,0 +1,30 @@
+<h1>Special URI Paths</h1>
+<h3>Default System</h3>
+<p>
+    When the Management UI is turned off, there are no project websites in existance on the server, or there is no match to the user request, the end result will land a user at the default system 404 error page. The default system is a built in mini website that holds only static content and is located in '<blue>root folder/server/default_system</blue>'. The files in this location can be modified as required or leave as is. It holds some basic error pages and default maintenance page. It can be accessed by adding '<blue>_default_system/</blue>' anywhere in the URI path with a filename like '<blue>/_default_system/404.html</blue>'.
+</p>
+<br />
+<h3>Maintenance Mode</h3>
+<p>
+    This system can allow a user to toggle any website under the project into maintenance mode. This will block any incoming requests to that website and display a maintenance page (either a custom one, or will resolve to default system). Maintenance mode is per website in a project. This means if you toggle a website to be in maintenance mode the other websites will remain active. An example might be that the main website is static content with an API path sub mapped to a website supporting a legacy XML SOAP interface. If there is a need to shut down the API for maintenance, the user can put the API website into maintenance mode while the main static website stays running.
+    <br /><br />
+    To view a custom maintenance page, it has to be defined in the website parameters and add '<blue>_maintenance_page</blue>' to the URI path with the maintenance page that was created. For example, view your custom page via your domain name, path and page like '<blue>www.domain.com/_maintenance_page/maintenance.html</blue>'. See custom maintenance and error pages section for more details on creating these.
+    <br /><br />
+    NOTE: Maintenance pages will be active for Proxy and DNS FQDN mapping but VHost preview allows to bypass so that a user can test a website before turning off maintenance mode. Maintenance mode can be toggled per environment as well.
+</p>
+<br />
+<h3>Error Pages</h3>
+<p>
+    The system also allows users to create their own custom error pages for the websites. Similar to maintenance page, the website parameters needs to be defined and add '<blue>_error_pages</blue>' to the URI path. For example, view your custom error page via your domain name, path and page like '<blue>www.domain.com/_error_pages/404.html</blue>'. See custom maintenance and error pages section for more details on creating these.
+</p>
+<br />
+<h3>General information</h3>
+<p>
+    Both the maintenance page and error pages have configurable ways to respond to a user in HTML format and an API using a native format expected by the connecting system (e.g. JSON, XML or other). 
+</p>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

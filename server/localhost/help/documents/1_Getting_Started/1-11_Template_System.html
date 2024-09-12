@@ -1,0 +1,15 @@
+<h1>Template System</h1>
+<p>
+	This system has a template functionality that allows for turning assets into either full project templates or website only tempaltes. This can be leveraged in several ways:
+</p>
+<ul>
+	<li>A developer can do things like build a base for a project with common code, libraries, HTML static content, standard API code, folder structures in all sorts of ways and save that as a project template for quick re-use and starting points with new developments.</li>
+	<li>A designer can build static website content and make those a website template. It could be a single template with many websites of different kinds or a template per website design.</li>
+	<li>Create a microservice project or website tempalte for deployment as standalone or addition to an existing project.</li>
+	<li>Build modular components like calendars, photo share, etc. that can be added to existing project websites through sub mapping.</li>
+	<li>Can be used to export a specific website from one project and add to another like a migration tool.</li>
+	<li>There can be fully developed and completed web applications that can be distributed and pulled from GitHub repos. They can contain the public website for mapping to Proxy or DNS FQDN and a website that remains as a VHost preview for purpose of configuring the application. Instead of having an '/install' path to do the initial configuration and remove post setup, the Management UI could be leveraged for such a use. It could remain as a configuration and admin to login to or the configuration website can simply be deleted post installation.</li>
+</ul>
+<p>
+	There are 2 locations where templates exist. There are default system templates in '<blue>root folder/server/default_templates</blue>' and user defined templates in '<blue>root folder/web_templates</blue>'. The system default has some simple ones to use. It is possible to build your own project or website templates and move them into the default system folder. Admins can delete user templates but cannot delete the default system templates from the Management UI. If there are specific reasons to lock down templates for some reason, this can be used.
+</p>

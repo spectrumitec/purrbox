@@ -1,0 +1,123 @@
+<h1>Website Mapping</h1>
+<h3>Mapping Description</h3>
+<p>
+	The website mapping section has four primary mapping types for content classification (to run/execute on server or send to client browser). The fifth, for Sub Mapping, is different in that it's matched after the Proxy and FQDN mapping stage but before the website content. See '<b>Getting Started</b>' and '<b>Request Handling</b>' for more details on that process. Out of the four main mapping rulesets for content, they are matched in the following order (first rule wins). There can be multiple mappings per mapping section that are ordered by longest URI path first so that those paths are matched before the shorter path. Make sure to not use same URI path names in each section as one may win over the subsequent rules.
+</p>
+<div class="grid4 grid4_website_mapping">
+	<div class="grid1_sub_head">Order</div>
+	<div class="grid1_sub_head">Mapping Section</div>
+	<div class="grid1_sub_head">Content Type</div>
+	<div class="grid1_sub_head">Description</div>
+	<div class="grid1_col">1</div>
+	<div class="grid1_col">API Fixed Path Mapping</div>
+	<div class="grid1_col">Server Side Execute</div>
+	<div class="grid1_col">Mapping a base URI path like '<blue>/fixed_api/</blue>' to a single file. Any sub path of '<blue>/fixed_api/</blue>' will resolve to the target file. This might be ideal for micro services also.</div>
+	<div class="grid1_col">2</div>
+	<div class="grid1_col">API Dynamic Path Mapping</div>
+	<div class="grid1_col">Server Side Execute</div>
+	<div class="grid1_col">Mapping a base URI path like '<blue>/api/</blue>' to a target folder path. Any sub path of '<blue>/api/</blue>' will map to a matching sub path of the real folder location.</div>
+	<div class="grid1_col">3</div>
+	<div class="grid1_col">Static Content Server Execute Override</div>
+	<div class="grid1_col">Server Side Execute</div>
+	<div class="grid1_col">This applies to files in the static path location. If there is a file in static content that needs to execute server side, you can define it here. Most of the time this may not be needed.</div>
+	<div class="grid1_col">4</div>
+	<div class="grid1_col">Static Content Mapping</div>
+	<div class="grid1_col">Send to Client Browser<br /><purple><i>(e.g. HTML, CSS, Images,<br />JavaScript, etc.)</i></purple></div>
+	<div class="grid1_col">The static path location which the URI path will most likely be '<blue>/</blue>'. If setting up a micro service, you might use the fixed API and set the '<blue>/</blue>' to map to a single API file.</div>
+	<div class="grid1_col"></div>
+	<div class="grid1_col">Project Website Sub Mapping</div>
+	<div class="grid1_col"></div>
+	<div class="grid1_col">Mapping a base URI path like '<blue>/site2/</blue>' to another website under the same project.</div>
+</div>
+<br /><br />
+<h3>Mapping Relation to URLs</h3>
+<p>
+	When referring to a <b>base URI path</b> in above table, this actually means from or after the URI root path of the website. In the diagram below there is a '<blue>Web Path</blue>' that has '<blue>/api/</blue>' which resolved to '<blue>Target</blue>' of '<blue>/www/api/</blue>'. Target paths are also a relative path of the project root folder.
+	<br /><br />
+	<b>Mapping Diagram:</b></p>
+<img src="/help/images/3_website_settings_mapping.png" alt="" />
+<br /><br />
+<p>
+	<b>Example Table:</b>
+	<br /><br />
+	When accessing the website by Managment UI VHost Preview, Proxy or DNS FQDN Mapping, you can see the relation in the table below and how it is matched to the website content.
+</p>
+<div class="grid5">
+	<div class="grid1_sub_head">Type</div>
+	<div class="grid1_sub_head">URL</div>
+	<div class="grid1_head">Web Path</div>
+	<div class="grid1_head">Target</div>
+	<div class="grid1_sub_head">Actual Target Path</div>
+	<div class="grid1_col">Management UI VHost Path</div>
+	<div class="grid1_col">https://<red>localhost</red><orange>/vhost/project_name::www</orange><b>/api/</b>test/</div>
+	<div class="grid1_col"><b>/api/</b></div>
+	<div class="grid1_col"><b>/www/api/</b></div>
+	<div class="grid1_col">/server/<blue>web_source</blue>/project_name<b>/www/api/</b>test.js</div>
+	<div class="grid1_col">Proxy Map</div>
+	<div class="grid1_col">https://<blue>proxyurl.domain.com/website</blue><b>/api/</b>test/</div>
+	<div class="grid1_col"><b>/api/</b></div>
+	<div class="grid1_col"><b>/www/api/</b></div>
+	<div class="grid1_col">/server/<blue>web_source</blue>/project_name<b>/www/api/</b>test.js</div>
+	<div class="grid1_col">DNS FQDN Map</div>
+	<div class="grid1_col">https://<green>www.domain.com</green><b>/api/</b>test/</div>
+	<div class="grid1_col"><b>/api/</b></div>
+	<div class="grid1_col"><b>/www/api/</b></div>
+	<div class="grid1_col">/server/<blue>web_source</blue>/project_name<b>/www/api/</b>test.js</div>
+	<div class="grid1_col">Sub Map</div>
+	<div class="grid1_col">https://<green>www.domain.com</green><purple>/site2</purple><b>/api/</b>test/</div>
+	<div class="grid1_col"><b>/api/</b></div>
+	<div class="grid1_col"><b>/www/api/</b></div>
+	<div class="grid1_col">/server/<blue>web_source</blue>/project_name<b>/www/api/</b>test.js</div>
+</div>
+<br /><br />
+<p>
+	<b>Reference URL colour matching:</b>
+	<br /><br />
+	<gray>https://</gray> <red>hostname</red>/*<br />
+	<gray>https://</gray> <red>hostname</red><orange>/vhost/project::website/</orange>*<br />
+	<gray>https://</gray> <red>hostname</red><orange>/vhost/project::website/</orange><purple>sub_map/</purple>*<br />
+	<gray>https://</gray> <blue>www.domain.com/proxy_path/</blue>*<br />
+	<gray>https://</gray> <blue>www.domain.com/proxy_path/</blue><purple>sub_map/</purple>*<br />
+	<gray>https://</gray> <green>www.domain.com</green>/*<br />
+	<gray>https://</gray> <green>www.domain.com</green>/<purple>sub_map/</purple>*<br />
+	<br />
+	<b>Brief description:</b>
+</p>
+<ul>
+	<li><red><b>Hostname</b> or a <b>Domain Name (FQDN)</b> assigned to Management UI (if enabled)</red></li>
+	<li><orange><b>VHost Preview</b> path resolving to user project and website (if Management UI is enabled)</orange></li>
+	<li><blue><b>Proxy Map URL</b> having a domain name and path resolving to a project and website</blue></li>
+	<li><green><b>DNS Name (FQDN)</b> resolving directly to a project and website</green></li>
+	<li><purple><b>Sub Path (Sub Map)</b> resolving to another website under user’s project (same project)</purple></li>
+</ul>
+<h3>Create a Map and Delete</h3>
+<p>
+	To create a mapping configuration, simply select the add <img src="/images/add_icon.png" alt="" /> icon to bring up the mapping dialog.
+</p>
+<br />
+<img src="/help/images/3_website_mapping_add.png" alt="" />
+<br /><br />
+<p>
+	Enter the relative URI path of the website, select the target folder and click map.
+</p>
+<br />
+<img src="/help/images/3_website_mapping_add_dialog.png" alt="" />
+<br /><br />
+<p>
+	The following mapping will be added to the website.
+</p>
+<br />
+<img src="/help/images/3_website_mapping_added.png" alt="" />
+<br /><br />
+<p>
+	To remove, simple select the trash can <img src="/images/trash_icon.png" alt="" /> icon beside the mapping and select '<blue>Yes</blue>'. This does not remove the actual folder or file location, just the mapping reference only.
+</p>
+<br />
+<img src="/help/images/3_website_mapping_delete.png" alt="" />
+<br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

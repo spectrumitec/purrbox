@@ -40,16 +40,9 @@ exports.request = async function(params={}) {
     const _env = params._server.environment;
     const _server = params._server;
     const _client = params._client;
-    const _raw_headers = params._raw_headers;
-    const _request = {
-        "method":params.method,
-        "http_version":params.http_version,
-        "protocol":params.protocol,
-        "hostname":params.hostname,
-        "path":params.path,
-        "query":params.query
-    }
-    const _query = params.query;
+    const _headers = params._headers;
+    const _request = params._request;
+    const _query = params._query;
 
     //Get query string
     if(_request.method == undefined) { _error("Method undefined"); return _response; }
@@ -152,6 +145,14 @@ exports.request = async function(params={}) {
 		case "resolve_update": 
 		case "resolve_delete":
 			api_response = mgmt.resolve_manage(_query);
+		break;
+
+		//Helpdocs
+		case "helpdocs_index":
+			api_response = mgmt.helpdocs_mange(_query);
+			if(api_response.data != undefined) {
+				response.data = api_response.data;
+			}
 		break;
 
 		//Default mismatch action

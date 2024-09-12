@@ -381,12 +381,17 @@ p {
 .header_title {
     position: absolute;
     top: 65px;
-    left: 85px;
+    left: 130px;
     width: 300px;
     text-align: left;
     font-size: 24px;
     font-weight: bold;
     color: black;
+}
+.header_ver {
+    display: inline-block;
+    font-size: 12px;
+    color: #0059ff;
 }
 
 .content {
@@ -884,7 +889,53 @@ p {
     }
 }
 
-/* VHost reference */
+/* Helpdocs */
+
+.helpdocs_index_title {
+    position: absolute;
+    display: block;
+	top: 51px;
+    left: 7px;
+    width: 350px;
+    height: 30px;
+    padding-top: 2px;
+    font-size: 20px;
+    font-weight: bold;
+}
+.helpdocs_index {
+    position: absolute;
+    display: block;
+	top: 81px;
+    left: 7px;
+    width: 353px;
+    height: calc(100% - 81px);
+    border-top: 1px solid #aaaaaa;
+    overflow: auto;
+}
+.helpdocs_iframe {
+    position: absolute;
+    display: block;
+	top: 52px;
+    left: 360px;
+    width: calc(100% - 363px);
+    height: calc(100% - 55px);
+    border: none;
+    border-left: 1px solid #aaaaaa;
+}
+
+/* iframe content */
+.helpdocs_body {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    background-color: white;
+}
+
+
+/* VHost reference 
 .vhost_panel {
     position: absolute;
     top: 50px;
@@ -902,6 +953,7 @@ p {
         width: calc(100% - 10px);
     }
 }
+*/
 
 /* Admin page */
 .admin_mgmt {

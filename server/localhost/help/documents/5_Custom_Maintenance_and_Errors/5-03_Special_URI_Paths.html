@@ -1,0 +1,91 @@
+<h1>Special URI Paths</h1>
+<p>
+	When the maintenance page is enabled or error pages are triggered, the system overrides the target path and file to resolve to the maintenance or error page. This is essentially the entrypoint for the maintenance or error pages. Once the page is sent to the client browser, any links it has to CSS, JavaScript or Image files will try and load from the server in subsequent requests. Any content referenced in the maintenance or error pages should use relative path to ensure they resolve. The relative path should always start with '<blue><b>_maintenance_page/</b>path/file.ext</blue>' or '<blue><b>_error_pages/</b>path/file.ext</blue>'. If specifying an absolute path like '<blue><b>/_error_pages/</b>path/file.ext</blue>', it will try from the root of the domain and will not work with Proxy Mapping, Management UI VHost paths, and Sub Mapping off a sub folder.
+    <br /><br />
+    The server looks for those special URI path of '<blue>_maintenance_page</blue>' and '<blue>_error_pages</blue>' relative to the URI path and can determine where the maintenance and error pages are located on the filesystem. The system will properly map back to the '<blue>web_source/project_name/website/<b>_maintenance_page/*</b></blue>' and '<blue>web_source/project_name/website/<b>_error_pages/*</b></blue>' folders.
+    <br /><br />
+    This is an example of relative path in an HTML file:
+    <br /><br />
+    <u><b>Maintenance Pages</b></u>
+</p>
+<pre>
+&#60;!doctype html&#62;
+&#60;html lang="en"&#62;
+    &#60;head&#62;
+       &#60;meta charset="utf-8"&#62;
+       &#60;title&#62;Maintentnace Page&#60;/title&#62;
+       &#60;meta name="description" content="Website Description"&#62;
+       &#60;meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"&#62;
+
+       &#60;link rel="stylesheet" href="<hl>_maintenance_page</hl>/css/common.css"&#62;
+       &#60;script type="text/javascript" language="javascript" src="<hl>_maintenance_page</hl>/js/classes.js"&#62;&#60;/script&#62;
+       &#60;script type="text/javascript" language="javascript" src="<hl>_maintenance_page</hl>/js/common.js"&#62;&#60;/script&#62;
+       
+    &#60;/head&#62;
+</pre>
+<p>
+    <u><b>Error Pages</b></u>
+</p>
+<pre>
+&#60;!doctype html&#62;
+&#60;html lang="en"&#62;
+    &#60;head&#62;
+        &#60;meta charset="utf-8"&#62;
+        &#60;title&#62;Error Page&#60;/title&#62;
+        &#60;meta name="description" content="Website Description"&#62;
+        &#60;meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"&#62;
+
+        &#60;link rel="stylesheet" href="<hl>_error_pages</hl>/css/common.css"&#62;
+        &#60;script type="text/javascript" language="javascript" src="<hl>_error_pages</hl>/js/classes.js"&#62;&#60;/script&#62;
+        &#60;script type="text/javascript" language="javascript" src="<hl>_error_pages</hl>/js/common.js"&#62;&#60;/script&#62;
+        
+    &#60;/head&#62;
+</pre>
+<br />
+<h3>Log Output Example - Maintenance Page</h3>
+<p>
+    Using an example with proxy mapping, the Log output shows the order of how content loads from the website (with the default system template and a status message). The root URI path of the website would normally load the '<blue>index.html</blue>' that is set as the '<blue>Default Document</blue>'. In this case, maintenance mode intercepts the request and focuses the target path and file to the maintenance page. The maintenance page uses relative path for all of the file links and it successfully loads CSS, JavaScript, Images and the API call.
+</p>
+<pre>
+  :: Request Time [0 ms] > [200] https://localtest.network.local/www/
+  :: Request Time [1 ms] > [200] https://localtest.network.local/www/_maintenance_page/css/common.css
+  :: Request Time [0 ms] > [200] https://localtest.network.local/www/_maintenance_page/js/common.js
+  :: Request Time [0 ms] > [200] https://localtest.network.local/www/_maintenance_page/js/classes.js
+  :: Request Time [0 ms] > [200] https://localtest.network.local/www/_maintenance_page/js/jquery.min.3.6.1.js
+  :: Request Time [0 ms] > [200] https://localtest.network.local/www/_maintenance_page/css/images/logo.png
+  :: Request Time [0 ms] > [200] https://localtest.network.local/www/_maintenance_page/css/images/maintenance.jpeg
+  :: Request Time [1 ms] > [200] https://localtest.network.local/www/_maintenance_page/api/message?{}    
+</pre>
+<br />
+<p>
+    If using an absolute path for website links, the server will fail to match any mapping rules and will result in <hl>404</hl> errors for the sub content. When using an absolute path, the client browser will try and grab content from the root of the domain name as shown in the log output.
+</p>
+<pre>
+  :: Request Time [1 ms] > [200] https://localtest.network.local/www/
+  :: Request Time [0 ms] > [<hl>404</hl>] https://localtest.network.local/_maintenance_page/css/common.css
+  :: Request Time [1 ms] > [<hl>404</hl>] https://localtest.network.local/_maintenance_page/js/jquery.min.3.6.1.js
+  :: Request Time [0 ms] > [<hl>404</hl>] https://localtest.network.local/_maintenance_page/js/common.js
+  :: Request Time [0 ms] > [<hl>404</hl>] https://localtest.network.local/_maintenance_page/js/classes.js    
+</pre>
+<br />
+<h3>Preview Errors and Maintenance Page</h3>
+<p>
+    To view the maintenace page and error pages without triggering an error or setting maintenace mode, you can simply navigate to the default files under the special URL path like the following:
+    <br /><br />
+    <u><b>Preview Maintenance Page</b></u>
+</p>
+<pre>
+https://localtest.network.local/www/_maintenance_page/maintenance.html
+</pre>
+<p>
+    <u><b>Preview Error Pages</b></u>
+</p>
+<pre>
+https://localtest.network.local/www/_error_pages/404.html
+</pre>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

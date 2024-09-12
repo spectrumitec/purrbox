@@ -1,0 +1,42 @@
+<h1>Sub Mapping</h1>
+<p>
+	'<blue>Porject Website Sub Mapping</blue>' under the '<blue>Website Mapping</blue>' section is used to map a URI path to another website in the project. This is not used for mapping to websites in a different project. Depending on your upstream configuration for how a domain is resolved to the server or servers, you would potentially configure a '<blue>Proxy Map</blue>' under the '<blue>Resolve</blue>' panel to map a domain and path to a project and website, then use sub mapping to map a URI path of your website to another website.
+	<br /><br />
+	In these examples it defines where in the URL / URI path sub mapping is used. From a VHost preview path, a Proxy Map or an DNS FQDN Map, the sub map URI path is noted in <b>bold</b> letters.
+	<br /><br />
+	<gray>https://</gray> <red>hostname</red><orange>/vhost/project::website/</orange><purple><b>sub_map/</b></purple>*<br />
+	<gray>https://</gray> <blue>www.domain.com/proxy_path/</blue><purple><b>sub_map/</b></purple>*<br />
+	<gray>https://</gray> <green>www.domain.com</green>/<purple><b>sub_map/</b></purple>*<br />
+	<br />
+</p>
+<h3>Create a Sub Map</h3>
+<p>
+	The way to create a sub mapping from the website to another website, start by clicking the website you want to add a sub map to, and click the add <img src="/images/add_icon.png" alt="" /> icon to bring up the dialog.
+</p>
+<br />
+<img src="/help/images/3_website_sub_mapping_add.png" alt="" />
+<br /><br />
+<p>
+	Enter the URI path that will map to a website, select the website in the project that it will map to and click '<blue>Map Path</blue>' button.
+</p>
+<br />
+<img src="/help/images/3_website_sub_mapping_add_dialog.png" alt="" />
+<br /><br />
+<p>
+	The sub mapping will be added as shown below.
+</p>
+<br />
+<img src="/help/images/3_website_sub_mapping_added.png" alt="" />
+<br /><br />
+<p>
+	An example of preview the sub mapping from a Management UI VHost preview:
+</p>
+<br />
+<img src="/help/images/3_website_sub_mapping_preview.png" alt="" />
+<br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

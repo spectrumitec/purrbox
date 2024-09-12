@@ -1,0 +1,54 @@
+<h1>Environments and Mapping</h1>
+<p>
+    It's important to understand multiple environments and DNS resolution to server IP, Proxy/Load Balancers, or local Hosts file when you start working with mapping. Reference to '<b>Getting Started</b>' and '<b>Environments</b>', that is one hypothetical layout for different environments (below). It doesn't mean you will have your environments matching this layout. It could be much more simple or leverage Kubernetes instead of traditional VM servers with external load balancers, etc. For sake of simplicity, a lot of these examples will use traditional environments to help describe mapping the system software can support.
+</p>
+<br />
+<img src="/help/images/1_environments.png" />	
+<br /><br />
+<h3>Simple Environment</h3>
+<p>
+    <red>Before getting into this example, from a security perspective, it will most likely not look like this.</red> This is just a functional example. Your environment will most likely have a DMZ or multiple, API gateway, potentially a local code repo, VPNs or users may not work on code from home even (or use virtual desktop for remote access). Also, separate database services from web layer, etc.
+    <br /><br />
+	Let's take for example you have a local workstation with a running version of this webserver and Managment UI enabled. You are working remotely and there is also a Dev, QA, Stage and Prod server in your company server network. Your workstation might also be configured as a Dev server which might feel like it will cause a conflict in the configurations. The following configuration would be a way to support your work and to be able to move it to your company environment as your development proceeds. The following table would define the location, environment, domain name and name service.
+</p>
+<br />
+<div class="grid4">
+    <div class="grid1_sub_head">Location</div>
+    <div class="grid1_sub_head">Environment</div>
+    <div class="grid1_sub_head">Domain Name</div>
+    <div class="grid1_sub_head">Service (resolve to IP)</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">Prod</div>
+    <div class="grid1_col">www.domain.com</div>
+    <div class="grid1_col">Internal and External DNS</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">Stage</div>
+    <div class="grid1_col">stage.network.local</div>
+    <div class="grid1_col">Internal DNS</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">QA</div>
+    <div class="grid1_col">qa.network.local</div>
+    <div class="grid1_col">Internal DNS</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">Dev</div>
+    <div class="grid1_col">dev.network.local</div>
+    <div class="grid1_col">Internal DNS</div>
+    <div class="grid1_col">Remote</div>
+    <div class="grid1_col">Dev</div>
+    <div class="grid1_col">dev.network.local</div>
+    <div class="grid1_col">Local HOSTS File</div>
+</div>
+<br /><br />
+<p>
+    What the environment could look like, is the following. Generally speaking, leveraging a GitHub repo and working within you own branch of a project or website, and later can be merged into the development environment in the company. Also, a project or website can be cloned in the system which can allow a manager of a project to focus each project clone to a different repo branch. A cloned project will not include the Proxy or DNS mapping settings of the master project but a can still be viewed with a VHost preview (or create Proxy Mapping to resolve a subfolder of a domain name to the clone). At some point all the changes can be merged into the main branch and pulled into the master project. The local HOSTS file can allow you to similate the company internal DNS and the '<blue>Proxy Map</blue>' or '<blue>DNS FQDN</blue>' mapping can work even on your local workstation as it would in the company network with local DNS. If your workstation is placed on the company network, you would need to remove the HOSTS file entry to resolve to the internal DNS server.
+</p>
+<br />
+<img src="/help/images/6_resolve_simple_example.png" />	
+<br /><br />
+<h3>Resolve Configuration</h3>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

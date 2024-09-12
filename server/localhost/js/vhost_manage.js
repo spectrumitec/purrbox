@@ -25,31 +25,31 @@ SOFTWARE.
 */
 
 //Vars
-var server_configs = {};
-var server_paths = {};
-var protected_paths = {};
+var server_configs = {}
+var server_paths = {}
+var protected_paths = {}
 
-var website_projects = {};
+var website_projects = {}
 var website_project_errors = {}
-var templates_system = {};
-var templates_user = {};
+var templates_system = {}
+var templates_user = {}
 
 var focused_project = "";
 var focused_panel = "";
 var focused_site = "";
 
 //Project files (caller)
-var project_files_folder_open = [];
+var project_files_folder_open = []
 var project_files_selected_object = "";
 
 //Admin panel temp store
-var admin_panel = {};
+var admin_panel = {}
 
 //////////////////////////////////////
 // Common methods
 //////////////////////////////////////
 
-var _web_calls = {};
+var _web_calls = {}
 function web_calls() {
     //Handle function call
     if(arguments[0] != undefined) {
@@ -726,8 +726,6 @@ function website_manage(action, data={}) {
         "query":json
     }
 
-    console.log(json)
-
     //Execute call
     web_calls(params)
 }
@@ -1175,8 +1173,6 @@ function resolve_update_map(value) {
         "url":url,
         "query":json
     }
-
-    console.log(json)
 
     //Execute call
     web_calls(params)
@@ -4277,7 +4273,7 @@ function ui_website_map_delete(map_type, path) {
         <input type="hidden" id="delete_map_type" value="${map_type}">
         <input type="hidden" id="delete_map_path" value="${path}">
     
-        <p>Are you sure you want to delete path '${path}'?
+        <p>Are you sure you want to delete path <b>${path}</b>?
         
         <br /><br />
         <input type="button" value="Yes" onClick="website_manage_map_delete();">
@@ -5400,6 +5396,9 @@ function ui_admin_server_settings(response) {
             case "environment": 
                 this_desc = "The environment of this server (dev, qa, stage or prod). Environment vars are passed to server side execute code for use by project code.";
             break;
+            case "environment_name": 
+                this_desc = "The environment name is a free form field as per user preference (e.g. front_end, apps, app_name)";
+            break;
             case "http_on": 
                 this_desc = "HTTP listener enabled or disabled";
             break;
@@ -5638,8 +5637,8 @@ function ui_admin_server_url_mapping(response) {
     let html_web_settings_rows = "";
     if(admin_panel["admin_server_mapping_mgmt"] == true) {
         //Get mgmt settings and default Managment UI site settings
-        let project_params = web_configs.mgmtui;
-        let website_params = project_params.websites.www;
+        let project_params = web_configs.mgmt;
+        let website_params = project_params.websites.ui;
 
         //Get settings
         html_web_settings_rows += ui_admin_server_url_mapping_websites("Management", "This UI", project_params, website_params);
@@ -5941,7 +5940,6 @@ function ui_admin_server_url_mapping_websites(project_name, website_name, projec
     return html_web_settings_row;
 }
 function ui_admin_test_url_mapping(response) {
-    console.log(response)
     let this_log = decodeURIComponent(response.log)
     $("#url_test_result").html(this_log)
 }

@@ -48,7 +48,7 @@ const logger = new vhost_logger()
 
 //Set vhost logger
 const vhost_mapping = require(path.join(__dirname,"vhost_mapping.js"));
-const mapper = new vhost_mapping()
+const mapping = new vhost_mapping()
 
 //Server class
 class vhost_server {
@@ -67,7 +67,8 @@ class vhost_server {
     debug_mode_on = false;      //Debug output
 	mgmt_mode = true;           //Management modes 'true' or 'false'
 	mgmt_ui = []                //Management UI hostnames
-    environment="";             //User defined environment name (development, qa, stage, prod, etc)
+    environment="";             //User defined environment (development, qa, stage, prod, etc)
+    environment_name="";        //User defined environment name (e.g. fron_end, app, other)
 	http_on=true;               //HTTP enable
 	http_port=80;               //HTTP port
 	https_on=true;              //HTTPS enable
@@ -109,7 +110,7 @@ class vhost_server {
         this.running_cache = JSON.parse(JSON.stringify(require.cache));
 
         //Run startup map
-        mapper.map_generate()
+        mapping.map_generate()
     }
 
     define_paths() {
@@ -209,6 +210,9 @@ class vhost_server {
             if(json.environment != undefined) {
                 this.environment = json.environment;
             }
+            if(json.environment_name != undefined) {
+                this.environment_name = json.environment_name;
+            }
             if(json.http_on != undefined) {
                 (json.http_on == true) ? this.http_on = true : this.http_on = false;
             }
@@ -287,9 +291,6 @@ class vhost_server {
             }
             this.mime_types = json;
         }
-
-        //Set mapper
-        mapper.set_environment(this.environment)
     }
     load_server_ipaddr() {
         //Get system IP addresses
@@ -356,7 +357,8 @@ class vhost_server {
             "source":"",
             "state":"info",
             "message":"",
-            "environment":this.env
+            "environment":this.environment,
+            "environment_name":this.environment_name
         }
 
         //Validate fields
@@ -485,7 +487,7 @@ class vhost_server {
         //
 
         //Check changes
-        if(mapper.scan_project_changes() == true) {
+        if(mapping.scan_project_changes() == true) {
             this.log({
                 "source":"system",
                 "state":"info",
@@ -493,7 +495,7 @@ class vhost_server {
             })
 
             //Update changes
-            mapper.map_generate();
+            mapping.map_generate();
         }
     }
 
@@ -600,7 +602,8 @@ class vhost_server {
             "local_ipv6":this.ipv6_address,
             "request_ip":null,
             "node_version":null,
-            "environment":this.environment
+            "environment":this.environment,
+            "environment_name":this.environment_name
         }
         if(req.socket.localAddress != undefined) {
             if(req.socket.localAddress == "::1") {
@@ -651,10 +654,10 @@ class vhost_server {
         }
 
         //Raw Headers
-        let _raw_headers = {};
+        let _headers = {};
         for(let i = 0; i <= (req.rawHeaders.length-1) ; i++ ){
             if(i % 2 != 1) {
-                _raw_headers[req.rawHeaders[i]] = req.rawHeaders[i+1]
+                _headers[req.rawHeaders[i]] = req.rawHeaders[i+1]
             }
         }
 
@@ -688,7 +691,7 @@ class vhost_server {
         }
 
         //Match URL
-        let request_match = mapper.match_url(full_url);
+        let request_match = mapping.match_url(full_url);
 
         //SSL Redirect
         if(protocol == "http" && this.https_on == true) {
@@ -736,7 +739,7 @@ class vhost_server {
 
         //Log connection
         let this_request = {
-            "source":request_match.project,
+            "source":`${request_match.project}-${request_match.website}`,
             "state":"info",
             "full_url":full_url,
             "message":"",
@@ -768,6 +771,22 @@ class vhost_server {
             "time":start_time  // Used to pass to server side execute and recalc total time
         }
 
+        //Create _request details
+        let _request = {
+            "method":this_method, 
+            "http_version":this_http_version,
+            "protocol":this_protocol,
+            "hostname":this_host,
+            "path":this_path,
+            "path_prefix":request_match.website_uri_prefix,
+            "path_suffix":request_match.website_uri_suffix,
+            "query_string":this_query,
+            "fixed_api_path":[]
+        }
+        if(request_match.fixed_api_path.length > 0) {
+            _request.fixed_api_path = request_match.fixed_api_path;
+        }
+
         //Unload the server side file if cache is false (used when content is static)
         if(this.cache_on == false) {
             //delete require.cache[file_path];
@@ -780,7 +799,7 @@ class vhost_server {
             time = new Date()
             end_time = time.getTime()
             this_request["time"] = (end_time-start_time);
-            this_request["message"] = `Request Time [${this_request["time"]} ms] > ${this_request["full_url"]}`;
+            this_request["message"] = `Request Time [${this_request["time"]} ms] > [${request_match.status_code}] ${this_request["full_url"]}`;
             this.log(this_request)
 
             //Send client side files
@@ -796,13 +815,9 @@ class vhost_server {
             params = {
                 "_server":_server,
                 "_client":_client,
-                "_raw_headers":_raw_headers,
-                "method":this_method, 
-                "http_version":this_http_version,
-                "protocol":this_protocol,
-                "hostname":this_host,
-                "path":this_path,
-                "query":{}
+                "_headers":_headers,
+                "_request":_request, 
+                "_query":{}
             }
 
             //Process GET or POST / OTHER
@@ -812,13 +827,12 @@ class vhost_server {
                     this_query += data;
                 });
                 req.on('end', function () {
-                    //Async function
-                    params.query = mapper.match_parse_query(this_query);
+                    params._query = mapping.match_parse_query(this_query);
                     parent.exec_server_side(res, file_path, params, this_request);
                 });
             }else{
                 //Set request parameters
-                params.query = mapper.match_parse_query(this_query);
+                params._query = mapping.match_parse_query(this_query);
                 this.exec_server_side(res, file_path, params, this_request);
             }
         }else{
@@ -830,7 +844,7 @@ class vhost_server {
             //Update log output
             this_request["source"] = "system";
             this_request["state"] = "error";
-            this_request["message"] = `Request Time [${this_request["time"]} ms] > Failed to define client or server handling for file: ${file_path}`;
+            this_request["message"] = `Request Time [${this_request["time"]} ms] > [500] Failed to define client or server handling for file: ${file_path}`;
             this_request["status_code"] = 500;
             this_request["status_msg"] = "System error classifying file to execute server side or send to client";
 
@@ -882,7 +896,7 @@ class vhost_server {
                 this_request["time"] = (end_time - this_request["time"]);
 
                 //Update log output
-                this_request["message"] = `Request Time [${this_request["time"]} ms] > ${this_request["full_url"]}`;
+                this_request["message"] = `Request Time [${this_request.time} ms] > [${this_request.status_code}] ${this_request.full_url}`;
 
                 //Send log
                 this.log(this_request);
@@ -912,7 +926,7 @@ class vhost_server {
 
         //Update log output
         this_request["state"] = "error";
-        this_request["message"] = `Request Time [${this_request["time"]} ms] > ${this_request["full_url"]}`;
+        this_request["message"] = `Request Time [${this_request["time"]} ms] > [500] ${this_request["full_url"]}`;
         this_request["status_code"] = 500;
         this_request["status_msg"] = `500 Internal Server Error: ${file_path}, response null`;
 
@@ -924,15 +938,6 @@ class vhost_server {
         res.end(`{"error":"500 Internal Server Error"}`);
     }
     exec_server_side_error(res, file_path, catch_error, this_request) {
-        //Output error
-        this.log({
-            "source":"error_trace",
-            "state":"error",
-            "message":`Server side execution error`,
-            "file":file_path,
-            "stack_trace":catch_error.stack
-        })
-
         //Unload the server side file on error
         delete require.cache[file_path];
 
@@ -943,9 +948,10 @@ class vhost_server {
 
         //Update log output
         this_request["state"] = "error";
-        this_request["message"] = `Request Time [${this_request["time"]} ms] > ${this_request["full_url"]}`;
+        this_request["message"] = `Request Time [${this_request["time"]} ms] > [500] ${this_request["full_url"]}`;
         this_request["status_code"] = 500;
         this_request["status_msg"] = `500 Internal Server Error: ${file_path}`;
+        this_request["stack_trace"] = catch_error.stack;
 
         //Send log
         this.log(this_request);

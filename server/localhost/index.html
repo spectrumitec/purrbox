@@ -17,12 +17,16 @@
 		<script type="text/javascript" language="javascript" src="js/classes.js"></script>
 		<script type="text/javascript" language="javascript" src="js/common.js"></script>
 		<script type="text/javascript" language="javascript" src="js/vhost_manage.js"></script>
+		<script type="text/javascript" language="javascript" src="js/helpdocs.js"></script>
 	</head>
 	<body>
 		<!-- Page Header -->
 		<div class="header" id="header">
             <div class="header_logo"></div>
-            <div class="header_title">Node.js Wonderbox</div>
+            <div class="header_title">
+				Wonderbox
+				<span class="header_ver">v1.0.0</span>
+			</div>
 			<div class="authenticated_user">
 				<div id="authenticated_user"></div>
 				<div id="auth_user_dropdown" class="auth_user_dropdown">
@@ -37,12 +41,12 @@
 				<ul>
 					<li><a href="#projects">Projects</a></li>
 					<li><a href="#templates" onClick="ui_templates_list()">Templates</a></li>
-					<li><a href="#help">Help</a></li>
+					<li><a href="#help" onClick="ui_helpdocs_page()">Help</a></li>
 					<li><a href="#admin" onClick="ui_admin_page()">Admin</a></li>
 				</ul>
 				<div id="projects"></div>
 				<div id="templates"></div>
-				<div id="help">Future Link</div>
+				<div id="help"></div>
 				<div id="admin"></div>
 			</div>
 		</div>

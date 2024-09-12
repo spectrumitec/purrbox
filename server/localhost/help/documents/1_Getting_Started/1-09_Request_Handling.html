@@ -1,0 +1,57 @@
+<h1>Request Handling</h1>
+<h3>How Mapping Works</h3>
+<p>
+	With reference to Proxy Mapping and DNS FQDN resolution, the server analyzes the URL / URI path and breaks it down to figure out how it needs to resolve to project website content. There are basically 2 stages of figuring this out. 
+</p>
+<ul>
+	<li><b>Stage 1</b> - has to deal with the process of matching to DNS or Proxy mapping, or if Management UI is enabled and if viewing a VHost preview for a project website. Also, figuring out if sub folders are mapping to a different website (sub maps).</li>
+	<li><b>Stage 2</b> - deals with the configuation for project website mapping paramters for what is static content and what is to be executed on the server side. Which project content is for serving and what project files are not exposed to web clients.</li>
+</ul>
+<p>
+	System logging information has a bit of detail in the 'Match Log' field which is the output of how the server figured out what to serve and how for that request. System Administration panels also has a simulator for verifying a URL and how it will work with the rules defined for website mapping in various environments. The output window for the simulator is what usually exists in the system 'Match Log' logging field.
+	<br /><br />
+	The following is a simple diagram on the request matching process. Take note to the colour coding for stage 1 reference to the 'Incoming Requests' details below. When the Management Mode is disabled or turned off. The user's incoming connection bypasses any Mamangement UI IP addresses, hostnames or FQDN configurations. The system will go directly to matching to Proxy and DNS FQDN mappings. The matching order typically happens in order from top to bottom as a first match wins. Sub mapping only applies after the project and website are identified from a VHost preview, Proxy or DNS FQDN match. Management UI does not have sub mapping functionality as it's not required.
+</p>
+<br />
+<img src="/help/images/1_request_handling.png" alt="" />
+<br /><br />
+<h3>Stage 1 URL Parsing</h3>
+<p>
+	The URL / URI colour coding helps to identify what parts of the entire address are used for matching.
+	<br /><br />
+	<gray>https://</gray> <red>hostname</red>/*<br />
+	<gray>https://</gray> <red>hostname</red><orange>/vhost/project::website/</orange>*<br />
+	<gray>https://</gray> <red>hostname</red><orange>/vhost/project::website/</orange><purple>sub_map/</purple>*<br />
+	<gray>https://</gray> <blue>www.domain.com/proxy_path/</blue>*<br />
+	<gray>https://</gray> <blue>www.domain.com/proxy_path/</blue><purple>sub_map/</purple>*<br />
+	<gray>https://</gray> <green>www.domain.com</green>/*<br />
+	<gray>https://</gray> <green>www.domain.com</green>/<purple>sub_map/</purple>*<br />
+	<br />
+	Brief description:
+</p>
+<ul>
+	<li><red><b>Hostname</b> or a <b>Domain Name (FQDN)</b> assigned to Management UI (if enabled)</red></li>
+	<li><orange><b>VHost Preview</b> path resolving to user project and website (if Management UI is enabled)</orange></li>
+	<li><blue><b>Proxy Map URL</b> having a domain name and path resolving to a project and website</blue></li>
+	<li><green><b>DNS Name (FQDN)</b> resolving directly to a project and website</green></li>
+	<li><purple><b>Sub Path (Sub Map)</b> resolving to another website under user’s project (same project)</purple></li>
+</ul>
+<h3>Stage 2 Project Website Parameters</h3>
+<p>
+	In the manage websites section, there is a lot more details about configurations. As a brief description there are 4 main categories for the content that is being served. These are matched in order of the list. First match wins.
+</p>
+<ul>
+	<li><b>API fixed path</b> - Mapping a base URI path to a specific file location in the project website for server side exection. This means any URI path that starts with a path defined will all resolve to a target file.</li>
+	<li><b>API dynamic path</b> - Mapping a base URI path to a specific folder location in the project website for server side exection. This means it will map to folders and files that start with the URI path name. It can be any folder of file in that target location.</li>
+	<li><b>Static Override</b> - Override for static content that must execute on the server side. This is very similar to API fixed path but related to static path locations.</li>
+	<li><b>Static Content</b> - The default root path for the website static content.</li>
+</ul>
+<p>
+	The next it will check is maintenance mode and custom error pages paths. Those are special URI paths.
+</p>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
