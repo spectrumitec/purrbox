@@ -934,27 +934,6 @@ p {
     background-color: white;
 }
 
-
-/* VHost reference 
-.vhost_panel {
-    position: absolute;
-    top: 50px;
-    left: 4px;
-    height: calc(100% - 54px);
-    width: calc(100% - 10px);
-    overflow: auto;
-    display: block;
-}
-@media screen and (max-width:1200px) {
-    .vhost_panel {
-        top: 30px;
-        left: 4px;
-        height: calc(100% - 34px);
-        width: calc(100% - 10px);
-    }
-}
-*/
-
 /* Admin page */
 .admin_mgmt {
     position: absolute;

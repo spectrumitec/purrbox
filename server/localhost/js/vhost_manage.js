@@ -2456,7 +2456,7 @@ function ui_resolve_panel() {
                     <option value="dev">dev</option>
                     <option value="qa">qa</option>
                     <option value="stage">stage</option>
-                    <option value="prod">prrod</option>
+                    <option value="prod">prod</option>
                 </select>
             </div>
             <div class="grid1_col">
