@@ -1631,7 +1631,7 @@ class manage_server {
     }
     project_manage_create_blank(result, auth_check, query) {
         //Get parameters
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
         let project_desc = query.project_desc;
 
         //Check for existing folder
@@ -1671,7 +1671,7 @@ class manage_server {
     project_manage_create_from_template(result, auth_check, query) {
         //Get parameters
         let type = query.type;
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
         let project_desc = query.project_desc;
         let template = query.template;
 
@@ -1756,7 +1756,7 @@ class manage_server {
     project_manage_clone(result, auth_check, query) {
         //Get parameters
         let project_selected = query.project_selected;
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
 
         //Try and rename source folder first
         let web_source = this.paths.web_source;
@@ -1802,7 +1802,7 @@ class manage_server {
     project_manage_rename(result, query) {
         //Get parameters
         let project_selected = query.project_selected;
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
 
         //Try and rename source folder first
         let web_source = this.paths.web_source;
@@ -2409,6 +2409,7 @@ class manage_server {
 
                 //Validate fields
                 if(query.type == "blank") {
+                    //Validate website name string
                     if(this.validate_name(query.website_name) == false) {
                         validate.result.error = "New website name is invalid";
                         return validate;
@@ -2805,7 +2806,7 @@ class manage_server {
         //Get config data
         let conf_data = build.conf_data;
         let project_name = build.query.project;
-        let website_name = build.query.website_name;
+        let website_name = build.query.website_name.toLowerCase();
 
         //Check if site already exists
         if(conf_data.websites.website_name != undefined) {
@@ -2912,7 +2913,7 @@ class manage_server {
             let template_website_path = path.join(template_path, template_name, template_website_name);
 
             //New website name
-            let website_new_name = target_websites[target];
+            let website_new_name = target_websites[target].toLowerCase();
             let website_new_path = path.join(this.paths.web_source, project_name, website_new_name);
 
             //Check for conflicting name
@@ -3005,7 +3006,7 @@ class manage_server {
         let action = query.action;
         let project_name = query.project;
         let curr_site_name = query.select_website_name;
-        let new_site_name = query.new_website_name;
+        let new_site_name = query.new_website_name.toLowerCase();
 
         //Get project config
         let conf_load = this.load_project_conf(project_name);

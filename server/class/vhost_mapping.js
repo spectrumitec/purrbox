@@ -1461,7 +1461,7 @@ class vhost_mapping {
             match.log += `    Target URI: ${target_uri}\n`;
 
             //Get VHost paths
-            if(target_uri.match(/\/vhost\/[0-9a-z\-\_\.]*::[0-9a-z\-\_\.]*\//g)) {
+            if(target_uri.match(/\/vhost\/[0-9A-Za-z\-\_\.]*::[0-9A-Za-z\-\_\.]*\//g)) {
                 //Search VHost mapping
                 let mgmtui_vhosts = this.web_mapping.resolve.mgmtui_map.vhosts;
                 for(let vhost in mgmtui_vhosts) {
@@ -2706,7 +2706,7 @@ class vhost_mapping {
         match.log += `      Set Error Page from Managment UI\n`;
 
         //Check VHost path error
-        if(match.url_parsed.basepath.match(/\/vhost\/[0-9a-z\-\_]*::[0-9a-z\-\_]*\//g)) {
+        if(match.url_parsed.basepath.match(/\/vhost\/[0-9A-Za-z\-\_]*::[0-9A-Za-z\-\_]*\//g)) {
             match.log += `        Invalid VHost Path: ${match.url_parsed.basepath}\n`;
 
             //Set Management UI VHost path error page

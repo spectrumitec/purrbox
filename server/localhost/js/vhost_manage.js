@@ -2453,10 +2453,10 @@ function ui_resolve_panel() {
             <div class="grid1_col">
                 <select id="resolve_add_env" class="resolve_env_option">
                     <option value=""></option>
-                    <option value="dev">Dev</option>
-                    <option value="qa">QA</option>
-                    <option value="stage">Stage</option>
-                    <option value="prod">Prod</option>
+                    <option value="dev">dev</option>
+                    <option value="qa">qa</option>
+                    <option value="stage">stage</option>
+                    <option value="prod">prrod</option>
                 </select>
             </div>
             <div class="grid1_col">
