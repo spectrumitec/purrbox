@@ -1,0 +1,119 @@
+<h1>Resolve Flows</h1>
+<p>
+    Figuring out beforehand how the URL address will resolve to the correct website is important for the least amount of changes in future, simplification of network device configuration requests, and avoiding issues. The following examples are different configurations how URLs will resolve to the project websites in the system.
+</p>
+<br />
+<h3>Single Domain, Single IP</h3>
+<p>
+    In the most simple configuration you may have a URL resolve to a single server IP address. The example below shows how both mapping types work for '<blue>Proxy Map</blue>' and '<blue>DNS FQDN</blue>'. When the server receives a URL request and starts the matching process, Proxy mapping will get checked first before DNS FQDN mapping types. This also shows '<blue>Sub Mapping</blue>' at the website settings level. For the network admin side of things, they only need is to add a DNS record ('<blue>dev.network.local</blue>') to resolve to IP address of the server. The rest is in the control of the application owners or developers.
+</p>
+<ul>
+    <li>At the top, there is a one to one mapping for domain to website with a '<blue>/subpath/</blue>' mapping to a second website. This works as expected. Entering the domain of '<blue>dev.network.local</blue>' will resolve to '<blue>project1</blue>' and website '<blue>www</blue>' and '<blue>dev.network.local/subpath/</blue>' will resolve to '<blue>project1</blue>' and website '<blue>site2</blue>'<br /><br /></li>
+    <li>Next you add on another project called '<blue>project2</blue>' and a website called '<blue>blogs</blue>' and setup a '<blue>Proxy Map</blue>' with a domain + path to resolve to it. This will also work as expected. Proxy mapping will be checked first and then the DNS FQDN mappings. Entering the URL of '<blue>dev.network.local/blogs</blue>' will resolve to '<blue>project2</blue>' and website '<blue>blogs</blue>'<br /><br /></li>
+    <li>At the bottom, someone adds '<blue>/blogs/</blue>' using '<blue>Sub Mapping</blue>' in '<blue>project1</blue>' website '<blue>www</blue>'. This does not work because the URL path will be '<blue>dev.network.local/blogs/</blue>' which is the same as the '<blue>Proxy Map</blue>' configuration to '<blue>project2</blue>' website '<blue>blogs</blue>'. Since '<blue>Proxy Map</blue>' rules are checked first, the '<blue>blogs</blue>' website under project '<blue>project2</blue>' will win the match.</li>
+</ul>
+<p>
+    At this point, a problem is identified. The application team can decide what to do to resolve without having to involve a network administrator. The team can decide what path name to use for '<blue>project1</blue>' blogs website or what to do with '<blue>project2</blue>'.
+</p>
+<br />
+<img src="/help/images/6_resolve_diagram_simple_1.png" />	
+<br /><br />
+<img src="/help/images/6_resolve_diagram_simple_2.png" />	
+<br /><br />
+<img src="/help/images/6_resolve_diagram_simple_3.png" />	
+<br /><br />
+<h3>Single Domain, Load Balancer</h3>
+<p>
+    Let's take an example of having a load balancer in front of multiple web services. The user would connect to a domain of '<blue>portal.network.local</blue>' for various web applications. Those web applications reside across many web servers. In summary, these URLs map to project and website in the table (logically).
+</p>
+<div class="grid4">
+    <div class="grid1_sub_head">URL + Path</div>
+    <div class="grid1_sub_head">Mapping Type</div>
+    <div class="grid1_sub_head">Project</div>
+    <div class="grid1_sub_head">Website</div>
+    <div class="grid1_col">portal.network.local/</div>
+    <div class="grid1_col">DNS FQDN</div>
+    <div class="grid1_col">project6</div>
+    <div class="grid1_col">www</div>
+    <div class="grid1_col">portal.network.local/app1/</div>
+    <div class="grid1_col">Proxy Map</div>
+    <div class="grid1_col">project3</div>
+    <div class="grid1_col">www</div>
+    <div class="grid1_col">portal.network.local/app1/subpath/</div>
+    <div class="grid1_col">Sub Mapping</div>
+    <div class="grid1_col">project3</div>
+    <div class="grid1_col">site2</div>
+    <div class="grid1_col">portal.network.local/app2/</div>
+    <div class="grid1_col">Proxy Map</div>
+    <div class="grid1_col">project4</div>
+    <div class="grid1_col">application</div>
+    <div class="grid1_col">portal.network.local/app3/</div>
+    <div class="grid1_col">Proxy Map</div>
+    <div class="grid1_col">project5</div>
+    <div class="grid1_col">www</div>
+</div>
+<br /><br />
+<p>
+    The URLs above are relate to the digram below. A user connects to the portal URL from a web browser and it resolves to the load balancer VIP (virtual IP). The load balance has ACLs (access control list) are configured so that certain URL, whether it is domain only or domain + path, are matched to a backend server pool. In the digram those pool names are '<blue>be_pool_1</blue>', '<blue>be_pool_2</blue>', and '<blue>be_pool_3</blue>' which resolve to one or more server IPs. Each of those server IPs are it's own server or container that have access to the same project files in the '<blue>web_config</blue>' folder and have mapped the project and websites according to the configuration files it's loaded.
+    <br /><br />
+    When the web requests forward on from the load balancer the URL domain or domain + path are sent to the web servers. The web servers resolve mapping will be configured the same as the load balancer configuration so that what is sent on from the load balancer will be mapped directly to the project and website.
+</p>
+<br />
+<img src="/help/images/6_resolve_diagram_complex_1.png" />	
+<br /><br />
+<p>
+    <b>Example HAproxy configuration</b>
+    <br /><br />
+    With the diagram above, a sample HAproxy load balancer configuration might look as follows.
+</p>
+<pre>
+# Virtual Host Frontend
+frontend fe_web_http
+    bind 192.168.1.220:80
+
+    # Redirect to SSL
+    http-request redirect scheme https unless { ssl_fc }
+
+    # Catch all deny
+    default_backend be_deny_all
+
+frontend fe_web_https
+    bind 192.168.1.220:443 ssl crt /etc/haproxy/ssl.pem
+
+    # Proxy Map from NLB
+    use_backend      be_vhost_portal_1    if { hdr(host) -i -m sub portal.network.local } { path_beg /app1/ }
+    use_backend      be_vhost_portal_1    if { hdr(host) -i -m sub portal.network.local } { path_beg /app2/ }
+    use_backend      be_vhost_portal_2    if { hdr(host) -i -m sub portal.network.local } { path_beg /app3/ }
+    use_backend      be_vhost_portal_3    if { hdr(host) -i -m sub portal.network.local }
+
+    # Catch all deny
+    default_backend be_deny_all
+
+# Default backend - drop all unmatched
+backend be_deny_all
+    #http-request silent-drop
+    http-request deny
+    
+backend be_portal_1
+    option forwardfor
+    server vhost1 192.168.1.52:443 ssl alpn h2,http/1.1 check
+    server vhost2 192.168.1.53:443 ssl alpn h2,http/1.1 check
+    server vhost3 192.168.1.54:443 ssl alpn h2,http/1.1 check
+    
+backend be_portal_2
+    option forwardfor
+    server vhost1 192.168.1.55:443 ssl alpn h2,http/1.1 check
+    server vhost2 192.168.1.56:443 ssl alpn h2,http/1.1 check
+    server vhost3 192.168.1.57:443 ssl alpn h2,http/1.1 check
+
+backend be_portal_3
+    option forwardfor
+    server vhost1 192.168.1.58:443 ssl alpn h2,http/1.1 check
+</pre>
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

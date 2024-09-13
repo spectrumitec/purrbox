@@ -150,6 +150,7 @@ class vhost_server {
                 "mgmt_mode": true,
 	            "mgmt_ui": [],
                 "environment":"dev",
+                "environment_name":"",
                 "http_on":true,
                 "http_port":80,
                 "https_on":true,

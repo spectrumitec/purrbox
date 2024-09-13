@@ -6,7 +6,7 @@
 <br />
 <h3>URL Assignments</h3>
 <p>
-    Before assigning URL addresses to a project and website, the network administrator must first configure a local or external DNS to resolve domain names to an IP address of your web server, load balancer or proxy server VIP (virtual IP). Kubernetes ingress service may also need setting for domain resolution to the service IP. If you are working on a local workstation, you may choose to modify the local hosts file to resolve a domain name to you localhost IP address. This is needed before you can get any URL mapping to work with your project websites.
+    Before assigning URL addresses to a project and website, the network administrator must first configure a local or external DNS to resolve domain names to an IP address of your web server, load balancer or proxy server VIP (virtual IP). Kubernetes ingress service may also need setting for domain resolution to the service IP. If you are working on a local workstation, you may choose to modify the local HOSTS file to resolve a domain name to you localhost IP address. This is needed before you can get any URL mapping to work with your project websites.
     <br /><br />
     The system aims to have projects and it's website configurations decoupled from the server as much as possible so that the projects are portable and easily moved from one environment to another. That means that there are no '<blue>Proxy Map</blue>' or '<blue>DNS FQDN</blue>' mapping at the server configuration level at all. Any URL assignments are configured in the project configuration files which are centrally managed in the Management UI. A challenge with this is keeping track of the URL assignments if you have multiple environments with Management UIs enabled but each environment cannot see all the projects, or users are configured with limited access to projects and cannot see all the mappings. It would be recommended to have a single repository with all projects so an environment with a Managment UI enbled can see all projects and URL assignments for all environments.
     <br /><br />
@@ -17,15 +17,18 @@
 <br />
 <h3>Mapping Types</h3>
 <p>
-    <b>Proxy Map</b> types are a format of '<blue>www.domain.com/path</blue>' where URL of domain + path maps to a project website.<br />
-    <b>DNS FQDN</b> types are a format of '<blue>www.domain.com</blue>' where URL of domain name only maps to a project website.<br />
-    <br />
+    <b>Proxy Map</b> types are a format of '<blue>www.domain.com/path</blue>' where URL of domain + path maps to a project website. This does not mean the system does a proxy passthrough to the website. This is used for upstream proxy mapping where a network administrator has defined a domain + path to resolve to a server IP or load balancer virtual IP (VIP). You can map the actual URL / URI path in full to the project website as a user would see connecting to the root path of your website.
+    <br /><br />
+    This is also ideal for uses where the a single domain resolves to your web services but you want to use the system to map a URI path to different project websites. In a singular setup where you have a domain resolving to a single server IP you can leverage the proxy map function to define a domain + path to resolve to different project websites without having any upstream proxy services in place. If those websites are all in the same project your should look at resolving a domain or proxy path to a primary website of the project and then use sub mapping so that you don't have to configure as many URLs, keeping it a little more contained to the project website settings.
+    <br /><br />
+    <b>DNS FQDN</b> types are a format of '<blue>www.domain.com</blue>' where URL of domain name only maps to a project website. This is meant as a one to one relation for mapping a domain to a project and website. It is not meant for mapping to multiple webites in different projects. You can use the sub mapping function from the mapped website to other websites in your project.
+    <br /><br />
     '<blue>Proxy Map</blue>' types will match first before '<blue>DNS FQDN</blue>'. It is possible to create a '<blue>DNS FQDN</blue>' map to a domain name that is also used for '<blue>Proxy Map</blue>' with a folder path. That would allow for the FQDN to map to a primary website and proxy mapping to resolve a folder to another project website.
 </p>
 <br />
 <h3>Resolve Panel</h3>
 <p>
-    The '<blue>Resolve</blue>' panel has two table views showing the mapping. The top table is only for '<blue>Proxy Map</blue>' and '<blue>DNS FQDN</blue>' mapping settings. The second table is for listing VHost preview links for all projects and websites as a quick reference. The second view is not used for managing VHosts, they are generated automatically when a project and websites are created on a server with the Management UI enabled. It's there for ability to view the websites and also an index of what currently exists in the web source folder.
+    The '<blue>Resolve</blue>' panel has two table views showing the mapping. The top table is only for '<blue>Proxy Map</blue>' and '<blue>DNS FQDN</blue>' mapping settings. The second table is for listing VHost preview links for all projects and websites as a quick reference. The second table is not used for managing VHosts, they are generated automatically when a project and websites are created on a server with the Management UI enabled. It's there for ability to view the websites and also an index of what currently exists in the web source folder.
     <br /><br />
     This panel allows for configuring new URLs to resolve to project, map type, environment, and the target website. For existing mapping, it allows for changing what project the URL belongs to and also to change environment and website target.
 </p>

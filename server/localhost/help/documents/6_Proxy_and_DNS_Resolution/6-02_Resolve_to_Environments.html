@@ -1,0 +1,98 @@
+<h1>Resolve to Environments</h1>
+<p>
+    It's important to understand multiple environments and DNS resolution to server IP, Proxy/Load Balancers, or local Hosts file when you start working with mapping. Reference to '<b>Getting Started</b>' and '<b>Environments</b>', that is one hypothetical layout for different environments (below). It doesn't mean you will have your environments matching this layout. It could be much more simple or leverage Kubernetes instead of traditional VM servers with external load balancers, etc. For sake of simplicity, a lot of these examples will use traditional environments to help describe mapping the system software can support.
+</p>
+<br />
+<img src="/help/images/1_environments.png" />	
+<br /><br />
+<h3>Simple Environment</h3>
+<p>
+    <red>Before getting into this example, from a security perspective, it will most likely not look like this.</red> This is just a functional example. Your environment will most likely have a DMZ or multiple, API gateway, potentially a local code repo, VPNs or users may not work on code from home even (or use virtual desktop for remote access). Also, separate database services from web layer, etc.
+    <br /><br />
+	Let's take for example you have a local workstation with a running version of this webserver and Managment UI enabled. You are working remotely and there is also a Dev, QA, Stage and Prod server in your company server network. Your workstation might also be configured as a Dev server which might feel like it will cause a conflict in the configurations. The following configuration would be a way to support your work and to be able to move it to your company environment as your development proceeds. The following table would define the location, environment, domain name and name service.
+</p>
+
+<div class="grid4">
+    <div class="grid1_sub_head">Location</div>
+    <div class="grid1_sub_head">Environment</div>
+    <div class="grid1_sub_head">Domain Name</div>
+    <div class="grid1_sub_head">Service (resolve to IP)</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">Prod</div>
+    <div class="grid1_col">www.domain.com</div>
+    <div class="grid1_col">Internal and External DNS</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">Stage</div>
+    <div class="grid1_col">stage.network.local</div>
+    <div class="grid1_col">Internal DNS</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">QA</div>
+    <div class="grid1_col">qa.network.local</div>
+    <div class="grid1_col">Internal DNS</div>
+    <div class="grid1_col">Company</div>
+    <div class="grid1_col">Dev</div>
+    <div class="grid1_col">dev.network.local</div>
+    <div class="grid1_col">Internal DNS</div>
+    <div class="grid1_col">Remote</div>
+    <div class="grid1_col">Dev</div>
+    <div class="grid1_col">dev.network.local</div>
+    <div class="grid1_col">Local HOSTS File</div>
+</div>
+<br /><br />
+<p>
+    Generally speaking, leveraging a GitHub repo and working within you own branch of a project or website, and later can be merged into the development environment in the company. Also, a project or website can be cloned in the system which can allow a manager of a project to focus each project clone to a different repo branch. A cloned project will not include the Proxy or DNS mapping settings of the master project but a can still be viewed with a VHost preview (or create Proxy Mapping to resolve a subfolder of a domain name to the clone). At some point all the changes can be merged into the main branch and pulled into the master project. 
+    <br /><br />
+    A local HOSTS file can allow you to similate the company internal DNS for use with '<blue>Proxy Map</blue>' or '<blue>DNS FQDN</blue>' when working remotely. If your workstation is placed on the company network, you would need to remove the HOSTS file entry to resolve to the internal DNS server.
+    <br /><br />
+    Reference to diagram below, you are working remote with a local similated environment and push your updates to GitHub. Those updates are pulled into the comapny development server. The project Proxy or DNS configuration section will work at either location (remote or company). Alternatively, you can ignore the project configuration file but have a local project setup in a silimar configuration and only pull or push the contents. That way your can use differnt DNS names to resolve and not impact the company website configurations. The caveat with this is not matching all the other configuration settings that go with the project like website settings. 
+</p>
+<br />
+<img src="/help/images/6_resolve_simple_example.png" />	
+<br /><br />
+<h3>Resolve Configuration</h3>
+<p>
+    The local workstation should be a configured as a Dev environment. The project should be in the '<blue>web_source</blue>' folder. Your HOSTS file or your local DNS service, if you have one, should resole a DNS name '<blue>dev.network.local</blue>' to your workstation IP.
+    <br /><br />
+    Without any mapping in place for the project website and trying to connect to '<blue>dev.network.local</blue>', you will see a system default 404 page. An exact copy of the project will have all those settings usually.
+</p>
+<br />
+<img src="/help/images/6_resolve_no_mapping.png" />	
+<br /><br />
+<img src="/help/images/6_resolve_no_mapping_404.png" />	
+<br /><br />
+<p>
+    The server settings should be configured for '<hl>dev</hl>' as shown in the '<blue>Admin</blue>' tab and '<blue>Server Settings</blue>' panel. If not, see the '<b>Getting Started</b>' and '<b>Server Settings</b>' page on how to set that.
+</p>
+<br />
+<img src="/help/images/6_resolve_server_env.png" />	
+<br /><br />
+<p>
+    The resolve panel can be configured with a '<blue>Proxy Map</blue>' if planning to map multiple websites under the domain name + path or simply use '<blue>DNS FQDN</blue>' mapping type. As below, these are all of the configuration settings reference to the table in the simple example above. Only the '<blue>dev</blue>' DNS will map to the project and website. The server environment variable would need to be changed to one of the other environment names to register it on the server.
+</p>
+<br />
+<img src="/help/images/6_resolve_mapping_all.png" />	
+<br /><br />
+<p>
+    Now clicking on the 'HTTP' or 'HTTPS' links beside the domain name will open the website. If it doesn't load you would need to verify the server environment and DNS / HOSTS entry is resolving correctly to the server IP.
+</p>
+<br />
+<img src="/help/images/6_resolve_mapping_webpage.png" />	
+<br /><br />
+<p>
+    The '<blue>Admin</blue>' tab and '<blue>Server Mapping</blue>' panel has a simulation function that and enables you to see what mapping will look like in different environments. You can also simulate the connection by pasting or entering in the full URL to the URL address textbox to make sure it will map properly to the right website source in the correct way (static content or server side execute).
+</p>
+<br />
+<img src="/help/images/6_resolve_server_mapping.png" />	
+<br /><br />
+<p>
+    For other environments like Prod, you will most likely have the Management UI turned off and the server setting configured for '<blue>prod</blue>'. The mapping would look as follows. With the Management UI disabled it will not register the IP addresses, localhost or other hostnames that would normally be used for the Management UI and will only register the Prod DNS name resolution configured for the website. When the project folder is moved from one environment to another, that environment can read the configuration files and map any mapping according to it's environment.
+</p>
+<br />
+<img src="/help/images/6_resolve_server_mapping_prod.png" />	
+<br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
