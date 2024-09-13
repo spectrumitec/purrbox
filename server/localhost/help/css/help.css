@@ -61,6 +61,13 @@ pre {
     overflow: auto;
     padding: 10px;
 }
+pre.tbl {
+    -webkit-box-shadow: none; 
+    box-shadow: none;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+}
 
 @media screen and (max-width:805px) {
 	p {
