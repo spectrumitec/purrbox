@@ -1,0 +1,28 @@
+<h1>Defualt System Templates</h1>
+<p>
+    The default system templates cannot be added and removed from the Management UI. If there is some reason to remove all access from add, remove or changing a template, you can leverage the default system directory.
+</p>
+<br />
+<img src="../../images/7_default_system_templates.png" alt="" />
+<br /><br />
+<p>
+    In the server folder there is a '<blue>default_templates</blue>' folder that contains the pre-installed templates. These are exactly the same as the user defined ones. You can create either type and moved them between the '<blue>web_templates</blue>' folder and the '<blue>default_templates</blue>' folder. If you want to get rid of all default ones and replace with your own and allow users to freely control the user defined templates, this is a way to accomplish this.
+</p>
+<pre>
+    root folder
+    └ server                           Main server folder
+        └ default_templates            Location of default system template (project or website types)
+            ├template                  Template folder (project template type)
+            │  ├ website_folder        Website content folder
+            │  ├ folder                Other folders in a project with some other purpose
+            │  └ project-conf.json     Project template configuration file
+            └template                  Template folder (website template type)
+               ├ website_folder        Website folder
+               └ website-conf.json     Website configuration file
+</pre>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
