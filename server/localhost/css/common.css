@@ -1282,12 +1282,6 @@ p {
 .grid2_admin_user_management {
     grid-template-columns: max-content 500px;
 }
-.grid6_admin_user_list {
-    grid-gap: 0px;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
 .grid2_admin_sub_head_user {
     background-color: white;
     padding: 5px;
@@ -1296,12 +1290,6 @@ p {
     font-size: 14px;
     grid-column-start: 2;
     grid-column-end: 4;
-}
-.grid2_admin_user_groups_projects {
-    grid-gap: 0px;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
 }
 
 /* Common Dividers */

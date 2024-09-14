@@ -1,0 +1,145 @@
+<h1>Server Mapping</h1>
+<p>
+   Server mapping is a fairly complex panel. It is a direct output of what the server process maps and it's mapping logic for matching incoming URLs to the project websites. You can use this in two ways which, is either to see what the mapping from projects looks like in different environments, or you can select the environment and enter a URL in the textbox and see what the server will target.
+   <br /><br />
+   The URL simulation window is populated with the mapping logic output. The server parsed the URL and then starts a matching process and finally the result of the process. If anything does not work for your website you might be able to see why here.
+</p>
+<ul class="num">
+    <li class="num">Selection of Management UI enabled/disabled and Environment which loads the mapping for projects and any DNS FQDN or Proxy Mapping</li>
+    <li class="num">URL Simulation and results of matching logic</li>
+    <li class="num">Stage 1 matching criteria (reference to match results)</li>
+    <li class="num">Stage 2 matching criteria (reference to match results)</li>
+</ul>
+<br />
+<img src="../../images/8_server_mapping_panel.png" alt="" />
+<br /><br />
+<h3>Matching Logic Output</h3>
+<p>
+    To use the simulation of a URL, enter one in the URL address textbox. The URL has to be exactly what you put in the browser address bar. Reference the diagram example, the Management UI is enabled for '<blue>Dev</blue>' and it is listening for request to hostname '<blue>localhost</blue>'. There is also VHost previews for some of the projects. Using this VHost URL '<blue>/vhost/project1::www/</blue>' the full URL will be '<blue>https://localhost/vhost/project1::www/</blue>'.
+    <br /><br />
+    Entering that URL in the URL Address and selection the '<blue>Simulate URL Match</blue>' button will give you a result.
+</p>
+<br />
+<img src="../../images/8_simulate_url_match.png" alt="" />
+<br /><br />
+<img src="../../images/8_simulate_match_result.png" alt="" />
+<br /><br />
+<p>
+    The matching results will look like the following in full. For detail on the request handling, see '<b>Getting Started</b>' and '<b>Request Handling</b>' for information on the way it walks through the stages and matching process.
+    <br /><br />
+    The top section is some basic starting information like Management UI State, Environment and the initial parse of the URL. <hl>Staage 1</hl> walks through matching process of hostname, Proxy mapping or DNS FQDN names. <hl>Stage 2</hl> matches the website rules and will finally match content. It then checks for maintenance mode, maintenance mode paths, error page paths, and finally lands at mapping. The next step is it checks the content exists and handles error page or serving content. The bottom part is the <hl>result</hl> of the match which gives you some details on that is targeted to load.
+</p>
+<pre>
+> Server Management Mode ON
+> Environment Dev
+> Request URL [https://localhost/vhost/project1::www/]
+    protocol :: https:
+    hostname :: localhost
+    port     :: 443
+    basepath :: /vhost/project1::www/
+    query    :: 
+    filename :: 
+
+--- <hl>Stage 1</hl> ---
+> Resolve Host, FQDN or Proxy
+> Check against Managment UI Hostnames
+    Target hostname: localhost
+    NO: Management UI hostname[127.0.0.1] not matched
+    NO: Management UI hostname[192.168.180.1] not matched
+    NO: Management UI hostname[192.168.181.1] not matched
+    NO: Management UI hostname[192.168.26.3] not matched
+    NO: Management UI hostname[::1] not matched
+    NO: Management UI hostname[fe80::13b:c10f:3210:d2f1] not matched
+    NO: Management UI hostname[fe80::ad9b:8ab7:f3f3:bc9a] not matched
+    YES: Management UI hostname[localhost] matched
+            Map to 'Management UI'
+> Check against Management UI VHost paths
+    Target URI: /vhost/project1::www/
+    NO: Management UI VHost path[/vhost/project2::bookstore/] not matched
+    NO: Management UI VHost path[/vhost/project3::music/] not matched
+    YES: Management UI VHost path [/vhost/project1::www/] matched
+            Map to project[project1] website[www]
+> Check website sub mapping for project[project1] website[www]
+
+--- <hl>Stage 2</hl> ---
+> Resolve success
+> Get website parameters
+> Match request to website mapping
+    Request URI path[/vhost/project1::www/]
+> Match 'apis_fixed_path' :: project[project1] website[www]
+    No rules for [apis_fixed_path]
+> Match 'apis_dynamic_path' :: project[project1] website[www]
+    Process rules [apis_dynamic_path]
+    - NO: Rule [/api/] no match
+> Match 'path_static_server_exec' :: project[project1] website[www]
+    No rules for [path_static_server_exec]
+> Match 'path_static' :: project[project1] website[www]
+    Process rules [path_static]
+    - YES: Rule [/] matched [/]
+            Target Path [/www/]
+            Execute: client
+            Path:    /www/web_source/project1/www/
+            File:    index.html
+> Check website maintenance mode
+    Maintenance mode is disabled
+> Check website error page mapping
+> Check website source request
+    Target file: /www/web_source/project1/www/index.html
+    Content file exists, continue to serve request'
+
+--- <hl>Result</hl> ---
+    Matched Hostname      :: localhost
+    Matched MgmtUI VHost  :: /vhost/project1::www/
+    Matched Proxy URI     :: 
+    Matched Sub Map       :: 
+    Project               :: project1
+    Website               :: www
+    SSL redirect          :: true
+    Website Root Path     :: /www/web_source/project1/www/
+    Website URI Path      :: /vhost/project1::www/
+    Website URI Prefix    :: /vhost/project1::www/
+    Website URI Suffix    :: /
+    Default Doc           :: index.html
+    Default 404 User      :: 404.html
+    Default 404 API       :: 404.json
+    Default 500 User      :: 404.html
+    Default 500 API       :: 404.json
+    Maintenance Mode      :: false
+    Maintenance Page      :: maintenance.html
+    Match State           :: true
+    Match Type            :: path_static
+    File Execute          :: client
+    File Path             :: /www/web_source/project1/www/
+    File Name             :: index.html
+    Error                 :: false
+    Status Code           :: 200
+    Status Message        :: 
+</pre>
+<h3>Stage 1 Mapping Rules</h3>
+<p>
+    The table on the page shows the order in which Hostnames, IP addresses, DNS FQDN Names and Proxy Mapping is matched.
+</p>
+<br />
+<img src="../../images/8_simulate_stage_1.png" alt="" />
+<br /><br />
+<p>
+    When disabling the Management UI, it will remove those from the matching order. The new Stage 1 is only the '<blue>Proxy URL Mapping</blue>'. This is what the server would match if disabling the Management UI in the server configuration.
+</p>
+<br />
+<img src="../../images/8_simulate_remove_mgmt_ui.png" alt="" />
+<br /><br />
+<img src="../../images/8_simulate_remove_mgmt_ui_stage_1.png" alt="" />
+<br /><br />
+<h3>Stage 2 Mapping Rules</h3>
+<p>
+    The table on stage 2 is a summary of all the project website settings and what is used to match at various steps in stage 2.
+</p>
+<br />
+<img src="../../images/8_simulate_stage_2.png" alt="" />
+<br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

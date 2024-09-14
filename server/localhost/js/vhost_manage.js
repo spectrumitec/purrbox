@@ -6036,7 +6036,7 @@ function ui_admin_users_list(data) {
 
     //HTML
     let html = `
-        <div class="grid6 grid6_admin_user_list">
+        <div class="grid6_inner">
             ${html_rows}
         </div>
     `;
@@ -6051,10 +6051,10 @@ function ui_admin_user_add() {
     //Prompt user
     let html_dialog = `
         <form>
-            <div class="grid2">
+            <div class="grid2_inner">
                 <div class="grid1_col">Username</div>
                 <div class="grid1_col">
-                    <input id="admin_add_username" type="text" value="">
+                    <input id="admin_add_username" type="text" value="" autocomplete="off">
                 </div>
 
                 <div class="grid1_col">Password</div>
@@ -6064,12 +6064,12 @@ function ui_admin_user_add() {
                 
                 <div class="grid1_col">Display Name</div>
                 <div class="grid1_col">
-                    <input id="admin_add_display_name" type="text" value="">
+                    <input id="admin_add_display_name" type="text" value="" autocomplete="off">
                 </div>
 
                 <div class="grid1_col">Email Address</div>
                 <div class="grid1_col">
-                    <input id="admin_add_email" type="text" value="">
+                    <input id="admin_add_email" type="text" value="" autocomplete="off">
                 </div>
 
                 <div class="grid2_col">
@@ -6183,7 +6183,7 @@ function ui_admin_user_setting_global() {
 
     //Set HTML
     let html = `
-        <div class="grid2 grid2_admin_user_groups_projects">
+        <div class="grid2_inner">
             <div class="grid1_sub_head">Group Name</div>
             <div class="grid1_sub_head">Member</div>
             ${html_rows}
@@ -6216,7 +6216,7 @@ function ui_admin_user_setting_project() {
     project_list = project_list.sort();
 
     //List projects
-    let html_projects = `<div class="grid2 grid2_admin_user_groups_projects">`;
+    let html_projects = `<div class="grid2_inner">`;
     for(let i in project_list) {
         //Get project label
         let project_name = project_list[i];
@@ -6233,7 +6233,7 @@ function ui_admin_user_setting_project() {
 
     //Set HTML
     let html = `
-        <div class="grid2 grid2_admin_user_groups_projects">
+        <div class="grid2_inner">
             <div class="grid1_sub_head">Project</div>
             <div class="grid1_col" id="admin_user_project_name"></div>
             <div class="grid1_col">${html_projects}</div>
@@ -6293,7 +6293,7 @@ function ui_admin_user_setting_project_permissions(project) {
 
     //Set HTML
     let html = `
-        <div class="grid2 grid2_admin_user_groups_projects">
+        <div class="grid2_inner">
             <div class="grid1_sub_head">Permission</div>
             <div class="grid1_sub_head">Enabled</div>
             ${html_rows}
@@ -6318,7 +6318,7 @@ function ui_admin_user_setting_details() {
 
     //Set user password reset form
     html = `
-        <div class="grid2">
+        <div class="grid2_inner">
             <div class="grid1_col">Display Name</div>
             <div class="grid1_col">
                 <input type="text" value="${name}" id="admin_user_name" autocomplete="off">
@@ -6340,10 +6340,14 @@ function ui_admin_user_setting_password() {
 
     //Set user password reset form
     html = `
-        <form>
-            <input type="password" value="" id="admin_user_new_password" autocomplete="off">
-        </form>
-        <br />
+        
+        <div class="grid2_inner">
+            <div class="grid1_col">Password</div>
+            <div class="grid1_col">
+                <input type="password" value="" id="admin_user_new_password" autocomplete="off">
+            </div>
+        </div>
+        <br /><br />
         <input type="button" value="Set Password" onClick="admin_user_set_password();">
     `;
 

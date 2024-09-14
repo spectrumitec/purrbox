@@ -15,13 +15,13 @@
 	The arrows are the target folders for what is intended to be mapped for specific functions.
 </p>
 <br />
-<img src="/help/images/3_website_files_example1.png" alt="" />
+<img src="../../images/3_website_files_example1.png" alt="" />
 <br /><br />
 <p>
 	The mapping configurations would look something like the following. The health check can also be configured in the static content override but since it is not nested inside the static path location, there is no real need to set it that way. It can be configured as a fixed path API.
 </p>
 <br />
-<img src="/help/images/3_website_files_example1_map.png" alt="" />
+<img src="../../images/3_website_files_example1_map.png" alt="" />
 <br /><br />
 <h3>Exmaple 2</h3>
 <p>
@@ -30,26 +30,26 @@
 	This example also doesn't include a location that is unexposed to web clients. This could also be the starting of a project template where the website is just a website and application code is shared from the project folder.
 </p>
 <br />
-<img src="/help/images/3_website_files_example2.png" alt="" />
+<img src="../../images/3_website_files_example2.png" alt="" />
 <br /><br />
 <p>
 	The mapping configuration would look like the following. Rule matching would match any '<blue>/api/</blue>' path before static content and set those files to execute on server side, next static content override would force the '<blue>/health_check.js</blue>' to execute server side. The rest of the content would serve as static content to the users web browser. As mentioned at the start, maintenance and error pages are special paths. Even though they are in the root of the static content, any user connectivity where '<blue>_maintenance_page</blue>' and '<blue>_error_pages</blue>' are in the URI, the system override the rule matching and handles that in a different way. These folders would not be accessed as static content path.
 </p>
 <br />
-<img src="/help/images/3_website_files_example2_map.png" alt="" />
+<img src="../../images/3_website_files_example2_map.png" alt="" />
 <br /><br />
 <h3>Exmaple 3</h3>
 <p>
 	This maybe one of the more organized ways to structure the source code where the website has it's own application components, configuration files locations that are not exposed to web clients. A website sub folder contains static content with an API folder for server side execution that supports web application calls. The health check script for load balancers (if users need to make one) is located outside of the website folder. This leaves some flexibility if building shared application components in the root of the project folder and have website specific application classes extend the project core functionality. This is ideal for building a future project template and potentially a way to package a fully functional website application.
 </p>
 <br />
-<img src="/help/images/3_website_files_example3.png" alt="" />
+<img src="../../images/3_website_files_example3.png" alt="" />
 <br /><br />
 <p>
 	The mapping configuration would look like the following. Rule matching would match any '<blue>/api/</blue>' path before static content and set those files to execute on server side. The health check script can be setup as a fixed API path since all paths should land at the same health file. The '<blue>_maintenance_page</blue>' and '<blue>_error_pages</blue>' are still handled in the same way when those paths exist in the URI path of the client web browser. No mapping is required for that.
 </p>
 <br />
-<img src="/help/images/3_website_files_example3_map.png" alt="" />
+<img src="../../images/3_website_files_example3_map.png" alt="" />
 <br /><br />
 <br />
 <br />

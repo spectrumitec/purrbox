@@ -2,10 +2,10 @@
 <p>
 	<b>1-</b> On the navigation tree, select 'Websites' to focus the websites panel. This panel doesn't have too many details at this point since there are no websites created under the project. The two tables that are shown here will list all the websites that belong to this project and any current Proxy or DNS mapping that has been created for websites. The section for 'Proxy or DNS Resolution' will cover that in more details. For now, this will cover the first website creation. 
 	<br /><br />
-	At the bottom of the 'Websites' table, select the <img src="/images/add_icon.png" alt="" /> icon to bring up the website creation dialog.
+	At the bottom of the 'Websites' table, select the <img src="../../../images/add_icon.png" alt="" /> icon to bring up the website creation dialog.
 </p>
 <br />
-<img src="/help/images/2_website_panel.png" alt="" />
+<img src="../../images/2_website_panel.png" alt="" />
 <br /><br />
 <p>
 	<b>2-</b> The website creation dialog has a 'Select Type' as step 1 where you can create an empty website folder or choose from system or user templates. This example with selecting 'Empty website folder' is used if you plan to start from scratch and want to craft how you build out the folder structure itself. You would enter the '<blue>Website Name</blue>' and click '<blue>Create</blue>'. This name will become the website folder name in the '<blue>web_source/project_name</blue>' folder. Website names are limited to alphanumeric, dot '.', dash '-', and underscore '_' character and in lower case to ensure no filesystem problems occur. Windows and Linux/UNIX system treat lower case and upper case differently. In Linux/UNIX systems, folders and files by the same name with upper and lower case letters are different folders or files. In windows, upper and lower case letters will resolve to the same folder or file. This can be dangerous when working on source code on differnt platforms; especially when copying code from Windows to Linux/UNIX and vice versa.
@@ -13,7 +13,7 @@
 	For now, use the next example for creating a website from a system template.
 </p>
 <br />
-<img src="/help/images/2_website_create.png" alt="" />
+<img src="../../images/2_website_create.png" alt="" />
 <br /><br />
 <p>
 	This dialog option is when creating from a template (System or User defined). This example will use the default system website template that is default with the installation.
@@ -25,13 +25,13 @@
 	<li>In the dialog select '<blue>Create</blue>' to add the website to your project</li>
 </ul>
 <br />
-<img src="/help/images/2_website_create_from_template.png" alt="" />
+<img src="../../images/2_website_create_from_template.png" alt="" />
 <br /><br />
 <p>
 	<b>3-</b> The website will now show up under the '<blue>Websites</blue>' table in the websites panel with several options. In the left navigation tree, the website lists under '<blue>Websites</blue>' where you can select it and manage the website mapping settings. For now, below will cover the panel management.
 </p>
 <br />
-<img src="/help/images/2_website_panel_with_website.png" alt="" />
+<img src="../../images/2_website_panel_with_website.png" alt="" />
 <br /><br />
 <p>
 	In the column '<blue>Website Name</blue>' to the right of '<blue>www</blue>' there are the following icons for managing the website as noted in the table below:
@@ -39,36 +39,36 @@
 <div class="grid2">
 	<div class="grid1_sub_head">Icon</div>
 	<div class="grid1_sub_head">Description</div>
-	<div class="grid1_col"><img class="icon_tbl" src="/images/write_icon.png" alt="" /></div>
+	<div class="grid1_col"><img class="icon_tbl" src="../../../images/write_icon.png" alt="" /></div>
 	<div class="grid1_col">Rename Website</div>
-	<div class="grid1_col"><img class="icon_tbl" src="/images/world_clone_icon.png" alt="" /></div>
+	<div class="grid1_col"><img class="icon_tbl" src="../../../images/world_clone_icon.png" alt="" /></div>
 	<div class="grid1_col">Clone Website</div>
-	<div class="grid1_col"><img class="icon_tbl" src="/images/trash_icon.png" alt="" /></div>
+	<div class="grid1_col"><img class="icon_tbl" src="../../../images/trash_icon.png" alt="" /></div>
 	<div class="grid1_col">Delete Website</div>
 </div>
 <p>
 	The '<blue>SSL Redirect</blue>' checkbox will make a client browser redirect from HTTP to HTTPS. If using a load balancer in front of a web service to do any sort of SSL offload, where the website is HTTP and load balancer is HTTPS, this setting you may want to turn off as it can potentially cause issues. This may be done for performance reasons. It is usually best to SSL secure the website communcation end to end to make most security departments happier. This would mean the load balancer will handle SSL and and communicate to web service over SSL. There will be more details about this in the '<b>Advanced Uses</b>' section.
 </p>
 <br />
-<img src="/help/images/2_website_panel_ssl_redirect.png" alt="" />
+<img src="../../images/2_website_panel_ssl_redirect.png" alt="" />
 <br /><br />
 <p>
 	The '<blue>Maintenance Mode (per Environment)</blue>' checkboxes is used to set a website into maintenance mode. These boxes are settings per environment (See '<b>Environments</b>' in '<b>Getting Started</b>' section for more details). If having a setup where all environments connect to the same web source, you can toggle this setting to put different environments into maintenance mode from a management server (like this one). This does not apply to VHost preview (a Website preview) since the preview gives a user an ability to verify the website before taking it out of maintenance mode. The website user, viewing through a Proxy or DNS FQDN mapping, will see a maintenance page when toggled on.
 </p>
 <br />
-<img src="/help/images/2_website_panel_maintenance_mode.png" alt="" />
+<img src="../../images/2_website_panel_maintenance_mode.png" alt="" />
 <br /><br />
 <p>
 	The website preview link allows you to view the website you just creted from the '<blue>Create Website</blue>' dialog.
 </p>
 <br />
-<img src="/help/images/2_website_panel_website_preview.png" alt="" />
+<img src="../../images/2_website_panel_website_preview.png" alt="" />
 <br /><br />
 <p>
 	When clicking the preview link, the new website will open in a new browser tab. This is not a simulation, it is a newly created simple website from the default system templates.
 </p>
 <br />
-<img src="/help/images/2_website_preview.png" alt="" />
+<img src="../../images/2_website_preview.png" alt="" />
 <br />
 <br />
 <br />

@@ -3,7 +3,7 @@
     It's important to understand multiple environments and DNS resolution to server IP, Proxy/Load Balancers, or local Hosts file when you start working with mapping. Reference to '<b>Getting Started</b>' and '<b>Environments</b>', that is one hypothetical layout for different environments (below). It doesn't mean you will have your environments matching this layout. It could be much more simple or leverage Kubernetes instead of traditional VM servers with external load balancers, etc. For sake of simplicity, a lot of these examples will use traditional environments to help describe mapping the system software can support.
 </p>
 <br />
-<img src="/help/images/1_environments.png" />	
+<img src="../../images/1_environments.png" />	
 <br /><br />
 <h3>Simple Environment</h3>
 <p>
@@ -47,7 +47,7 @@
     Reference to diagram below, you are working remote with a local similated environment and push your updates to GitHub. Those updates are pulled into the comapny development server. The project Proxy or DNS configuration section will work at either location (remote or company). Alternatively, you can ignore the project configuration file but have a local project setup in a silimar configuration and only pull or push the contents. That way your can use differnt DNS names to resolve and not impact the company website configurations. The caveat with this is not matching all the other configuration settings that go with the project like website settings. 
 </p>
 <br />
-<img src="/help/images/6_resolve_simple_example.png" />	
+<img src="../../images/6_resolve_simple_example.png" />	
 <br /><br />
 <h3>Resolve Configuration</h3>
 <p>
@@ -56,39 +56,39 @@
     Without any mapping in place for the project website and trying to connect to '<blue>dev.network.local</blue>', you will see a system default 404 page. An exact copy of the project will have all those settings usually.
 </p>
 <br />
-<img src="/help/images/6_resolve_no_mapping.png" />	
+<img src="../../images/6_resolve_no_mapping.png" />	
 <br /><br />
-<img src="/help/images/6_resolve_no_mapping_404.png" />	
+<img src="../../images/6_resolve_no_mapping_404.png" />	
 <br /><br />
 <p>
     The server settings should be configured for '<hl>dev</hl>' as shown in the '<blue>Admin</blue>' tab and '<blue>Server Settings</blue>' panel. If not, see the '<b>Getting Started</b>' and '<b>Server Settings</b>' page on how to set that.
 </p>
 <br />
-<img src="/help/images/6_resolve_server_env.png" />	
+<img src="../../images/6_resolve_server_env.png" />	
 <br /><br />
 <p>
     The resolve panel can be configured with a '<blue>Proxy Map</blue>' if planning to map multiple websites under the domain name + path or simply use '<blue>DNS FQDN</blue>' mapping type. As below, these are all of the configuration settings reference to the table in the simple example above. Only the '<blue>dev</blue>' DNS will map to the project and website. The server environment variable would need to be changed to one of the other environment names to register it on the server.
 </p>
 <br />
-<img src="/help/images/6_resolve_mapping_all.png" />	
+<img src="../../images/6_resolve_mapping_all.png" />	
 <br /><br />
 <p>
     Now clicking on the 'HTTP' or 'HTTPS' links beside the domain name will open the website. If it doesn't load you would need to verify the server environment and DNS / HOSTS entry is resolving correctly to the server IP.
 </p>
 <br />
-<img src="/help/images/6_resolve_mapping_webpage.png" />	
+<img src="../../images/6_resolve_mapping_webpage.png" />	
 <br /><br />
 <p>
     The '<blue>Admin</blue>' tab and '<blue>Server Mapping</blue>' panel has a simulation function that and enables you to see what mapping will look like in different environments. You can also simulate the connection by pasting or entering in the full URL to the URL address textbox to make sure it will map properly to the right website source in the correct way (static content or server side execute).
 </p>
 <br />
-<img src="/help/images/6_resolve_server_mapping.png" />	
+<img src="../../images/6_resolve_server_mapping.png" />	
 <br /><br />
 <p>
     For other environments like Prod, you will most likely have the Management UI turned off and the server setting configured for '<blue>prod</blue>'. The mapping would look as follows. With the Management UI disabled it will not register the IP addresses, localhost or other hostnames that would normally be used for the Management UI and will only register the Prod DNS name resolution configured for the website. When the project folder is moved from one environment to another, that environment can read the configuration files and map any mapping according to it's environment.
 </p>
 <br />
-<img src="/help/images/6_resolve_server_mapping_prod.png" />	
+<img src="../../images/6_resolve_server_mapping_prod.png" />	
 <br /><br />
 <br />
 <br />

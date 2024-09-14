@@ -38,6 +38,10 @@ const syslog = require("syslog-client");
 
 //Server class
 class vhost_logger {
+    //Version
+    application = "wonderbox";
+    application_ver = "1.0.0";    
+
     //System paths
     paths = {}                          //System paths
     default_log_name = "system";   //Log filename or syslog identifier
@@ -170,7 +174,9 @@ class vhost_logger {
         let timestamp = new Date().toISOString();
         let log_data = {
             "_timestamp":timestamp,
-            "_server":this.server,
+            "_application":this.application,
+            "_application_ver":this.application_ver,
+            "_server_hostname":this.server,
             "_process_id":process.pid,
             "_node_version":process.version,
             "source":"",
