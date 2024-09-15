@@ -31,7 +31,7 @@
 <p>3. Use git to clone the project source files</p>
 <pre>
     cd /path/to/server
-    git clone https://github.com/spectrumitec/purrbox.git
+    git clone https://github.com/spectrumitec/purrbox.git .
 </pre>
 <p>4. Install node modules required to support this server. Newer versions of Node may already include 'crypto' module.</p>
 <pre>
