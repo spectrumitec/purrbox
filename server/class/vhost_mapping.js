@@ -58,6 +58,7 @@ class vhost_mapping {
 
     //Environment
     env = ""
+    env_name = ""
 
     //Supported file types
     mime_types = {}
@@ -65,7 +66,7 @@ class vhost_mapping {
     //Configurations and mapping
     change_tracking = {}
     web_configs = {
-        "mgmtui":{},
+        "mgmt":{},
         "projects":{},
         "errors":{},
     }
@@ -148,6 +149,12 @@ class vhost_mapping {
 
                 //Sort list
                 this.mgmt_ui.sort();
+            }
+            if(json.environment != undefined) {
+                this.env = json.environment;
+            }
+            if(json.environment_name != undefined) {
+                this.env_name = json.environment_name;
             }
 
             //
@@ -232,7 +239,7 @@ class vhost_mapping {
     }
 
     //Set environment
-    set_environment(env) {
+    set_environment(env="") {
         if(env == "") {
             this.log({
                 "source":"mapper",
@@ -256,7 +263,8 @@ class vhost_mapping {
             "source":"",
             "state":"info",
             "message":"",
-            "environment":this.env
+            "environment":this.env,
+            "environment_name":this.env_name,
         }
 
         //Validate fields
@@ -402,7 +410,7 @@ class vhost_mapping {
         let start_time = time.getTime()
 
         //Define web_configs
-        this.web_configs.mgmtui = this.map_mgmtui_configs();
+        this.web_configs.mgmt = this.map_mgmtui_configs();
         this.web_configs.projects = this.map_project_configs();
 
         //Define mapping for mgmt UI
@@ -457,7 +465,7 @@ class vhost_mapping {
                     "prod": {}
                 },
                 "websites": {
-                    "www": {
+                    "ui": {
                         "ssl_redirect": true,
                         "maintenance": {
                             "dev": false,
@@ -1142,6 +1150,7 @@ class vhost_mapping {
             "website_root_path":"",     // Web source, project, website path
             "website_uri_prefix":"",    // URI prefix before a target string
             "website_uri_suffix":"",    // URI suffix target string for rule compare
+            "fixed_api_path":{},        // Fixed API trailing path
             "file_match_type":"",       // Processed rule API Fix Path, API Dynamic Path, Static Content (Server Execute), Static to Client
             "file_exec":"",             // Execute server side or send to client
             "file_path":"",             // File system path of content file
@@ -1196,7 +1205,7 @@ class vhost_mapping {
 
         //Check match against website sub mapping
         if(match.state == true) {
-            if(match.project != "system" && match.project != "mgmtui") {
+            if(match.project != "system" && match.project != "mgmt") {
                 match = this.match_website_sub_map(match)
             }
         }
@@ -1231,7 +1240,7 @@ class vhost_mapping {
             if(match.url_parsed.basepath.includes("/_default_system/")) {
                 match = this.match_default_system_request(match);
             }else{
-                if(match.project == "mgmtui" && match.website == "mgmtui") {
+                if(match.project == "mgmt" && match.website == "ui") {
                     //Process request for Management UI site
                     match = this.match_mgmtui_request(match);
 
@@ -1370,7 +1379,7 @@ class vhost_mapping {
             //Try split string
             parsed_key_val = parse[0].split("=");
             if(parsed_key_val.length == 1) {
-                //This is most likely a single string value but not JSON (try catch above)
+                //This is most likely a single string value (ID or other) but not JSON (try catch above)
                 return query;
             }
         }
@@ -1435,10 +1444,10 @@ class vhost_mapping {
             if(this_hostname == target_hostname) {
                 match.state = true;
                 match.log += `    YES: Management UI hostname[${this_hostname}] matched\n`;
-                match.log += `         Map to 'mgmtui'\n`;
+                match.log += `         Map to 'Management UI'\n`;
                 match.match_host = this_hostname;
-                match.project = "mgmtui";
-                match.website = "mgmtui";
+                match.project = "mgmt";
+                match.website = "ui";
                 break;
             }else{
                 match.log += `    NO: Management UI hostname[${this_hostname}] not matched\n`;
@@ -1452,7 +1461,7 @@ class vhost_mapping {
             match.log += `    Target URI: ${target_uri}\n`;
 
             //Get VHost paths
-            if(target_uri.match(/\/vhost\/[0-9a-z\-\_\.]*::[0-9a-z\-\_\.]*\//g)) {
+            if(target_uri.match(/\/vhost\/[0-9A-Za-z\-\_\.]*::[0-9A-Za-z\-\_\.]*\//g)) {
                 //Search VHost mapping
                 let mgmtui_vhosts = this.web_mapping.resolve.mgmtui_map.vhosts;
                 for(let vhost in mgmtui_vhosts) {
@@ -1766,7 +1775,7 @@ class vhost_mapping {
         match.log += `> Resolved to Management UI\n`;
 
         //Get Managment UI config
-        match.config = this.web_configs.mgmtui.websites.www;
+        match.config = this.web_configs.mgmt.websites.ui;
 
         //Set filesystem root path
         match.website_root_path = path.join(this.paths.localhost);
@@ -2018,6 +2027,18 @@ class vhost_mapping {
                     //Get path value
                     let rule_target_file_path = ruleset_api_fixed[match_string];
                     match.log += `           Target Path [${rule_target_file_path}]\n`;
+
+                    //Create API fixed path trailing parsed URL
+                    let trail_uri = this_uri.substring(match_string.length, this_uri.length);
+                    if(trail_uri.substring(trail_uri.length - 1) == "/") {
+                        trail_uri = trail_uri.substring(0, trail_uri.length - 1);
+                    }
+                    if(trail_uri != "") {
+                        let parse_trail_url = trail_uri.split("/")
+                        if(parse_trail_url.length > 0) {
+                            match.fixed_api_path = parse_trail_url;
+                        }
+                    }
 
                     //Set file path
                     let target_path = path.join(this.paths.web_source,match.project,rule_target_file_path)
@@ -2584,7 +2605,7 @@ class vhost_mapping {
                 match = this.match_file_not_exist_maintenance_page(match);
             }else if(match.file_path.includes("_error_pages")) {
                 match = this.match_file_not_exist_error_pages(match);
-            }else if(match.project == "mgmtui") {
+            }else if(match.project == "mgmt") {
                 match = this.match_file_not_exist_mgmtui(match);
             }else{
                 match = this.match_file_not_exist_website_content(match);
@@ -2666,7 +2687,7 @@ class vhost_mapping {
         match.log += `      Validate '_error_pages' focus from project[${match.project}] website[${match.website}]\n`;
 
         //Get website default maintenance page
-        if(match.project == "mgmtui") {
+        if(match.project == "mgmt") {
             //Set error page for missing content file
             match.file_match_type = "path_static";
             match.file_exec = "client";
@@ -2685,7 +2706,7 @@ class vhost_mapping {
         match.log += `      Set Error Page from Managment UI\n`;
 
         //Check VHost path error
-        if(match.url_parsed.basepath.match(/\/vhost\/[0-9a-z\-\_]*::[0-9a-z\-\_]*\//g)) {
+        if(match.url_parsed.basepath.match(/\/vhost\/[0-9A-Za-z\-\_]*::[0-9A-Za-z\-\_]*\//g)) {
             match.log += `        Invalid VHost Path: ${match.url_parsed.basepath}\n`;
 
             //Set Management UI VHost path error page

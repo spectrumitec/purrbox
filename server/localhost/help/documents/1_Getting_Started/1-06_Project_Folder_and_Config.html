@@ -1,0 +1,42 @@
+<h1>Project Folder and Configurations</h1>
+<h3>Project Description</h3>
+<p>
+	The '<blue>web_source</blue>' folder is the location of all project data. The folder structure aligns to the Management UI with regards to projects and websites folder names (as in reference below). It is recommended to use the Management UI for all project or website renames, clones, deletions, etc. to avoid any issues. When more comformatable with the system, you may want to manually update configurations or do some sort of automation. The Management UI is a helper for building these project configuration files but is not a requirement. It will keep filesystem and configuration in alignment and if the server detects any problems, alerts and warnings are highlighted in the management UI under the project panel. In cases where your environment has the Management UI turned off you might have a need to edit the project configuration directly for putting a website into maintenance mode or simply disabling the project.
+	<br /><br />
+	Project folder names are not managed in any server or project configuration file but the website folder names in your projects are referenced in the project configuration file '<blue>config.json</blue>'. Any manual changes to website folder names will most likely need updates in the configuration file. You can rename the project folder manually as the project name in the UI is read from the folder names in the '<blue>web_source</blue>' folder. The '<blue>web_soruce</blue>' folder should only contain project folders and nothing else. The server expects a project folder and will try and access a config file. Non project folder are ignored but it can create some mess in your '<blue>web_source</blue>' folder if adding other data manually. Granted there can be reasons for storing other data in the '<blue>web_source</blue>' root folder. That is entirely up to the user.
+	<br /><br />
+	For manual folder renames, please use alphanumeric, dash '-' or underscore '_', and in lower case letters. To avoid any unknown problems, the system limits naming to these character types. Project naming '<red>system</red>' and '<red>mgmt</red>' are reserved for system use. Calling your project by these names can cause instabilities.
+	<br /><br />
+	There isn't any restrictions for other files and folders in the project folder itself. You may create other folders to hold code and / or configuration files in the root of the project folder; especially if shared between multiple websites in the project. Best practice and good security is to not store any credential files or data in folders that are exposed to web clients. An assumption is the root of the website folder is mapped to static content and sub folders of the website folder may be configured as API for server side execution. There is a lot of flexibility how website folder content is structured and mapped for web clients consumption. It's not a hard rule to map the root of the website folder, you can have sub folders of the website folder setup as the ones that will hold static content, API back end code and folders that are not exposed with configurations. There might be reasons to self contain everything in a website folder or glabally in a project. Template creation can be and example of this as they are either full project or website only. That means if creating a website template, only contents of a website folder are used. Creation of a project template means the entire contents of a project are used.
+	<br /><br />
+	See section '<b>3 Configure Websites</b>' for how to configre mapping of static or server side content.<br />
+	See section '<b>7 Advanced Uses</b>' for details in the configuration files and how they work.
+</p>
+<br />
+<h3>Folder Layout Example</h3>
+<p>
+	The highlighted project is an example where there is a website and another folder used for potental source code or application config files; data that isinaccessible to the web clients directly.
+</p>
+<pre>
+   root folder
+     └ web_source                       Location of all project folders
+         ├ project1                     Project folder
+         ├ project2                     Project folder
+         ├ project3                     Project folder
+         └ <hl>project_name</hl>                 Project folder (name of your project)
+             ├ <hl>website_name</hl>             Website folder (name of your website under your project)
+             ├ folder                   Other folders in a project with some other purpose (potentially config or code)
+             └ config.json              The configuration file within your project containing all settings and mappings	
+</pre>
+<h3>Reference Management UI</h3>
+<p>
+	The management UI reflecting the project and websites settings configured in the '<blue>config.json</blue>'.
+</p>
+<br />
+<img src="../../images/1_web_source_example.png" alt="" />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

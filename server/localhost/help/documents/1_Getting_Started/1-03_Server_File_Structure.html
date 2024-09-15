@@ -1,0 +1,54 @@
+<h1>System File Layout</h1>
+<p>
+	The following layout (below) is the general description of each folder and use. Most of the focus will be in the '<blue>web_source</blue>' folder where the projects and website source code is located. The '<blue>web_templates</blue>' is the location of user defined project or website templates if users decide to create base level code (starting points) or fully function web applications. The '<blue>conf</blue>' folder is the location of server configuration and SSL certificate. Log fole '<blue>logs</blue>' is the general location for file logging if the server is set for file based logging. The logs are system, website request and error stack trace logging.
+   <br /><br />
+   The '<blue>server</blue>' folder doesn't contain any user specific data related to projects. In this location, you can choose manually add templates to the '<blue>default_templates</blue>' folder which are similar to the user defined templates, basic file types in '<blue>default_file_types</blue>' can be modified which are used by the Project Files 'Add' function. Lastly, modify the '<blue>default_system</blue>' error and maintenance pages if there is a preference for those to look a certain way (if not using custmer error pages for websites).
+</p>
+<pre>
+   root folder
+     ├ node_modules                     Node modules installed during installation
+     ├ conf                             Server configuration folder
+     │   ├ cert.pem                     SSL Cert
+     │   ├ key.pem                      SSL Private Key    
+     │   ├ server_conf.json             Server configuration file
+     │   └ logger.json                  Server logging configuration file
+     ├ logs                             Log files when set for file logging
+     ├ server                           Main server folder
+     │   ├ class                        System classes (web server and components for management UI)
+     │   ├ conf                         Configuration location for system classes (created on first server start from JWT config creation)
+     │   ├ default_system               Location of system default files (e.g. 404 and 500 error pages, maintenance page)
+     │   ├ default_file_types           Location of file template types (used when creating new files in Management UI)
+     │   ├ default_templates            Location of default system template (project or website types)
+     │   ├   ├template                  Template folder (project template type)
+     │   ├   ├  ├ website_folder        Website content folder
+     │   ├   ├  ├ folder                Other folders in a project with some other purpose
+     │   ├   ├  └ project-conf.json     Project template configuration file
+     │   ├   └template                  Template folder (website template type)
+     │   ├      ├ website_folder        Website folder
+     │   ├      └ website-conf.json     Website configuration file
+     │   └ localhost                    Location of Management UI
+     ├ web_source                       Location of all project folders
+     │   └ project_name                 Project folder (name of your project)
+     │       ├ website_name             Website folder (name of your website under your project)
+     │       ├ folder                   Other folders in a project with some other purpose (potentially config or code)
+     │       └ config.json              The configuration file within your project containing all settings and mappings
+     ├ web_templates                    User defined templates
+     │   ├ template                     Template folder (e.g. project template type)
+     │   ├   ├ website_folder           Website content folder
+     │   ├   ├ folder                   Other folders in a project with some other purpose
+     │   ├   └ project-conf.json        Project template configuration file
+     │   └ template                     Template folder (e.g. website template type)
+     │       ├ website_folder           Website folder
+     │       └ website-conf.json        Website configuration file
+     ├ server_start.js                  Server start script
+     ├ LICENSE                          MIT license file
+     ├ README.md                        GitHub README
+     ├ server_start.js                  Server start script
+     └ vhost_server.service             Linux systemd service example
+</pre>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

@@ -1,0 +1,23 @@
+<h1>System Overview</h1>
+<h3>How does this work?</h3>
+<p>
+	On start of the server, it runs a small node script (start_server.js) which verifies modules are available, initializes the server classes (vhost server, logger, etc), and leverages the node cluster module to manage running processes (workers). It defines a few minimum parameters to start up the web server listeners. Then is launches the number of workers set in the server configuration. The default is 1 worker but if you have 2 or more CPUs you may opt to configure to run worker processes to match the CPU count or at least 2 processes incase a process fault occurs. The cluster manager will restart processes should any fail. Incoming requests generally round robin through the number of worker processes. If there are any major issues it will potentially get stuck in a start loop and will need to review the console logs to see where things are breaking (if bad configration files, etc). 
+	<br /><br />
+	The vhost server process (worker) reads the configuration file for settings like environment, management UI setting, logging configurations, SSL certificate, protocols, ports, etc. The next step the server process runs a mapping function that reads through all of the project configration files and maps the websites. If Management UI mode is enabled, it will include it's configuration as well (built into the system). The Management UI is not accessible if it is disabled in the server configuration. Finally the server starts the listeners on given ports for HTTP and/or HTTPS.
+	<br /><br />
+	If the server configuration is set to auto refresh, it will watch the '<blue>web_source</blue>' directory for new projects, project setting changes or project deletes and will auto map the changes. If not set, the server process needs to be restart to reload the configurations. The server also performs a level of validation for configuration files and will attempt to pre-correct them but does not save the corrections. You will see an error or warning under your project in the Management UI should that happen. If a project configration has too many errors, it may be ignored or can cause the server to crash or not start in some cases. It is best to verify project configuration in the development environment to be safe.
+	<br /><br />
+	When the Management UI is enabled, it will reserve IPs and hostnames for itself which will override any website set to use the local hostname or IP address of the server. Localhost, localhost IP, hostnames, FQDN of server will all be reserved for the Management UI. The management UI does have a '<blue>/vhost/project::website/</blue>' special preview path for viewing websites without a DNS resolution configurated. You can still access your websites well in advance of setting up name resolution. This is always available even when logged on or off of the Management UI (only if the Managment UI is enabled).
+	<br /><br />
+	Once everything is fully started and ready for user requests, the server will analyze incoming URL / URI and make some determinations. It will look to match the management UI first followed by vhost preview URI path (if management UI is enabled), then any proxy mapping (similar to <blue>www.domain.com/path</blue>) and finally DNS FQDN mapping (similar to <blue>www.domain.com</blue>). If resolved to a website it will map the content to serve. If there is no match or content doesn't exist, it will simply default to the system 404 webpage or custom website 404. If a target website requires SSL, it may redirect the client browser to an SSL port. Any errors on server side code execution will be caught and a stack trace will be logged resulting in 500 internal server error status. 
+	<br /><br />
+	If logging is enabled, and configured for file logging, logs are stored for system events and each project website for request or errors. If logs are sent to a log server, the format is sent in JSON format that can be processed accordingly. Example might be if using a graylog server, you can parse incoming logs and filter them as needed.
+</p>
+<br />
+<img src="../../images/1_how_does_it_work.png" alt="" />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

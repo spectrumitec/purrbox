@@ -1,0 +1,89 @@
+
+
+<h1>Manage Users</h1>
+<p>
+   User management and access control to project and website settings can be configured from this panel. From a fresh install, the only user is the 'admin'. At the current time the user management is local to this Management UI. There is no ties in with SSO or LDAP services at the current time. Current user management is good for small groups or simple access control to login to the Management UI.
+</p>
+<br />
+<h3>Create a User Account</h3>
+<p>
+   Start with creating a user from the add <img class="icon_tbl" src="../../../images/add_icon.png" alt="" /> icon to bring up the add user dialog.
+</p>
+<br />
+<img src="../../images/8_add_user_button.png" alt="" />
+<br /><br />
+<p>
+   At minimum fill in the user and password, the '<blue>Display Name</blue>' and '<blue>Email Address</blue>' are optional.
+</p>
+<br />
+<img src="../../images/8_add_user_dialog.png" alt="" />
+<br /><br />
+<p>
+   The user account will add to the list.
+</p>
+<br />
+<img src="../../images/8_user_added.png" alt="" />
+<br /><br />
+<h3>User Account Locked or Disable</h3>
+<p>
+	Users may accidentally lock themselves out. You can unlock their account from the main user list. By default the user gets 3 attempts and will lock the account for 30 minutes.
+	<br /><br />
+	If you want to disable a user account you can from the main user list.
+</p>
+<br />
+<img src="../../images/8_user_lock_disable_controls.png" alt="" />
+<br /><br />
+<h3>Manage User Permissions</h3>
+<p>
+	There are two general permission types, global permissions and project specific permissions as noted below.
+	<br /><br />
+	Global permissions:
+</p>
+<ul>
+	<li><b>admns</b> - Full access to everything</li>
+	<li><b>Project Admin</b> - Full access to all projects</li>
+	<li><b>Project Create</b> - Create new projects, clone other projects with at least read only, full management of created prjects</li>
+	<li><b>Template Admin</b> - Allow add and delete of templates</li>
+	<li><b>DNS Admin</b> - Allow add, delete and modify of Proxy and DNS FQDN Mapping</li>
+</ul>
+<p>Project Access:</p>
+<ul>
+	<li><b>Admin</b> - Full access to everything in the project</li>
+	<li><b>Settings</b> - Project settings like enable / disable, description, etc</li>
+	<li><b>Website Admin</b> - Full access to add, clone, remove, rename websites and all of the settings</li>
+	<li><b>Website Settings</b> - Website settings only and re-assignment of website for Proxy and DNS FQDN Mapping</li>
+	<li><b>Files Admin</b> - Full Access to managing files from Managment UI</li>
+	<li><b>Files Read</b> - Read Access to files from Managment UI</li>
+	<li><b>Read Only</b> - Read Access to project panels</li>
+</ul>
+<p>
+   To set these permissions, click the arrow <img class="icon_tbl" src="../../../images/arrow_double_right_icon.png" alt="" /> icon to the right of the user. The first tab will open to '<blue>Global Permissions</blue>'. If you want to give users access to global permissions, you can simply check the boxes on this tab.
+</p>
+<br />
+<img src="../../images/8_user_global_permissions.png" alt="" />
+<br /><br />
+<p>
+   The '<blue>Project Access</blue>' panel are where you want to set more granual access to a project. You may want to grant users read access to a project and more access to others. Click the arrow <img class="icon_tbl" src="../../../images/arrow_double_right_icon.png" alt="" /> icon to the right of the project you want to grant permissions and simply click the boxes on this tab.
+</p>
+<br />
+<img src="../../images/8_user_project_permissions.png" alt="" />
+<br /><br />
+<p>
+	Users don't need to log out and back on to activate the settings. As soon as the user refreshed from the browser refresh or the project menu above the project tree navigation it will reload the user permissions. This can also be done when removing permissions from a user.
+</p>
+<br />
+<h3>Manage User Details and Password</h3>
+<p>
+	The details and password panels are basically just the following. Change the value in the text box and click '<blue>Save</blue>'
+</p>
+<br />
+<img src="../../images/8_user_details.png" alt="" />
+<br /><br />
+<img src="../../images/8_user_password.png" alt="" />
+<br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

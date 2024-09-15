@@ -381,12 +381,17 @@ p {
 .header_title {
     position: absolute;
     top: 65px;
-    left: 85px;
+    left: 130px;
     width: 300px;
     text-align: left;
     font-size: 24px;
     font-weight: bold;
     color: black;
+}
+.header_ver {
+    display: inline-block;
+    font-size: 12px;
+    color: #0059ff;
 }
 
 .content {
@@ -884,23 +889,92 @@ p {
     }
 }
 
-/* VHost reference */
-.vhost_panel {
+/* Helpdocs */
+
+.helpdocs_index_title {
     position: absolute;
-    top: 50px;
-    left: 4px;
-    height: calc(100% - 54px);
-    width: calc(100% - 10px);
-    overflow: auto;
     display: block;
+	top: 51px;
+    left: 7px;
+    width: 350px;
+    height: 30px;
+    padding-top: 2px;
+    font-size: 20px;
+    font-weight: bold;
 }
+.helpdocs_index {
+    position: absolute;
+    display: block;
+	top: 81px;
+    left: 7px;
+    width: 353px;
+    height: calc(100% - 81px);
+    border-top: 1px solid #aaaaaa;
+    overflow: auto;
+}
+.helpdocs_iframe {
+    position: absolute;
+    display: block;
+	top: 52px;
+    left: 360px;
+    width: calc(100% - 363px);
+    height: calc(100% - 55px);
+    border: none;
+    border-left: 1px solid #aaaaaa;
+}
+
+/* iframe content */
+.helpdocs_body {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    background-color: white;
+}
+
 @media screen and (max-width:1200px) {
-    .vhost_panel {
-        top: 30px;
-        left: 4px;
-        height: calc(100% - 34px);
-        width: calc(100% - 10px);
+
+    .helpdocs_index_title {
+        top: 27px;
+        left: 2px;
+        height: 18px;
+        width: 220px;
+        font-size: 12px;
+        font-weight: bold;
+        padding-top: 0px;
     }
+
+    .helpdocs_index {
+        top: 44px;
+        left: 2px;
+        width: 220px;
+        height: calc(100% - 44px);
+        border-top: 1px solid #aaaaaa;
+        overflow: auto;
+    }
+
+    /* jsTree Override - Tree Icons */
+    #helpdocs_jstree {
+        transform: scale(0.6);
+        transform-origin: top left;
+        width: calc(100%);
+        height: calc(100% - 50px);
+    }
+    
+    .helpdocs_iframe {
+        transform: scale(0.6);
+        transform-origin: top left;
+        top: 27px;
+        left: 222px;
+        width: calc(167% - 375px);
+        height: calc(167% - 50px);
+        border: none;
+        border-left: 1px solid #aaaaaa;
+    }
+    
+
 }
 
 /* Admin page */
@@ -1251,12 +1325,6 @@ p {
 .grid2_admin_user_management {
     grid-template-columns: max-content 500px;
 }
-.grid6_admin_user_list {
-    grid-gap: 0px;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
 .grid2_admin_sub_head_user {
     background-color: white;
     padding: 5px;
@@ -1265,12 +1333,6 @@ p {
     font-size: 14px;
     grid-column-start: 2;
     grid-column-end: 4;
-}
-.grid2_admin_user_groups_projects {
-    grid-gap: 0px;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
 }
 
 /* Common Dividers */

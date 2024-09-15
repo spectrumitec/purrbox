@@ -1464,7 +1464,7 @@ class manage_server {
             }
 
             //Reserve system names (will cause some errors)
-            if(query.project_name == "system" || query.project_name == "mgmtui") {
+            if(query.project_name == "system" || query.project_name == "mgmt") {
                 validate.result.error = "Project name is reserved by system";
                 return validate;
             }
@@ -1631,7 +1631,7 @@ class manage_server {
     }
     project_manage_create_blank(result, auth_check, query) {
         //Get parameters
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
         let project_desc = query.project_desc;
 
         //Check for existing folder
@@ -1671,7 +1671,7 @@ class manage_server {
     project_manage_create_from_template(result, auth_check, query) {
         //Get parameters
         let type = query.type;
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
         let project_desc = query.project_desc;
         let template = query.template;
 
@@ -1756,7 +1756,7 @@ class manage_server {
     project_manage_clone(result, auth_check, query) {
         //Get parameters
         let project_selected = query.project_selected;
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
 
         //Try and rename source folder first
         let web_source = this.paths.web_source;
@@ -1802,7 +1802,7 @@ class manage_server {
     project_manage_rename(result, query) {
         //Get parameters
         let project_selected = query.project_selected;
-        let project_name = query.project_name;
+        let project_name = query.project_name.toLowerCase();
 
         //Try and rename source folder first
         let web_source = this.paths.web_source;
@@ -2409,6 +2409,7 @@ class manage_server {
 
                 //Validate fields
                 if(query.type == "blank") {
+                    //Validate website name string
                     if(this.validate_name(query.website_name) == false) {
                         validate.result.error = "New website name is invalid";
                         return validate;
@@ -2590,25 +2591,27 @@ class manage_server {
                     }
 
                     //Validate filename
-                    if(this.validate_name(query.value) == false) {
-                        validate.result.error = `Website property[${query.property}] filename[${query.value}] contains invalid character`;
-                        return validate;
-                    }
-                    let extname = path.extname(query.value);
-                    let extnames = [
-                        ".csv", 
-                        ".html", 
-                        ".htm", 
-                        ".js", 
-                        ".json", 
-                        ".jsonld", 
-                        ".txt", 
-                        ".xhtml", 
-                        ".xml"
-                    ];
-                    if(extnames.includes(extname) == false) {
-                        validate.result.error = `Website property[${query.property}] filename[${query.value}] is not a supported extension`;
-                        return validate;
+                    if(query.value != "") {
+                        if(this.validate_name(query.value) == false) {
+                            validate.result.error = `Website property[${query.property}] filename[${query.value}] contains invalid character`;
+                            return validate;
+                        }
+                        let extname = path.extname(query.value);
+                        let extnames = [
+                            ".csv", 
+                            ".html", 
+                            ".htm", 
+                            ".js", 
+                            ".json", 
+                            ".jsonld", 
+                            ".txt", 
+                            ".xhtml", 
+                            ".xml"
+                        ];
+                        if(extnames.includes(extname) == false) {
+                            validate.result.error = `Website property[${query.property}] filename[${query.value}] is not a supported extension`;
+                            return validate;
+                        }
                     }
                 }
             break;
@@ -2803,7 +2806,7 @@ class manage_server {
         //Get config data
         let conf_data = build.conf_data;
         let project_name = build.query.project;
-        let website_name = build.query.website_name;
+        let website_name = build.query.website_name.toLowerCase();
 
         //Check if site already exists
         if(conf_data.websites.website_name != undefined) {
@@ -2853,11 +2856,14 @@ class manage_server {
 			"sub_map": {}
         }
 
+        //Add to array
+        conf_data.websites[website_name] = new_conf;
+
         //Sort array
         conf_data.websites = this.sort_hash_array(conf_data.websites);
 
         //Add to config
-        build.conf_data.websites[website_name] = new_conf;
+        build.conf_data;
         build.updated = true;
 
         //Return result
@@ -2907,7 +2913,7 @@ class manage_server {
             let template_website_path = path.join(template_path, template_name, template_website_name);
 
             //New website name
-            let website_new_name = target_websites[target];
+            let website_new_name = target_websites[target].toLowerCase();
             let website_new_path = path.join(this.paths.web_source, project_name, website_new_name);
 
             //Check for conflicting name
@@ -3000,7 +3006,7 @@ class manage_server {
         let action = query.action;
         let project_name = query.project;
         let curr_site_name = query.select_website_name;
-        let new_site_name = query.new_website_name;
+        let new_site_name = query.new_website_name.toLowerCase();
 
         //Get project config
         let conf_load = this.load_project_conf(project_name);
@@ -4564,6 +4570,77 @@ class manage_server {
             //Result
             return result;
         }
+    }
+
+    //////////////////////////////////////
+    // Help Panel Functions
+    //////////////////////////////////////
+
+    helpdocs_mange(query=null) {
+        //Set configs
+        let result = {
+            "error":"",
+            "state":"unauthenticated",
+            "authenticated":false,
+            "authorized": false,
+            "data":{}
+        }
+
+        // Validate /////////////////
+
+        // Validate Request /////////////////
+        if(query == null) {
+            result.error = "Missing query parameters";
+            return result;
+        }else{
+            if(query.action == undefined || query.action == "") {
+                result.error = "Missing request action";
+                return result;
+            }
+        }
+
+        // Auth Check ///////////////
+
+        //Check authenticated
+        let auth_check = this.jwt_auth_user_check();
+        result.error = auth_check.error;
+        result.state = auth_check.state;
+        result.authenticated = auth_check.authenticated;
+
+        //Return on invalid state
+        if(result.error != "") { return result; }
+        if(result.authenticated == false) { return result; }
+
+        //Authorize all users
+        result.authorized = true;
+
+        // Do Command ///////////////
+
+        switch(query.action) {
+            case "helpdocs_index": {
+                result = this.helpdocs_manage_index(result);
+            }
+        }
+        
+        //Return result
+        return result;
+    }
+    helpdocs_manage_index(result) {
+        //Set vars
+        let help_path = path.join(this.paths.localhost, "help", "documents");
+        let dir_index = this.read_dir_struct(help_path);
+
+        //Check errors
+        if(dir_index.error != undefined) {
+            result.error = dir_index.error;
+            return result;
+        }
+
+        //Set directory
+        result.data = dir_index;
+
+        //Return result
+        return result;
     }
 
     //////////////////////////////////////

@@ -1,0 +1,41 @@
+<h1>Custom Maintenance and Errors Overview</h1>
+<h3>What These Are</h3>
+<p>
+	Custom maintenance and error pages are special embedded mini websites at the root of the project's website folder. They will have a folder name of '<blue>_mainenance_page</blue>' or '<blue>_error_pages</blue>'. These folders are not created automatically on creation of a website as they are optional. The system has defaults which will be used if no custom ones are created. Maintenance page and error pages are similar in functionality with regards to how you can build them but maintenace mode operated in a different way as compared to error handling.
+	<br /><br />
+	Maintenance mode, for example, will essentially block any and all requests to any public facing files in your website. This is not just a splash screen off the root of your website, it will make sure all access to APIs and content are completely shut down. This way no unintended access to an API can potentially cause you issues while doing any sort of maintenance to the website or needing to shut down the website for some reason. This will mean that any CSS, JavaScript, Images or other HTML files realted to the maintenance page must be within the maintenance page folder when enabled. Alternatively, you can also create a secondary website if there are some specific development needs and use the Proxy and DNS Resolition settings to resolve to the alternative maintenance website.
+	<br /><br />
+	Error Pages don't have the same restrictive functions as maintenance pages. These are simply for supporting customizable error pages with some extended functionality. They can leverage existing CSS, Images, etc. from the main website if you choose but can also have it's own CSS, JavaScript, images if you prefer to have something different than the main site within it's own folder structure.
+</p>
+<br />
+<h3>What Triggers These Functions</h3>
+<ul>
+	<li><b>Error Pages</b> - will trigger if the client requests content that is not found. The system will check your website settings for a default error pages and will attempt to resolve to those. If there are problems with resolving to your custom error pages, the system will default to it's own error pages. This may happen if you have configured your default error pages but have not created them.</li>
+	<li><b>Maintenance Page</b> - will trigger only if the website is set to maintenance mode in the target environment and only for any Proxy or DNS FQDN Mapping. If viewing the website through a Management UI VHost preview, maintenance mode will be ignored. This is to allow you to verify the website is working before you decide to take it out of maintenace mode. Similar to error pages, if the system cannot resolve your custom page, it will default to it's own.</li>
+</ul>
+<h3>Helper Buttons</h3>
+<p>
+	This is a simple tool that will notify or can help you create the base folders and file. The system will check the filesystem against your website general settings and will notify if something is missing.
+	<br /><br />
+	<b>Project Panel</b>
+	<br />
+	Under the project panel, there may be warnings and suggestions to setup the maintenace or error pages if not configured correctly.
+	<br /><br />
+</p>
+<img src="../../images/5_helper_project_warning.png" alt="" />
+<br /><br />
+<p>
+	<b>Website Panel</b>
+	<br />
+	There are some buttons in the website general settings to help build the folder structure and file placeholders. It will not overwrite existing files. There are some basic built in data types like HTML, JSON, XML, TXT, CSV, etc. When specifying this type of file extension it will create a file of this type with basic content.
+	<br /><br />
+</p>
+<img src="../../images/5_helper_website_warning.png" alt="" />
+<br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

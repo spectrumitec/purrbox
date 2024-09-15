@@ -1,0 +1,27 @@
+<h1>Folder Structure</h1>
+<h3>Basic Configuration</h3>
+<p>
+	There is a default folder structure to the '<blue>_maintenance_page</blue>' and '<blue>_error_pages</blue>'. For the most part they are static content. For a simple example, the following diagram just shows the singular files in these folders to match the website general settings. The HTML files can be simple text or have an HTML layout with embedded CSS styles and JavaScript. API Response files can be simple JSON string. The helper buttons on the website settings panel will create a basic layout like this.
+</p>
+<br />
+<img src="../../images/5_maintenance_page_example.png" alt="" />
+<br /><br />
+<h3>Advanced Configuration</h3>
+<p>
+	You can have a more advanced setup with these pages. Creating a sub folder named '<blue>api</blue>' and placing API files in here will be treated as a server side execute function (similar to API Dynamic Path Mapping in the Website Configuration section). The API folder might have some appeal for things like having a maintenance page with a notice to users for expected downtime or status. There is a Default System website template called '<blue>simple</blue>' which has this basic functionality with a '<blue>message.txt</blue>' file in the root of the maintenance page folder (see below). The only file that will execute server side is the '<blue>message.js</blue>' file in the '<blue>api</blue>' folder. Also note that additional folders for CSS styles and JavaScript files to be sent to client browser. See next section, '<b>Special URI Paths</b>' for the contents of the HTML files for how to ensure these load properly.
+</p>
+<br />
+<img src="../../images/5_maintenance_page_example_api.png" alt="" />
+<br /><br />
+<p>
+	Reference to above, this is the website view with maintenance mode enabled and the API making a call to read and return the text message. The message is pulled from the '<blue>message.txt</blue>' file. A user could choose to have a database or pull a status from somewhere else. 
+</p>
+<br />
+<img src="../../images/5_maintenance_page_example_website.png" alt="" />
+<br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

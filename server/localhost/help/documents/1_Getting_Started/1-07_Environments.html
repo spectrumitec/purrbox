@@ -1,0 +1,88 @@
+<h1>Environments</h1>
+<h3>About Environments</h3>
+<p>
+	Whatever the environment is, there is probably some level of a Development for code building, QA or Test for code validation, Stage for testing production data before release, and Production facing the user base. As noted in server settings, the system does have an environment variable setting for '<blue>dev</blue>', '<blue>qa</blue>', '<blue>stage</blue>' and '<blue>prod</blue>' for supporting the ease of moving project data from one environment to another. If there are already DNS FQDN resolving to different environments, you can pre-configure those resolutions for the project. Proxy Mapping and DNS FQDN resolution are attached to the project configuration and move with the project data. The servers in each environment will map according to what it's set for so there is no further configration needed when promoting application code to the next environment.
+</p>
+<br />
+<img src="../../images/1_environments.png" />	
+<br /><br />
+<h3>Use Example With Proxy Map or DNS Resolution</h3>
+<p>
+	Reference the Management UI project websites settings.
+</p>
+<br />
+<img src="../../images/1_mapping_example_1.png" alt="" />
+<br /><br />
+<p>
+	Reference the Management UI resolve panel.
+</p>
+<br />
+<img src="../../images/1_mapping_example_2.png" alt="" />
+<br /><br />
+<h3>Use Example With APIs</h3>
+<p>
+	The environment variable is also passed through as a server variable to server side execution code. It can be used where you have a config file that has different database in each environment as an example. Your code can be written to take the environment variable and get the configration for that environment type. An example of the server side properties that are passed to a server are as follows:<br />
+	<br />
+	Request example using default API file in the Project Files management:
+</p>
+<pre>
+https://www.network.local/api/test?query=something&request={"json":"data"}
+</pre>
+<pre>
+  {
+    "_env": "<hl>dev</hl>",
+    "_server": {
+      "local_ipv4": "192.168.1.50",
+      "local_ipv6": "fe80::29a7:31dc:23fb:8920",
+      "request_ip": "192.168.1.50",
+      "node_version": "v20.11.1",
+      "environment": "<hl>dev</hl>",
+      "environment_name": "<hl>testing</hl>"
+    },
+    "_client": {
+      "remote_ip": "192.168.1.5",
+      "remote_ip_xff": null,
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+      "cookie": null
+    },
+    "_headers": {
+      "Host": "www.network.local",
+      "Connection": "keep-alive",
+      "sec-ch-ua": "\"Chromium\";v=\"128\", \"Not;A=Brand\";v=\"24\", \"Google Chrome\";v=\"128\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "Upgrade-Insecure-Requests": "1",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-Mode": "navigate",
+      "Sec-Fetch-User": "?1",
+      "Sec-Fetch-Dest": "document",
+      "Accept-Encoding": "gzip, deflate, br, zstd",
+      "Accept-Language": "en-US,en;q=0.9"
+    },
+    "_request": {
+      "method": "GET",
+      "http_version": "1.1",
+      "protocol": "https",
+      "hostname": "www.network.local",
+      "path": "/vhost/project_name::example3/api/get",
+      "path_prefix": "/vhost/project_name::example3/",
+      "path_suffix": "/api/get/",
+      "query_string": "query=something&json={%22key%22:%22value%22}",
+      "fixed_api_path": []
+    },
+    "_query": {
+      "query": "something",
+      "json": {
+       "key": "value"
+      }
+    }
+   }
+</pre>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

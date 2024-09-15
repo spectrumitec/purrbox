@@ -17,16 +17,9 @@ exports.request = async function(params={}) {
     const _env = params._server.environment;
     const _server = params._server;
     const _client = params._client;
-    const _raw_headers = params._raw_headers;
-    const _request = {
-        "method":params.method,
-        "http_version":params.http_version,
-        "protocol":params.protocol,
-        "hostname":params.hostname,
-        "path":params.path,
-        "query":params.query
-    }
-    const _query = params.query;
+    const _headers = params._headers;
+    const _request = params._request;
+    const _query = params._query;
 
     //Validation checks
     if(_request.method == undefined) { _error("Method undefined"); return _response;  }
@@ -41,7 +34,7 @@ exports.request = async function(params={}) {
         "_env":_env,
         "_server":_server,
         "_client":_client,
-        "_raw_headers":_raw_headers,
+        "_headers":_headers,
         "_request":_request,
         "_query":_query
     });

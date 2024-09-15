@@ -25,31 +25,31 @@ SOFTWARE.
 */
 
 //Vars
-var server_configs = {};
-var server_paths = {};
-var protected_paths = {};
+var server_configs = {}
+var server_paths = {}
+var protected_paths = {}
 
-var website_projects = {};
+var website_projects = {}
 var website_project_errors = {}
-var templates_system = {};
-var templates_user = {};
+var templates_system = {}
+var templates_user = {}
 
 var focused_project = "";
 var focused_panel = "";
 var focused_site = "";
 
 //Project files (caller)
-var project_files_folder_open = [];
+var project_files_folder_open = []
 var project_files_selected_object = "";
 
 //Admin panel temp store
-var admin_panel = {};
+var admin_panel = {}
 
 //////////////////////////////////////
 // Common methods
 //////////////////////////////////////
 
-var _web_calls = {};
+var _web_calls = {}
 function web_calls() {
     //Handle function call
     if(arguments[0] != undefined) {
@@ -726,8 +726,6 @@ function website_manage(action, data={}) {
         "query":json
     }
 
-    console.log(json)
-
     //Execute call
     web_calls(params)
 }
@@ -1175,8 +1173,6 @@ function resolve_update_map(value) {
         "url":url,
         "query":json
     }
-
-    console.log(json)
 
     //Execute call
     web_calls(params)
@@ -2457,10 +2453,10 @@ function ui_resolve_panel() {
             <div class="grid1_col">
                 <select id="resolve_add_env" class="resolve_env_option">
                     <option value=""></option>
-                    <option value="dev">Dev</option>
-                    <option value="qa">QA</option>
-                    <option value="stage">Stage</option>
-                    <option value="prod">Prod</option>
+                    <option value="dev">dev</option>
+                    <option value="qa">qa</option>
+                    <option value="stage">stage</option>
+                    <option value="prod">prod</option>
                 </select>
             </div>
             <div class="grid1_col">
@@ -4277,7 +4273,7 @@ function ui_website_map_delete(map_type, path) {
         <input type="hidden" id="delete_map_type" value="${map_type}">
         <input type="hidden" id="delete_map_path" value="${path}">
     
-        <p>Are you sure you want to delete path '${path}'?
+        <p>Are you sure you want to delete path <b>${path}</b>?
         
         <br /><br />
         <input type="button" value="Yes" onClick="website_manage_map_delete();">
@@ -5400,6 +5396,9 @@ function ui_admin_server_settings(response) {
             case "environment": 
                 this_desc = "The environment of this server (dev, qa, stage or prod). Environment vars are passed to server side execute code for use by project code.";
             break;
+            case "environment_name": 
+                this_desc = "The environment name is a free form field as per user preference (e.g. front_end, apps, app_name)";
+            break;
             case "http_on": 
                 this_desc = "HTTP listener enabled or disabled";
             break;
@@ -5638,8 +5637,8 @@ function ui_admin_server_url_mapping(response) {
     let html_web_settings_rows = "";
     if(admin_panel["admin_server_mapping_mgmt"] == true) {
         //Get mgmt settings and default Managment UI site settings
-        let project_params = web_configs.mgmtui;
-        let website_params = project_params.websites.www;
+        let project_params = web_configs.mgmt;
+        let website_params = project_params.websites.ui;
 
         //Get settings
         html_web_settings_rows += ui_admin_server_url_mapping_websites("Management", "This UI", project_params, website_params);
@@ -5941,7 +5940,6 @@ function ui_admin_server_url_mapping_websites(project_name, website_name, projec
     return html_web_settings_row;
 }
 function ui_admin_test_url_mapping(response) {
-    console.log(response)
     let this_log = decodeURIComponent(response.log)
     $("#url_test_result").html(this_log)
 }
@@ -6038,7 +6036,7 @@ function ui_admin_users_list(data) {
 
     //HTML
     let html = `
-        <div class="grid6 grid6_admin_user_list">
+        <div class="grid6_inner">
             ${html_rows}
         </div>
     `;
@@ -6053,10 +6051,10 @@ function ui_admin_user_add() {
     //Prompt user
     let html_dialog = `
         <form>
-            <div class="grid2">
+            <div class="grid2_inner">
                 <div class="grid1_col">Username</div>
                 <div class="grid1_col">
-                    <input id="admin_add_username" type="text" value="">
+                    <input id="admin_add_username" type="text" value="" autocomplete="off">
                 </div>
 
                 <div class="grid1_col">Password</div>
@@ -6066,12 +6064,12 @@ function ui_admin_user_add() {
                 
                 <div class="grid1_col">Display Name</div>
                 <div class="grid1_col">
-                    <input id="admin_add_display_name" type="text" value="">
+                    <input id="admin_add_display_name" type="text" value="" autocomplete="off">
                 </div>
 
                 <div class="grid1_col">Email Address</div>
                 <div class="grid1_col">
-                    <input id="admin_add_email" type="text" value="">
+                    <input id="admin_add_email" type="text" value="" autocomplete="off">
                 </div>
 
                 <div class="grid2_col">
@@ -6185,7 +6183,7 @@ function ui_admin_user_setting_global() {
 
     //Set HTML
     let html = `
-        <div class="grid2 grid2_admin_user_groups_projects">
+        <div class="grid2_inner">
             <div class="grid1_sub_head">Group Name</div>
             <div class="grid1_sub_head">Member</div>
             ${html_rows}
@@ -6218,7 +6216,7 @@ function ui_admin_user_setting_project() {
     project_list = project_list.sort();
 
     //List projects
-    let html_projects = `<div class="grid2 grid2_admin_user_groups_projects">`;
+    let html_projects = `<div class="grid2_inner">`;
     for(let i in project_list) {
         //Get project label
         let project_name = project_list[i];
@@ -6235,7 +6233,7 @@ function ui_admin_user_setting_project() {
 
     //Set HTML
     let html = `
-        <div class="grid2 grid2_admin_user_groups_projects">
+        <div class="grid2_inner">
             <div class="grid1_sub_head">Project</div>
             <div class="grid1_col" id="admin_user_project_name"></div>
             <div class="grid1_col">${html_projects}</div>
@@ -6295,7 +6293,7 @@ function ui_admin_user_setting_project_permissions(project) {
 
     //Set HTML
     let html = `
-        <div class="grid2 grid2_admin_user_groups_projects">
+        <div class="grid2_inner">
             <div class="grid1_sub_head">Permission</div>
             <div class="grid1_sub_head">Enabled</div>
             ${html_rows}
@@ -6320,7 +6318,7 @@ function ui_admin_user_setting_details() {
 
     //Set user password reset form
     html = `
-        <div class="grid2">
+        <div class="grid2_inner">
             <div class="grid1_col">Display Name</div>
             <div class="grid1_col">
                 <input type="text" value="${name}" id="admin_user_name" autocomplete="off">
@@ -6342,10 +6340,14 @@ function ui_admin_user_setting_password() {
 
     //Set user password reset form
     html = `
-        <form>
-            <input type="password" value="" id="admin_user_new_password" autocomplete="off">
-        </form>
-        <br />
+        
+        <div class="grid2_inner">
+            <div class="grid1_col">Password</div>
+            <div class="grid1_col">
+                <input type="password" value="" id="admin_user_new_password" autocomplete="off">
+            </div>
+        </div>
+        <br /><br />
         <input type="button" value="Set Password" onClick="admin_user_set_password();">
     `;
 

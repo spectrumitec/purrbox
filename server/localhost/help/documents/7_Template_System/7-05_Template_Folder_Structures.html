@@ -1,0 +1,69 @@
+<h1>Template Folder Structures</h1>
+<p>
+    The following examples are some recommended folder layouts for templates. The folders for static content represent separation from JavaScript, Images, and CSS but this is not the case. The server doesn't have fixed locations for content except what is defined as static and server side execution in the website settings which would need to a JavaScript file. You can place most file types scatter around the static content. The server reads the extension name of the file and serves as any other webserver would.
+    <br /><br />
+    <b>Website Template Style</b><br />
+    The following is a simple static website without any application code. Just client side HTML, JavaScript, Images and CSS Style sheets.
+</p>
+<pre>
+    web_templates
+      └template                  Template folder (project template type)
+         ├ website_folder        Website content folder (public facing)
+         │   ├ images            Images fodler
+         │   ├ js                JavaScript folder
+         │   ├ css               CSS Style sheets folder
+         │   └ index.html        HTML files (index default document)
+         └ website-conf.json     Website template configuration file
+</pre>
+<p>
+    <b>Project Template Style</b><br />
+    The follwing is a simple project template where the public exposed files reside in a website_folder, API folder is mapped for server side execute and rest is static. The app code and configuration folders are outside of that folder.
+</p>
+<pre>
+    web_templates
+      └template                  Template folder (project template type)
+         ├ app                   Application folder
+         ├ conf                  Folder for configurations
+         ├ website_folder        Website content folder (public facing)
+         │   ├ api               Client facing API files to execute server side
+         │   ├ images            Images fodler
+         │   ├ js                JavaScript folder
+         │   ├ css               CSS Style sheets folder
+         │   └ index.html        HTML files (index default document)
+         └ project-conf.json     Project template configuration file
+</pre>
+<p>
+    <b>Complex Project Template Style</b><br />
+    There may be cases where a project has more than one website as they are related in some way. Website 2 could be a sub folder or sub mapped website of website 1. Each site may have it's own application code but share common application components. An example may be where having built application classes and extending them to the website classes so that you can re-use core component programming.
+</p>
+<pre>
+    web_templates
+      └template                  Template folder (project template type)
+         ├ app                   Core application components folder
+         ├ conf                  Folder for configuration files
+         ├ website_folder_1      Website content folder
+         │   ├ site_app          Website specific application files (extends core application)
+         │   ├ site_conf         Website specific configuration files
+         │   └ www               Website content folder (public facing)
+         │       ├ api           Client facing API files to execute server side
+         │       ├ images        Images fodler
+         │       ├ js            JavaScript folder
+         │       ├ css           CSS Style sheets folder
+         │       └ index.html    HTML files (index default document)
+         ├ website_folder_2      Website content folder
+         │   ├ site_app          Website specific application files (extends core application)
+         │   ├ site_conf         Website specific configuration files
+         │   └ www               Website content folder (public facing)
+         │       ├ api           Client facing API files to execute server side
+         │       ├ images        Images fodler
+         │       ├ js            JavaScript folder
+         │       ├ css           CSS Style sheets folder
+         │       └ index.html    HTML files (index default document)
+         └ project-conf.json     Project template configuration file
+</pre>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

@@ -59,6 +59,7 @@
             "nodejs-dev.network.local"
         ],
         "environment":"dev",
+        "environment_name":"testing",
         "http_on":true,
         "http_port":80,
         "https_on":true,
@@ -92,145 +93,10 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
     <li>JWT auth for Dev management UI will have MySQL/MariaDB in future versions, currently limited to local file configurations. See server path '/root_folder/server/conf/'</li>
 </ul>
 
-<b>Quick Start Guide:</b><br />
-<p>To begin with a simple project, and let's not call it 'Hello World!'. You can start with logging into the Dev Management UI at 'https://your_ip_addres' or 'https://localhost', if you have not already setup the server configuration 'server_dev_ui' settings. On the main 'Projects' tab, there are four button on the left pane at the top. The 'box' icon allows you to create a new project. Supply a project 'Name' and 'Description' (optional) to create a base configuration. A new project should appear in the left pane.</p>
+<b>Starting Up</b><br />
+<p>
+	After installation, you should be able to connect to the management UI. Check out the 'Help' tab for information and how tos. Enjoy!
+</p>
 
 ![2024-08-27_18-00-49](https://github.com/user-attachments/assets/65066c8f-2d63-41c2-a34f-aa3c3b141843)
-
-
-<br />
-<p>Select your project and you will see the project tree is broken into a few sections:</p>
-<ul>
-    <li><b>The root of the project</b> - This is where basic settings allow for changing description or enable / disable the project for DNS resolution settings. Here you can also preview your site creations under a special VHost path (/vhost/project::sitename/). Disabling your project does not disable the VHost preview function. Note: VHost preview is only available when server dev mode is active.</li>
-    <li><b>Sites and Settings</b> - This is where you create a website under your project. All sites will appear under this tree selector when created. There are three general options here where you can create a blank empty web source folder, a system default starter site, and user defined templates (should you have your own templates to use). Blank site selection is for customized builds where needing to create a specific folder structure to your project.</li>
-    <li><b>Project Files</b> - This is more of a helper panel for some basic folder strucutre and file creation. The Dev Management UI has some basic file templates for creating HTML, CSS or API files. If customizing your folder stuctures, you can follow up with configuring the site mappings (see website settings below)</li>
-Stage and Prod server environment as an example, copying or using git clone / pull to copy your source code between environments will leverage this in each environment by refering to the server environment varaible and your project mapping configuration for DNS. Note: While the server is in Dev mode, you are unable to use localhost, IP addresses or any FQDN and hostnames defined in the server 'server_dev_ui' settings.</li>
-</ul>
-
-![2024-09-01_13-20-26](https://github.com/user-attachments/assets/1cd3303d-c9df-4de6-999e-827f935043cb)
-
-
-<p>Website settings under your project's 'Sites and Settings' tree view, provides configurations you would to use access your project code. These are broken into the following:</p>
-<ul>
-    <li><b>General Settings</b> - Your site will usually have a default document or potentially need to ensure your site is secured. These settings allow you to define the default document, a maintenance splash page, SSL redirection and ability to toggle your site default doc to a maintenance page. Maintenance page doesn't disable all the sub paths of a site. Only the main index page or site root is altered with maintenance page (does not apply to site VHost preview). If needing to disable the entire site, optionally you can create a maintenance site and update the DNS resolution to point to maintenance instead which will disable all your APIs as well. You may still preview using the VHost link while the DNS is pointing to the maintence site.</li>
-    <li><b>Error Page Default Documents</b> - These allow you to specify a custom 404 or 500 error pages otherwise the server default error pages will be used</li>
-    <li><b>API Fixed File Mapping</b> - Allows for a sub path mapping to resolve to a single API file. Fix mapping will resolve all paths under the defined sub path to the API file chosen. API mapping is strictly server side execution and will not send source code to the client browser. (Do not map to an API file off the root path as the root path is reserved for static content)</li>
-    <li><b>API Dynamic Path Mapping</b> - Allows for a sub path mapping to resolve to any API file in the folder tree structure. The server will map the URL path accordingly to the underlying filesystem path. API mappings is strictly server side execution and will not send source code to the client browser. (Do not map to the root path as the root path is reserved for static content)</li>
-    <li><b>Static Content Path Mapping</b> - This will cover any static content like HTML, client side JavaScript, CSS, images, etc. The server will handle MIME types related to file extension. Any files that are in the root URL path and not located in API mapping paths are treated as static content except where overriden.</li>
-    <li><b>Static Content Server Execute Override</b> - In some cases you may require a file at the root path to execute at the server and not be sent to client like static content. This allows to specify those file paths as an override. An example of this is a health check script used for a load balancer that might check modules, database connectivity, etc. and send the load balancer a status 500 error or other code to let it know this web server has a problem.</li>
-    <li><b>Sub Map</b> - You can use this to map to another site in your project. Example might be where you need to have an API that communicates in XML for a legacy interface. You can configure that site to be all XML response from 
-    that sub mapped site for anything API, error pages and maintenance page, while the rest of the site leverages JSON as it's primary communication.</li>
-</ul>
-
-![2024-08-27_18-21-30](https://github.com/user-attachments/assets/b831d349-ef67-43d7-bdb8-4c4ea71d23f3)
-
-<p>As a helper for any server side API, see the 'Project Files' tree, create a new file in your API folder, then select the API file type which will drop in a standard template (helper file) that is ready for developing your server side code. The helper will output a JSON return of the available server variables that can be used in your application. This may be used as a testor to validate headers, query parameters, etc. When layout out your website mapping, any folders and files that are not inside the mapping cannot be directly accessed by the client's browser. You may include classes and functions in your API files that would be used for server side execution.</p>
-
-![2024-08-27_18-23-11](https://github.com/user-attachments/assets/c879bf68-6439-4abd-abdf-23491e0c784f)
-
-<p>Resolve section helps with mapping Proxy domain and path or DNS FQDN to your project websites. Sub mapping in the website settings will map under the URL path automatically.</p>
-
-![2024-08-27_18-14-41](https://github.com/user-attachments/assets/575f64e3-914e-4691-bd4b-b5c641c7ad22)
-
-![2024-08-27_18-32-28](https://github.com/user-attachments/assets/e3aeaef1-aa16-4392-8c06-5093ee39783a)
-
-Once proxy mapping and DNS FQDN configurations are setup, a quick link option is available from the website management of a project to quickly change the resolution to specific sites.
-
-![2024-09-01_13-24-39](https://github.com/user-attachments/assets/e71a2f06-bf80-4410-b9fc-9b891b8f3729)
-
-<b>The Manual Side of Things:</b><br />
-<p>From a manual configuration perspective, the server root has a general layout (below). Git ignore for this project is set to ignore the 'web_source' and 'web_templates' folders. When starting your server for the first time, it will create these folders for your web source and templates. You can setup your own GitHub projects and import node modules into your project folders as required. There is no tie into a database or antyhing that can corrupt your server configuration. Do note that a manually configuring your project config.json files with a syntax error can cause your server to crash loop. Using the UI for config changes is the safest way to avoid this. The server can be script friendly if you plan on automating project and site pushes as the server detects new projects and refreshes it's mapping as long as the server auto refresh is enabled and set on a check interval.</p>
-<pre>
-root folder
-  &#9500; node_modules                  Node modules installed during installation
-  &#9500; conf                          Server configuration folder
-  &#9474;   &#9500; cert.pem                  SSL Cert
-  &#9474;   &#9500; key.pem                   SSL Private Key    
-  &#9474;   &#9500; server_conf.json          Server configuration file
-  &#9474;   &#9492; logger.json               Server logging configuration file
-  &#9500; logs                          Log files when set for file logging
-  &#9500; server                        Main server folder
-  &#9474;   &#9500; class                     System classes
-  &#9474;   &#9500; conf                      Configuration location for system classes (created on first server start from JWT config creation)
-  &#9474;   &#9500; default_errors            Location of system default 404 and 500 error pages
-  &#9474;   &#9500; default_file_types        Location of template file types (used when creating new files in Dev Management UI)
-  &#9474;   &#9500; default_new_site          Location of default system template
-  &#9474;   &#9492; localhost                 Location of Dev Management UI
-  &#9500; web_source                    Location of all project folders
-  &#9474;   &#9492; your_project              The project folder associated with the project tree
-  &#9474;       &#9500; website_folder        The folder for each website defined under your project
-  &#9474;       &#9492; config.json           The configuration file within your project containing all settings
-  &#9500; web_templates                 Location for any template created or downloaded (similar to project folder structure)
-  &#9492; server_start.js               Server start script
-</pre>
-<p>Project configuration example is as follows. Most of what is in the configuration file is relatively easy to see where it relates in the Dev Management UI. A few points:</p>
-<ul>
-    <li>If you have a server that is in Prod mode, which disables the Dev Managment UI, you can still fully configure things in the project configuration file. One example is setting 'enabled' to 'false' when the server is set to auto referesh. It will unregister the DNS mapping essentially disabling the site on that server.</li>
-    <li>Path mapping has web URL path as the 'key' and the file system relative path as the 'value'. If changing the configuration manually on a Windows platform, maintain the UNIX/Linux style path separator "/" as the server will map properly for Windows systems. Do not use full OS path mapping as the server appends the file path to root of project website folder path.</li>
-    <li>DNS names has the sections "dev", "qa", "stage" and "prod". You can have multiple DNS FQDNs under each environment section pointing to your site. Each DNS entry is mapped individually to a site. The Dev Management UI will prevent you from setting same DNS names to different sites or projects at the same time since the server will only resolve an FQDN to one site. Caveat here is to be aware if copying project source from different servers into one server for possible overlap of FQDN. You will want to make sure DNS mapping is properly set to each site. You can view the Dev Management UI 'Site Index' tab for FQDN mapping to make sure your sites are set to resolve correctly. A DNS name will resolve to only one site.</li>
-</ul>
-<pre>
-{
-	"project_desc": "Description of project",
-	"enabled": true,
-	"proxy_map": {
-		"dev": {
-            "proxy.domain.com/path":"www"
-        },
-		"qa": {},
-		"stage": {},
-		"prod": {}
-	},
-	"dns_names": {
-		"dev": {
-            "www.domain.com":"www"
-        },
-		"qa": {},
-		"stage": {},
-		"prod": {}
-	},
-	"websites": {
-		"www": {
-			"ssl_redirect": true,
-			"maintenance": {
-				"dev": false,
-				"qa": false,
-				"stage": false,
-				"prod": false
-			},
-			"maintenance_page": "maintenance.html",
-			"maintenance_page_api": "maintenance.json",
-			"default_doc": "index.html",
-			"default_errors": {
-				"user": {
-					"404": "404.html",
-					"500": "500.html"
-				},
-				"api": {
-					"404": "404.json",
-					"500": "500.json"
-				}
-			},
-			"apis_fixed_path": {},
-			"apis_dynamic_path": {},
-			"path_static": {
-				"/": "/www/"
-			},
-			"path_static_server_exec": {},
-			"sub_map": {}
-		}
-	}
-}
-</pre>
-
-<b>Managment UI Admin</b>
-<ul>
-    <li>User management and permissions</li>
-    <li>Mapping similation for testing URL routing in various environments (FQDN / Proxy testing)</li>
-    <li>Server configuration reference</li>
-</ul>
-
-![2024-08-27_18-17-57](https://github.com/user-attachments/assets/438247de-472f-4d77-a639-479a8d52edd6)
-
-![2024-08-27_18-16-33](https://github.com/user-attachments/assets/a2801832-675b-4d0b-914a-0c8790c236d0)
 

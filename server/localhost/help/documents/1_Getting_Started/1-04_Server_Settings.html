@@ -1,0 +1,153 @@
+<h1>Server Configuration</h1>
+<h3>Server Configurations Path</h3>
+<p>
+	The server configuration is intended to be very simple to configure and require minimal settings from the start of installation so that is doesn't take a lot of complexity to get it up and running or make changes. The server configuration folder is below:
+</p>
+<pre>
+   root folder
+     └ conf                             Server configuration folder
+         ├ cert.pem                     SSL Cert
+         ├ key.pem                      SSL Private Key
+         ├ logger.json                  Server logging configuration file
+         └ server_conf.json             Server configuration file
+</pre>
+<p>
+	Configuration summary of contents:
+	<ul>
+		<li><b>cert.pem</b> and <b>key.pem</b> - are the default self signed certificates that are included during initial installation. This does have some limitation that all projects and websites use the same certificate files under a server instance. There is no current option in this server to provide individual certificates per website. The use of a SAN certificate would be required for multiple website domains, have individual server environments per website using SSL per environment, or use a self signed certificate between load balancer and web services where the load balancer holds to certificates per domain.</li>
+		<li><b>logger.json</b> - is the configuration for logging to files or log server</li>
+		<li><b>server_conf.json</b> - is the main configuration for the server</li>
+	</ul>
+</p>
+<h3>Server Configuration File</h3>
+<p>
+	Located in the server root directory '<blue>root folder/conf/server_conf.json</blue>', the following is an example of the configuration file.
+</p>
+<pre>
+   {
+      "workers": 2,
+      "cache_on": false,
+      "debug_mode_on": false,
+      "mgmt_mode": true,
+      "mgmt_ui": ["nodejs-dev","nodejs-dev.network.local"],
+      "environment": "dev",
+      "environment_name": "",
+      "http_on": true,
+      "http_port": 80,
+      "https_on": true,
+      "https_port": 443,
+      "ssl_key": "key.pem",
+      "ssl_cert": "cert.pem",
+      "auto_refresh_on": true,
+      "auto_refresh_timer": 5000
+   }
+</pre>
+<p>
+	The following describes the sections of the server configration:
+</p>
+<div class="grid3 grid3_server_conf">
+	<div class="grid1_sub_head">Property</div>
+	<div class="grid1_sub_head">Value</div>
+	<div class="grid1_sub_head">Description</div>
+	<div class="grid1_col">workers</div>
+	<div class="grid1_col"><blue>number</blue></div>
+	<div class="grid1_col">Number of worker instances that will launch and be managed by the cluster module</div>
+	<div class="grid1_col">cache_on</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">When the server serves files, it will typically cache to content. This setting tells the server to delete the cache after each load otherwise a server process needs to be restart.</div>
+	<div class="grid1_col">debug_mode_on</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">There is more output at the console screen for troubleshooting needs. Best used for local installation with 1 worker process. More than 1 worker process disables debug more as there is many more outputs to console.</div>
+	<div class="grid1_col">mgmt_mode</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">This is best left on for development environments but should not be enabled for production. Additionally, the folder '<blue>root folder/server/localhost</blue>' can also be deleted but cannot enable maintenance mode afterwards.</div>
+	<div class="grid1_col">mgmt_ui</div>
+	<div class="grid1_col">Array []</div>
+	<div class="grid1_col">List of FQDN or Hostnames in addition to what the server start up process detects on it's own. By default the server detects local IP, localhost, hostname and potentially an FQDN resolution to it's own IP address. If there is other domain name (FQDN) setup for manaagement, you can add to a list.</div>
+	<div class="grid1_col">environment</div>
+	<div class="grid1_col"><blue>dev</blue><br /><blue>qa</blue><br /><blue>stage</blue><br /><blue>prod</blue></div>
+	<div class="grid1_col">When the server loads up it will define itself as an environment. This reflects with the project configuration that may have DNS FQDN or Proxy Map configruations for Dev, QA, Stage or Prod. When migrating a project folder between environments, the server will read those mappings and register them accordingly. See section '<b>5 Resolve</b>' and details about the project configuration files.</div>
+
+	<div class="grid1_col">environment_name</div>
+	<div class="grid1_col"><blue>string</blue></div>
+	<div class="grid1_col">Any name of choice (e.g. front_end, apps, app_name, etc)</div>
+
+	<div class="grid1_col">http_on</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">Enable or disable the HTTP listener</div>
+	<div class="grid1_col">http_port</div>
+	<div class="grid1_col"><blue>port number</blue></div>
+	<div class="grid1_col">Listening port for HTTP traffic</div>
+	<div class="grid1_col">https_on</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">Enable or disable the HTTPS listener</div>
+	<div class="grid1_col">https_port</div>
+	<div class="grid1_col"><blue>port number</blue></div>
+	<div class="grid1_col">Listening port for HTTP traffic</div>
+	<div class="grid1_col">ssl_key</div>
+	<div class="grid1_col"><blue>filename</blue></div>
+	<div class="grid1_col">SSL private key file</div>
+	<div class="grid1_col">ssl_cert</div>
+	<div class="grid1_col"><blue>filename</blue></div>
+	<div class="grid1_col">SSL certificate file</div>
+	<div class="grid1_col">auto_refresh_on</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">Periodic scan of '<b>web_soruce</b>' folder for project changes. State of '<blue>false</blue>' or disabled may be ideal for production environments when changes to project configurations can impact the application. This will require a server restart to reload project configuration files when disabled.</div>
+	<div class="grid1_col">auto_refresh_timer</div>
+	<div class="grid1_col"><blue>time in milliseconds</blue></div>
+	<div class="grid1_col">The timer interval for when the server will check project configuration changes.</div>
+</div>
+<h3>Server Logging Configuration File</h3>
+<p>
+	Located in the server root directory '<blue>root folder/conf/logger.json</blue>', the following is an example of the logging configuration file.
+</p>
+<pre>
+   {
+      "use": "file",
+      "file": {
+         "delete_older": "7d"
+      },
+      "server": {
+         "ipaddr": "127.0.0.1",
+         "port": "514",
+         "protocol": "udp"
+      }
+   }
+</pre>
+<p>
+	The following describes the sections of the server logging configration:
+</p>
+<div class="grid3 grid3_server_conf">
+	<div class="grid1_sub_head">Property</div>
+	<div class="grid1_sub_head">Value</div>
+	<div class="grid1_sub_head">Description</div>
+	<div class="grid1_col">use</div>
+	<div class="grid1_col"><blue>none</blue><br /><blue>file</blue><br /><blue>server</blue></div>
+	<div class="grid1_col">Disable logging, enable for file logging to '<blue>root folder/logs</blue>, or send logs to a log server (as JSON format for log processing)'</div>
+	<div class="grid3_col">Under "<blue>file:</blue>" (File logging only)</div>
+	<div class="grid1_col">delete_older</div>
+	<div class="grid1_col">
+		<blue>number + m</blue><br />
+		<blue>number + h</blue><br />
+		<blue>number + d</blue><br />
+		<blue>number + w</blue><br />
+		<blue>number</blue> (default = seconds)
+	</div>
+	<div class="grid1_col">In example above, the "<blue>delete_old</blue>" = <blue>7</blue> days ("7d")</div>
+	<div class="grid3_col">Under "<blue>server:</blue>" (Server logging only)</div>
+	<div class="grid1_col">ipaddr</div>
+	<div class="grid1_col"><blue>x.x.x.x</blue></div>
+	<div class="grid1_col">IP address of log server. Example above is localhost IP which may be RSyslog on Linux systems that sends to log server also. If using something like Graylog server, you will specify the server IP directly and port number may be dup 1514. Graylog server can be leveraged for parsing JSON log stream and consumed by Grafana for catching stack trace errors in applications.</div>
+	<div class="grid1_col">port</div>
+	<div class="grid1_col"><blue>number</blue></div>
+	<div class="grid1_col">Port number that the log server is listening on</div>
+	<div class="grid1_col">protocol</div>
+	<div class="grid1_col"><blue>udp</blue><br /><blue>tcp</blue></div>
+	<div class="grid1_col">Protocol that the log server will accept</div>
+</div>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

@@ -1,0 +1,325 @@
+
+
+<h1>Project Configuration Files</h1>
+<p>
+   Each project has a configuration file associated with it that holds all the configuration settings needed for the VHost server process to register and map incoming requests to project websites. If the server is set to auto refresh, and making changes to these files, the system periodically reads the datestamp and sees a change had happened and will trigger a reload of the configuration file. If auto refresh is turned off it needs a server restart to reload the configuration files. These files can be modified or created manually and does not need the Management UI. The Management UI is basically a website hosted by the VHost server like any other website and is more of a helper UI that provides tools to manage these configurations. You could have other processes like script automation generate a configuration file with the website content and have a server process start up with the Managment UI turned off and even the source files removed if you want to prevent a Management UI from being enabled.
+   <br /><br />
+   The content files in the project are not monitored. The server will not reload a configuration for that type of change. If you added an API folder and put in files to run from the server, it will not reload until you have updated the configuration with the rules to tell it what to do with them. There is a cache setting however where it will unload any files that were run from the server after they execute. That is not related to configuration files changes.
+</p>
+<br />
+<h3>New Config</h3>
+<p>
+   When starting a new empty project the Managment UI creates a project folder in the '<blue>web_source</blue>' folder with a single '<blue>config.json</blue>' file (like below). Each project will have a similar layout with the general project settings, '<blue>proxy_map</blue>' section, '<blue>dns_names</blue>' section and '<blue>websites</blue>' parameters section.
+</p>
+<pre>
+   {
+      "project_desc": "New project",
+      "enabled": true,
+      "proxy_map": {
+          "dev": {},
+          "qa": {},
+          "stage": {},
+          "prod": {}
+      },
+      "dns_names": {
+          "dev": {},
+          "qa": {},
+          "stage": {},
+          "prod": {}
+      },
+      "websites": {}
+  }   
+</pre>
+<br />
+<p>
+   The following table breaks down the sections of a project configuration:
+</p>
+<div class="grid3">
+   <div class="grid1_sub_head">Section</div>
+   <div class="grid1_sub_head">Settings</div>
+   <div class="grid1_sub_head">Description</div>
+
+   <div class="grid1_col">project_desc</div>
+   <div class="grid1_col"><blue>text</blue></div>
+   <div class="grid1_col">Used only in the Management UI for project information</div>
+
+   <div class="grid1_col">enabled</div>
+   <div class="grid1_col"><blue>true</blue><br /><blue>false</blue></div>
+   <div class="grid1_col">Used to disable a project which unregisters any DNS or Proxy mapping</div>
+   
+   <div class="grid1_col">
+      "proxy_map": {<br />
+      &nbsp;&nbsp;&nbsp;"dev": {},<br />
+      &nbsp;&nbsp;&nbsp;"qa": {},<br />
+      &nbsp;&nbsp;&nbsp;"stage": {},<br />
+      &nbsp;&nbsp;&nbsp;"prod": {}<br />
+      }
+   </div>
+   <div class="grid1_col">see below</div>
+   <div class="grid1_col">Proxy Map configuration</div>
+
+   <div class="grid1_col">
+      "dns_names": {<br />
+      &nbsp;&nbsp;&nbsp;"dev": {},<br />
+      &nbsp;&nbsp;&nbsp;"qa": {},<br />
+      &nbsp;&nbsp;&nbsp;"stage": {},<br />
+      &nbsp;&nbsp;&nbsp;"prod": {}<br />
+      }
+   </div>
+   <div class="grid1_col">see below</div>
+   <div class="grid1_col">DNS Map configuration</div>
+
+   <div class="grid1_col">"websites": {}</div>
+   <div class="grid1_col">see below</div>
+   <div class="grid1_col">Websites configurations</div>
+
+</div>
+<br />
+<h3>Websites Configuration Section</h3>
+<p>
+   In the '<blue>websites</blue>' configuration section, after creating a website and configuring it from the Management UI, the configuration elements will look a lot like below. All things that you see in the Management UI pertaining to the website settings are in this section. Everything from SSL redirect, maintenance mode settings, default pages, content mapping and sub mapping are in below example. If having more than one website in a project there will be multiple sections like this.
+</p>
+<pre>
+   "www": {
+      "ssl_redirect": true,
+      "maintenance": {
+         "dev": false,
+         "qa": false,
+         "stage": false,
+         "prod": false
+      },
+      "maintenance_page": "maintenance.html",
+      "maintenance_page_api": "maintenance.json",
+      "default_doc": "index.html",
+      "default_errors": {
+         "user": {
+            "404": "404.html",
+            "500": "500.html"
+         },
+         "api": {
+            "404": "404.json",
+            "500": "500.json"
+         }
+      },
+      "apis_fixed_path": {},
+      "apis_dynamic_path": {
+         "/api/": "/www/api/"
+      },
+      "path_static": {
+         "/": "/www/"
+      },
+      "path_static_server_exec": {},
+      "sub_map": {}
+   }
+</pre>
+<br />
+<p>
+   The following table breaks down the sections of a website configuration:
+</p>
+<div class="grid3">
+   <div class="grid1_sub_head">Section</div>
+   <div class="grid1_sub_head">Settings</div>
+   <div class="grid1_sub_head">Description</div>
+
+   <div class="grid1_col">ssl_redirect</div>
+   <div class="grid1_col"><blue>true</blue><br /><blue>false</blue></div>
+   <div class="grid1_col">SSL redirect uses boolean value</div>
+
+   <div class="grid1_col">
+      "maintenance": {<br />
+      &nbsp;&nbsp;&nbsp;"dev": <blue>false</blue>,<br />
+      &nbsp;&nbsp;&nbsp;"qa": <blue>false</blue>,<br />
+      &nbsp;&nbsp;&nbsp;"stage": <blue>false</blue>,<br />
+      &nbsp;&nbsp;&nbsp;"prod": <blue>false</blue><br />
+      }
+   </div>
+   <div class="grid1_col"><blue>true</blue><br /><blue>false</blue></div>
+   <div class="grid1_col">Each environment uses a boolean value</div>
+
+   <div class="grid1_col">maintenance_page</div>
+   <div class="grid1_col"><blue>filename</blue></div>
+   <div class="grid1_col">Typically an HTML file for user response</div>
+
+   <div class="grid1_col">maintenance_page_api</div>
+   <div class="grid1_col"><blue>filename</blue></div>
+   <div class="grid1_col">Typically an data type file for API response</div>
+
+   <div class="grid1_col">default_doc</div>
+   <div class="grid1_col"><blue>filename</blue></div>
+   <div class="grid1_col">Typically an HTML file for user response</div>
+
+   <div class="grid1_col">
+      "default_errors": {<br />
+      &nbsp;&nbsp;&nbsp;"user": {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"404": "<blue>404.html</blue>",<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"500": "<blue>500.html</blue>"<br />
+      &nbsp;&nbsp;&nbsp;},<br />
+      &nbsp;&nbsp;&nbsp;"api": {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"404": "<blue>404.json</blue>",<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"500": "<blue>500.json</blue>"<br />
+      &nbsp;&nbsp;&nbsp;}<br />
+      }
+   </div>
+   <div class="grid1_col"><blue>filename</blue></div>
+   <div class="grid1_col">Typically an HTML file for user response, data type file for API response</div>
+
+   <div class="grid1_col">
+      "apis_fixed_path": {<br />
+      &nbsp;&nbsp;&nbsp;"<green>/api/</green>": "<blue>/www/api/file.js</blue>"<br />
+      }
+   </div>
+   <div class="grid1_col"><green>relative URI path</green><br /><blue>target file</blue></div>
+   <div class="grid1_col">API Fixed Path Mapping telling server to map a website URL path to a specific file</div>
+
+   <div class="grid1_col">
+      "apis_dynamic_path": {<br />
+      &nbsp;&nbsp;&nbsp;"<green>/api/</green>": "<blue>/www/api/</blue>"<br />
+      }
+   </div>
+   <div class="grid1_col"><green>relative URI path</green><br /><blue>target path</blue></div>
+   <div class="grid1_col">API Dynamic Path Mapping telling server to execute on server for any file in target path</div>
+
+   <div class="grid1_col">
+      "path_static": {<br />
+      &nbsp;&nbsp;&nbsp;"<green>/</green>": "<blue>/www/</blue>"<br />
+      }
+   </div>
+   <div class="grid1_col"><green>relative URI path</green><br /><blue>target path</blue></div>
+   <div class="grid1_col">Static Path Mapping is typically your website root for static content</div>
+
+   <div class="grid1_col">
+      "path_static_server_exec": {<br />
+      &nbsp;&nbsp;&nbsp;"<green>/file.js</green>": "<blue>/www/file.js</blue>"<br />
+      }
+   </div>
+   <div class="grid1_col"><green>relative URI target</green><br /><blue>target file</blue></div>
+   <div class="grid1_col">Static Path Server Execute Override is used to override a static content file and tell server to execute server side</div>
+
+   <div class="grid1_col">
+      "sub_map": {<br />
+      &nbsp;&nbsp;&nbsp;"<green>/path/</green>": "<blue>website</blue>"<br />
+      }
+   </div>
+   <div class="grid1_col"><green>relative URI path</green><br /><blue>website_name</blue></div>
+   <div class="grid1_col">Sub Mapping for mapping a URI path to another website</div>
+
+</div>
+<br /><br />
+<h3>Mapping Configuration Section</h3>
+<p>
+   Regarding the mapping sections, these are where domain names are linked to the website you are serving. DNS FQDN and Proxy mapping are meant to be decoupled from the server configuration settings for portability. You might have a single development environment that holds all projects and websites data and then push these projects to different web services. The environments may be pre-configured with all the DNS resolutions to server IPs or load balancers. This allows for setting a server environment up once and not have to reconfigure every time you add a web site to an environment. There is no need to create different virtual hosts, DNS resolutions in server configurations (if running more than one domain on a server). The minimum actions needed is setting the DNS services to reolve to server or load balancer, copy project source files to the web source folder locations and restart the web server services (if auto refresh is off).
+   <br /><br />
+   Below is an example of proxy map and DNS FQDN names sections of how they would look per an environment. They are simply domain or domain + path to website name. They do not contain 'http://' or 'https://'. See SSL redirect in the website settings that tells the server it needs to redirect from HTTP (unsecured) to HTTPS (secured) connection.
+</p>
+<pre>
+"proxy_map": {
+   "dev": {
+      "dev.network.local/path/": "www"
+   },
+   "qa": {},
+   "stage": {},
+   "prod": {}
+},
+"dns_names": {
+   "dev": {
+      "dev.network.local": "www"
+   },
+   "qa": {},
+   "stage": {},
+   "prod": {}
+},
+</pre>
+<br />
+<p>
+   The following table breaks down the sections of a project configuration:
+</p>
+<div class="grid3">
+   <div class="grid1_sub_head">Section</div>
+   <div class="grid1_sub_head">Settings</div>
+   <div class="grid1_sub_head">Description</div>
+
+   <div class="grid1_col">
+      "proxy_map": {<br />
+      &nbsp;&nbsp;&nbsp;"<purple>dev</purple>": {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<green>dev.network.local/path/</green>": "<blue>www</blue>"<br />
+      &nbsp;&nbsp;&nbsp;},<br />
+      &nbsp;&nbsp;&nbsp;"<purple>qa</purple>": {},<br />
+      &nbsp;&nbsp;&nbsp;"<purple>stage</purple>": {},<br />
+      &nbsp;&nbsp;&nbsp;"<purple>prod</purple>": {}<br />
+      },<br />
+      "dns_names": {<br />
+      &nbsp;&nbsp;&nbsp;"<purple>dev</purple>": {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<green>dev.network.local</green>": "<blue>www</blue>"<br />
+      &nbsp;&nbsp;&nbsp;},<br />
+      &nbsp;&nbsp;&nbsp;"<purple>qa</purple>": {},<br />
+      &nbsp;&nbsp;&nbsp;"<purple>stage</purple>": {},<br />
+      &nbsp;&nbsp;&nbsp;"<purple>prod</purple>": {}<br />
+      }
+   </div>
+   <div class="grid1_col">environment = <purple>dev, qa, stage, prod</purple><br />proxy_map = <green>domain + path</green><br />dns_names = <green>domain</green><br /><blue>website_name</blue></div>
+   <div class="grid1_col">In each environment and for mapping types, these are typical settings</div>
+</div>
+<br />
+<h3>Full Configuration</h3>
+<p>
+	Once you pull it all together, you have a full configuration for a project with one website, one DNS mapping for a development environment.
+</p>
+<pre>
+   {
+      "project_desc": "Some description",
+      "enabled": true,
+      "proxy_map": {
+         "dev": {},
+         "qa": {},
+         "stage": {},
+         "prod": {}
+      },
+      "dns_names": {
+         "dev": {
+            "dev.network.local": "www"
+         },
+         "qa": {},
+         "stage": {},
+         "prod": {}
+      },
+      "websites": {
+         "www": {
+            "ssl_redirect": true,
+            "maintenance": {
+               "dev": false,
+               "qa": false,
+               "stage": false,
+               "prod": false
+            },
+            "maintenance_page": "maintenance.html",
+            "maintenance_page_api": "maintenance.json",
+            "default_doc": "index.html",
+            "default_errors": {
+               "user": {
+                  "404": "404.html",
+                  "500": "500.html"
+               },
+               "api": {
+                  "404": "404.json",
+                  "500": "500.json"
+               }
+            },
+            "apis_fixed_path": {},
+            "apis_dynamic_path": {
+               "/api/": "/www/api/"
+            },
+            "path_static": {
+               "/": "/www/"
+            },
+            "path_static_server_exec": {},
+            "sub_map": {}
+         }
+      }
+   }
+</pre>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

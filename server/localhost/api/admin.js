@@ -40,16 +40,9 @@ exports.request = async function(params={}) {
     const _env = params._server.environment;
     const _server = params._server;
     const _client = params._client;
-    const _raw_headers = params._raw_headers;
-    const _request = {
-        "method":params.method,
-        "http_version":params.http_version,
-        "protocol":params.protocol,
-        "hostname":params.hostname,
-        "path":params.path,
-        "query":params.query
-    }
-    const _query = params.query;
+    const _headers = params._headers;
+    const _request = params._request;
+    const _query = params._query;
 
 	//Get query string
     if(_request.method == undefined) { _error("Method undefined"); return _response; }
@@ -87,10 +80,10 @@ exports.request = async function(params={}) {
 	switch(_query.action) {
 		//Get server mapping
 		case "get_server_url_mapping":
-			api_response = mgmt.admin_get_server_url_mapping(params.query);
+			api_response = mgmt.admin_get_server_url_mapping(_query);
 		break;
 		case "test_server_url_mapping":
-			api_response = mgmt.admin_test_server_url_mapping(params.query);
+			api_response = mgmt.admin_test_server_url_mapping(_query);
 		break;
 
 		//Get configs
@@ -101,7 +94,7 @@ exports.request = async function(params={}) {
 			}
 		break;
 		case "user_groups":
-			api_response = mgmt.admin_user_groups_get(params.query);
+			api_response = mgmt.admin_user_groups_get(_query);
 			if(api_response.data != undefined) {
 				response.data = api_response.data;
 			}
@@ -109,25 +102,25 @@ exports.request = async function(params={}) {
 
 		//Manage user
 		case "user_add":
-			api_response = mgmt.admin_user_add(params.query);
+			api_response = mgmt.admin_user_add(_query);
 		break;
 		case "user_delete":
-			api_response = mgmt.admin_user_delete(params.query);
+			api_response = mgmt.admin_user_delete(_query);
 		break;
 		case "user_unlock":
-			api_response = mgmt.admin_user_unlock(params.query);
+			api_response = mgmt.admin_user_unlock(_query);
 		break;
 		case "user_state":
-			api_response = mgmt.admin_user_state(params.query);
+			api_response = mgmt.admin_user_state(_query);
 		break;
 		case "user_group_member":
-			api_response = mgmt.admin_user_group_member(params.query);
+			api_response = mgmt.admin_user_group_member(_query);
 		break;
 		case "user_details":
-			api_response = mgmt.admin_user_details(params.query);
+			api_response = mgmt.admin_user_details(_query);
 		break;
 		case "user_password_set":
-			api_response = mgmt.admin_user_password_set(params.query);
+			api_response = mgmt.admin_user_password_set(_query);
 		break;
 
 		//Default mismatch action
