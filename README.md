@@ -98,6 +98,7 @@ Syslog or log files can be configured. In conf directory off the root folder, yo
 	After installation, you should be able to connect to the management UI. Check out the 'Help' tab for information and how tos. Enjoy!
 </p>
 
-![2024-09-15_13-38-56](https://github.com/user-attachments/assets/40ab2e23-2c7a-4788-9f2d-086ec5a65199)
+![2024-09-15_13-47-03](https://github.com/user-attachments/assets/eba965ec-d8ab-4ca3-8c1d-c9626aaa5ea8)
+
 
 
