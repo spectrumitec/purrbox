@@ -270,18 +270,6 @@ p {
     visibility: visible;
 }
 
-/* TEMP */
-.auth_state {
-    position: absolute;
-    top: 15px;
-    left: calc(50% - 50px);
-    width: 100px;
-    height: 25px;
-    text-align: center;
-    border: 1px solid red;
-    z-index: 500;
-}
-
 /* User auth */
 .authenticated_user {
     position: absolute;
@@ -356,10 +344,8 @@ p {
 /* Main page */
 .header {
     position: absolute;
-    margin-left: 10px;
-    margin-right: 10px;
-    top: 10px;
-    width: calc(100% - 20px);
+    top: 0px;
+    width: 100%;
     min-width: 400px;
     height: 100px;
     background-color: white;
@@ -371,37 +357,43 @@ p {
     position: absolute;
     top: 0px;
     left: 0px;
-	height:90px;
-	width:222px;
+	height:99px;
+	width:176px;
 	border: none;
-	background-image: url("images/gears.png");
+	background-image: url("images/purrbox-logo.png");
 	background-repeat: no-repeat;
 	background-size: contain;
 }
 .header_title {
     position: absolute;
-    top: 65px;
-    left: 130px;
-    width: 300px;
+    top: calc(50% - 19px);
+    left: 190px;
+    width: 340px;
     text-align: left;
-    font-size: 24px;
     font-weight: bold;
     color: black;
 }
+.header_title_text {
+    display: inline-block;
+    font-size: 24px;
+    font-weight: bold;
+}
 .header_ver {
     display: inline-block;
-    font-size: 12px;
+    font-size: 11px;
     color: #0059ff;
+}
+.header_slogan {
+    display: block;
+    font-size: 13px;
 }
 
 .content {
     position: absolute;
-    margin-left: 10px;
-    margin-right: 10px;
-    top: 110px;
-    width: calc(100% - 20px);
+    top: 100px;
+    width: 100%;
     min-width: 400px;
-    height: calc(100% - 125px);
+    height: calc(100% - 100px);
     background-color: white;
     padding: 5px;
     z-index: 1;
@@ -424,16 +416,26 @@ p {
 	}
 	.header_logo {
 		height: 50px;
-		width: 75px;
-		background-image: url("images/gears-small.png");
+		width: 89px;
+        background-image: url("images/purrbox-logo.png");
+
 	}
 	.header_title {
-		top: calc(50% - 9px);
-		left: 60px;
-		height: 20px;
-		width: 200px;
-		font-size: 18px;
+		top: calc(50% - 14px);
+		left: 95px;
+		height: 34px;
+		width: 220px;
 	}
+    .header_title_text {
+        font-size: 14px;
+    }
+    .header_ver {
+        font-size: 8px;
+    }
+    .header_slogan {
+        font-size: 8px;
+    }
+
 	.content {
 		top: 51px;
 		height: calc(100% - 51px);
@@ -476,7 +478,6 @@ p {
 		font-size: 14px;
 	}
 }
-
 
 /* Read Access */
 .panel_read_access_image {
@@ -1070,6 +1071,21 @@ p {
     .admin_icon_size {
         height: 13px;
         width: 13px;
+    }
+
+    .admin_map_btn{
+        height: 15px;
+        width: 35px;
+        font-size: 10px;
+        padding-top: 1px;
+        margin-left: 13px;
+    }
+    .admin_map_test_box {
+        width: 250px;
+    }
+    .admin_map_test_pre {
+        width: 450px;
+        font-size: 10px;
     }
 }
 

@@ -82,7 +82,7 @@ var refresh_timer = server.get("auto_refresh_timer")
 //Cluster
 if(cluster.isMaster) {
     console.log();
-    console.log(" Wonderbox v1.0.0");
+    console.log(" Purrbox v1.0.0");
     console.log();
     console.log(" ═══════════════════════════════════════════════════════════════════════════════");
     console.log(" Node.js VHost Server Cluster Controller");
