@@ -934,6 +934,49 @@ p {
     background-color: white;
 }
 
+@media screen and (max-width:1200px) {
+
+    .helpdocs_index_title {
+        top: 27px;
+        left: 2px;
+        height: 18px;
+        width: 220px;
+        font-size: 12px;
+        font-weight: bold;
+        padding-top: 0px;
+    }
+
+    .helpdocs_index {
+        top: 44px;
+        left: 2px;
+        width: 220px;
+        height: calc(100% - 44px);
+        border-top: 1px solid #aaaaaa;
+        overflow: auto;
+    }
+
+    /* jsTree Override - Tree Icons */
+    #helpdocs_jstree {
+        transform: scale(0.6);
+        transform-origin: top left;
+        width: calc(100%);
+        height: calc(100% - 50px);
+    }
+    
+    .helpdocs_iframe {
+        transform: scale(0.6);
+        transform-origin: top left;
+        top: 27px;
+        left: 222px;
+        width: calc(167% - 375px);
+        height: calc(167% - 50px);
+        border: none;
+        border-left: 1px solid #aaaaaa;
+    }
+    
+
+}
+
 /* Admin page */
 .admin_mgmt {
     position: absolute;

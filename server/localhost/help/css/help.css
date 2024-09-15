@@ -69,6 +69,7 @@ pre.tbl {
     margin: 0px;
 }
 
+/*
 @media screen and (max-width:805px) {
 	p {
 		margin-top: 5px;
@@ -76,6 +77,7 @@ pre.tbl {
 		font-size: 12px;
 	}
 }
+*/
 
 /* font colours */
 blue {
@@ -303,6 +305,7 @@ hl_green {
 
 
 /* Mobile page formatting */
+/*
 @media screen and (max-width:805px) {
 	.grid1, .grid2, .grid3, .grid4, .grid5, .grid6, .grid7, .grid8, .grid9, .grid10, .grid11, .grid12, .grid13, .grid14, .grid15, .grid16, .grid17, .grid18, .grid19, .grid20 {
 		margin-top: 5px;
@@ -325,3 +328,4 @@ hl_green {
         font-size: 10px;
     }
 }
+*/

@@ -1,6 +1,6 @@
 <h1>Template Folder Structures</h1>
 <p>
-    The following examples are recommended folder layouts for templates. The folders for static content represent separation from JavaScript, Images, and CSS but this is not the case. The server doesn't have fixed locations for content except what is defined as static and server side execution in the website settings which would need to a JavaScript file. You can place most file types scatter around the static content. The server reads the extension name of the file and serves as any other webserver would.
+    The following examples are some recommended folder layouts for templates. The folders for static content represent separation from JavaScript, Images, and CSS but this is not the case. The server doesn't have fixed locations for content except what is defined as static and server side execution in the website settings which would need to a JavaScript file. You can place most file types scatter around the static content. The server reads the extension name of the file and serves as any other webserver would.
     <br /><br />
     <b>Website Template Style</b><br />
     The following is a simple static website without any application code. Just client side HTML, JavaScript, Images and CSS Style sheets.
@@ -8,7 +8,7 @@
 <pre>
     web_templates
       └template                  Template folder (project template type)
-         ├ website_folder        Website content folder
+         ├ website_folder        Website content folder (public facing)
          │   ├ images            Images fodler
          │   ├ js                JavaScript folder
          │   ├ css               CSS Style sheets folder
@@ -24,7 +24,7 @@
       └template                  Template folder (project template type)
          ├ app                   Application folder
          ├ conf                  Folder for configurations
-         ├ website_folder        Website content folder
+         ├ website_folder        Website content folder (public facing)
          │   ├ api               Client facing API files to execute server side
          │   ├ images            Images fodler
          │   ├ js                JavaScript folder
