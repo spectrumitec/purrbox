@@ -39,7 +39,7 @@ const syslog = require("syslog-client");
 //Server class
 class vhost_logger {
     //Version
-    application = "wonderbox";
+    application = "purrbox";
     application_ver = "1.0.0";    
 
     //System paths

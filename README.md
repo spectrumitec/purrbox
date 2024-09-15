@@ -1,4 +1,4 @@
-<b>Node JS Wonderbox</b>
+<b>Purrbox, an All-in-One VHost Server nad Developement Platform</b><br />
 <br />
 <b>About:</b><br />
 <p>This project is currently meant to work as a web service which supports static site content or application code that is not written under a known framework (native Javascript back end coding). The goal of this is to create a service for ease of standing up projects and websites for development or site creation. The management UI does not have a site editor which will require site and code developement using Visual Studio code or preferred IDE. Each project is intended to be self contained and portable, meaning you can create a website or multiple websites under a project and move the project folder between environments (Dev, QA, Stage, and Prod). The server can be setup to auto load the project source and handles the mapping of static and server side execution automatically. There is no DNS registration built into the web service but you can point DNS FQDN names or map proxy URL and domain and path to the server IP which you can configure to map to your project and site in the Management UI.</p>
@@ -31,7 +31,7 @@
 <p>3. Use git to clone the project source files</p>
 <pre>
     cd /path/to/server
-    git clone https://github.com/spectrumitec/wonderbox.git
+    git clone https://github.com/spectrumitec/purrbox.git
 </pre>
 <p>4. Install node modules required to support this server. Newer versions of Node may already include 'crypto' module.</p>
 <pre>
@@ -39,7 +39,7 @@
 </pre>
 <i>** crypto module not needed for newer versions of node **</i>
 <br /><br />
-<p>5. Start Node JS Wonderbox</p>
+<p>5. Start Node JS Purrbox</p>
 <pre>
     node start_server
 </pre>
