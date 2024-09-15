@@ -355,10 +355,10 @@ p {
 }
 .header_logo {
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 23px;
+    left: 5px;
 	height:99px;
-	width:176px;
+	width:135px;
 	border: none;
 	background-image: url("images/purrbox-logo.png");
 	background-repeat: no-repeat;
@@ -367,7 +367,7 @@ p {
 .header_title {
     position: absolute;
     top: calc(50% - 19px);
-    left: 190px;
+    left: 150px;
     width: 340px;
     text-align: left;
     font-weight: bold;
@@ -415,14 +415,15 @@ p {
 		width: calc(100% - 0px);
 	}
 	.header_logo {
-		height: 50px;
-		width: 89px;
+        top: 11px;
+        left: 5px;
+        height: 50px;
+        width: 70px;
         background-image: url("images/purrbox-logo.png");
-
 	}
 	.header_title {
 		top: calc(50% - 14px);
-		left: 95px;
+		left: 80px;
 		height: 34px;
 		width: 220px;
 	}
