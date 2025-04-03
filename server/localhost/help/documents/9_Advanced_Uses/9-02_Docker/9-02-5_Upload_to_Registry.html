@@ -1,0 +1,43 @@
+
+
+<h1>Docekr Registry</h1>
+<p>
+   You may tag and upload the image to a docker registry. This is a simple example of pushing to a local registry if you have one configured. The images you create and push to the registry can be used in your Kubernetes infrastructure if you have one.
+</p>
+<br />
+<h3>Local Registy</h3>
+<p>
+   Assuming you have a local registry setup on your network, this is how to push your image to it. 
+</p>
+<pre>
+$ docker tag purrbox:latest registry.network.local/purrbox:latest
+
+$ docker login --username=user registry.network.local
+Password:
+WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+
+$ docker push registry.network.local/purrbox:latest
+Using default tag: latest
+The push refers to repository [registry.network.local/purrbox:latest]
+5879a9c2f407: Pushed
+latest: digest: sha256:a13297de02031075d9713662e0ab72525eee4a611d92536a5dbf36b61f09b7b8 size: 529
+</pre>
+<br /><br />
+
+<p>Check the registry has an image uploaded.</p>
+<pre>
+$ curl -X GET -u repo https://registry.network.local/v2/_catalog --insecure
+Enter host password for user 'user':
+{"repositories":["purrbox:latest"]}
+</pre>
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

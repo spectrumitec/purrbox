@@ -1,0 +1,159 @@
+
+
+<h1>Build Purrbox Container</h1>
+<p>
+   The following will build a generic container that can be used to run Purrbox in either Node.js modes (CommonJS or ECMAScript), allow container deployment with bind mounts or use environment variables to manage server and logging settings. It can also be enabled for Management UI, disabled to only host one website or multiple websites via many domain name mappings. 
+</p>
+<br />
+<h3>Buildx Script</h3>
+<p>
+   Start by logging into the server as the 'purrbox' user account and make sure you are in the purrbox home drive. Create a buildx script as shown below.
+</p>
+<pre>
+$ cd ~
+
+$ pwd
+/home/purrbox
+
+$ mkdir purrbox
+
+$ nano ~/purrbox/buildx-script
+</pre>
+<br />
+
+<p>
+   Note that there is some commented out lines that can be used to use a different development branch.
+</p>
+<pre>
+   <purple>
+   FROM node:22.14.0-alpine3.21
+
+   # Update server
+   RUN apk update
+   RUN apk upgrade
+   RUN apk add git
+
+   # Clone software
+   RUN mkdir /www
+   WORKDIR /www
+   RUN git clone https://github.com/spectrumitec/purrbox.git /www
+
+   # Use to switch github branch
+   #RUN git switch "alternate-branch"
+   #RUN git pull
+
+   # Make other directories
+   RUN mkdir /www/logs /www/web_source /www/web_templates
+
+   # Configure Node modules and prep directory
+   RUN npm install ip bcrypt crypto jsonwebtoken syslog-client
+   RUN rm -fr .github .gitignore vhost_server.service README.md
+
+   # Clean up git
+   RUN apk del git
+   </purple>
+</pre>
+<br />
+
+<p>
+   Save the file and run the buildx docker command to build the base container.
+</p>
+<pre>
+$ cd ~/purrbox
+
+$ docker buildx build --no-cache -f ~/purrbox/buildx-script -t purrbox:latest .
+[+] Building 22.2s (17/17) FINISHED
+ => [internal] load build definition from buildx-script
+ => => transferring dockerfile: 573B
+ => [internal] load metadata for docker.io/library/node:22.14.0-alpine3.21
+ ...
+  => => naming to docker.io/library/purrbox:latest
+</pre>
+<br />
+
+<p>
+   Verify the container image exists after build.
+</p>
+<pre>
+$ docker images
+REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
+purrbox      latest    5879a9c2f407   5 seconds ago   200MB
+</pre>
+<br />
+
+<p>
+   Test the purrbox container starts up and runs. The following is a basic start up of the container with exposed ports 80 and 443. Note that you will need to set the hostname, FQDN, and/or IP address to access the Management UI from the test. Make sure to use the IP address of your server as '192.168.50.198' is an example.
+</p>
+<pre>
+$ docker run --rm -it --entrypoint sh \
+-e PURRBOX_MGMT_UI="<b><hl>192.168.50.198</hl></b>" \
+-p 80:80 \
+-p 443:443 \
+purrbox:latest
+</pre>
+<br />
+
+<p>
+   The container should start and run. Since this is a new temporary container, purrbox will generate new config files like the 'server_conf.json' inside the container in '/www/conf/' folder. Once you are at the command line of the container, run the 'node start_server.js' to run the CommonJS mode. To run the ECMAScript mode you would instead run 'node start_server.mjs'.
+   <br /><br />
+   The environment variable defined will override the default server config and append the IP address you set above. You will notice the 'Management UI Hostnames' has things like localhost, 127.0.0.1, the docker container IP, docker container hostname which are detected on start up. Typically, those enteries are not resolvable from outside the container so you would not be able to access the 'Management UI' from those names.
+</p>
+<pre>
+/www # node start_server.js
+
+Purrbox v1.1.0 (CommonJS)
+
+═══════════════════════════════════════════════════════════════════════════════
+Node.js VHost Server Cluster Controller
+  Controller is running: pid[8]
+  Configured for [1] workers
+═══════════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════════
+Node.js VHost Server
+  Node Version            : v22.14.0
+  Platform                : linux
+  Hostname                : 0e5dc41b6d57
+  IPv4 Address            : 172.17.0.2
+  IPv6 Address            :
+
+  Management Mode         : true
+  Management UI Hostnames :
+     0e5dc41b6d57
+     127.0.0.1
+     172.17.0.2
+     localhost
+     <b><hl>192.168.50.198</hl></b>
+  Environment             : dev
+  Environment Name        :
+  Cache Mode On           : false
+  Debug Mode On           : false
+  Auto Refresh            : true
+  Auto Refresh Interval   : 5000 milliseconds
+  HTTP State              : true
+  HTTP Port               : 80
+  HTTPS State             : true
+  HTTPS Port              : 443
+  SSL Key File            : ssl.key
+  SSL Cert File           : ssl.crt
+═══════════════════════════════════════════════════════════════════════════════
+:: [pid:19] VHost Worker started
+</pre>
+<br />
+
+<p>
+   Since the temporary run exposes port 80 and 443, and you defined your IP address as an environment variable, the web server should be accessible via the server IP and the port specified. At this point you should be able to open a browser and connect to the server IP to access the page. Since it will be a default self-signed SSL certificate, you will get an error message that the site is not safe and will have to accept to continue.
+</p>
+<img src="../../../images/9_buildx_test_connect.png" alt="" />
+<br /><br />
+
+<p>
+   At this point if you can login to the web page with default credentials, you will know your container is correctly built. Now you can 'CTRL+C' to stop the web server from your container and exit the contaienr command line which will then clean up the running container. You can now start thinking about what server modes and configuration settings you would like to have and continue to creating a compose YAML for standing up one or more Purrbox containers.
+</p>
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />

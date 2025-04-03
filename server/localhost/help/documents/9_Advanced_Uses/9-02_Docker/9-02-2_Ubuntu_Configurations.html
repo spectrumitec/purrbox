@@ -1,0 +1,129 @@
+
+
+<h1>Ubuntu Configurations (24.04 LTS)</h1>
+<p>
+   The following are some basic configuration settings used for the example of installing a Purrbox as a docker container.
+</p>
+<br />
+<h3>Pre-Requisites</h3>
+<p>
+   Update the server to the most recent updates.
+</p>
+<pre>
+$ sudo apt-get -y update
+$ sudo apt-get -y upgrade
+</pre>
+<br />
+
+<p>
+   (optional) Install some common network tools that may be needed for checking networking issues.
+</p>
+<pre>
+$ sudo apt-get -y install ca-certificates \
+   inetutils-ping \
+   inetutils-traceroute \
+   bind9-dnsutils
+</pre>
+<br />
+
+<p>
+   Install docker related components needed for running docker, build and compose.
+</p>
+<pre>
+$ sudo apt-get -y install \
+   python3-pip \
+   docker.io \
+   docker-compose \
+   docker-buildx
+</pre>
+<br />
+
+<p>
+   Create a Purrbox user account for running docker, managing the Purrbox containers and any bind mount paths. Set the password for the 'purrbox' user.
+</p>
+<pre>
+$ sudo useradd -G docker -m -s /bin/bash purrbox
+
+$ sudo passwd purrbox
+New password:
+Retype new password:
+passwd: password updated successfully
+</pre>
+<br />
+
+<p>
+   Create '/docker' root path and '/docker/purrbox' folders and grant access to the 'purrbox' account.
+</p>
+<pre>
+$ sudo mkdir -p /docker/purrbox
+
+$ sudo chown -R purrbox:purrbox /docker/
+
+$ ls -l /docker
+total 4
+drwxr-xr-x 2 purrbox purrbox 4096 Apr  2 20:58 purrbox
+</pre>
+<br />
+
+<p>
+   Test login with purrbox user account and verify user can run docker commands and have read and write access to the docker folders. 
+</p>
+<pre>
+$ su - purrbox
+Password:
+
+$ whoami
+purrbox
+
+$ docker images
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+$ docker ps -a
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+$ cd /docker/purrbox/
+
+$ touch testfile
+
+$ ls -la
+total 8
+drwxr-xr-x 2 purrbox purrbox 4096 Apr  2 21:10 .
+drwxr-xr-x 3 purrbox purrbox 4096 Apr  2 20:58 ..
+-rw-rw-r-- 1 purrbox purrbox    0 Apr  2 21:10 testfile
+
+$ rm testfile
+
+$ exit
+logout
+</pre>
+<br />
+
+<p>
+   If there is any intent to use a local registry and it setup with a self-signed certificate, you may need to configure the docker daemon to trust insecure repositories. Create or modify the existing file.
+</p>
+<pre>
+$ sudo nano /etc/docker/daemon.json
+
+# Example registry DNS name
+{
+   "insecure-registries" : [ "registry.network.local" ]
+}
+</pre>
+<br />
+
+<p>
+   Restart docker service.
+</p>
+<pre>
+$ sudo systemctl restart docker
+</pre>
+<br />
+
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
