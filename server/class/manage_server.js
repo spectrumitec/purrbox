@@ -231,7 +231,8 @@ class manage_server {
         //Set default paths
         this.paths["root"] = root;
         this.paths["conf"] = path.join(root,"conf",path.sep);
-        this.paths["config"] = path.join(root,"conf","server_conf.json");
+        this.paths["conf_server"] = path.join(root,"conf","server_conf.json");
+        this.paths["conf_logger"] = path.join(root,"conf","logger.json");
         this.paths["server"] = path.join(root,"server",path.sep);
         this.paths["class"] = path.join(root,"server","class",path.sep);
         this.paths["errors"] = path.join(root,"server","default_errors",path.sep);
@@ -632,9 +633,86 @@ class manage_server {
     }
 
     //Load config file
-    load_server_conf() {
-        let server_conf = this.paths["config"];
+    load_env_overrides() {
+        //Environment overrides
+        let env_overrides = {}
 
+        //Check environment when used in container environments
+        for(let e in process.env) {
+            switch(e) {
+                //Server overrides
+                case "PURRBOX_WORKERS":
+                    env_overrides["PURRBOX_WORKERS"] = process.env[e];
+                break;
+                case "PURRBOX_CACHE_ON":
+                    env_overrides["PURRBOX_CACHE_ON"] = process.env[e];
+                break;
+                case "PURRBOX_DEBUG_MODE_ON":
+                    env_overrides["PURRBOX_DEBUG_MODE_ON"] = process.env[e];
+                break;
+                case "PURRBOX_MGMT_MODE":
+                    env_overrides["PURRBOX_MGMT_MODE"] = process.env[e];
+                break;
+                case "PURRBOX_MGMT_UI":
+                    env_overrides["PURRBOX_MGMT_UI"] = process.env[e];
+                break;
+                case "PURRBOX_ENV":
+                    env_overrides["PURRBOX_ENV"] = process.env[e];
+                break;
+                case "PURRBOX_ENV_NAME":
+                    env_overrides["PURRBOX_ENV_NAME"] = process.env[e];
+                break;
+                case "PURRBOX_HTTP_ON":
+                    env_overrides["PURRBOX_HTTP_ON"] = process.env[e];
+                break;
+                case "PURRBOX_HTTP_PORT":
+                    env_overrides["PURRBOX_HTTP_PORT"] = process.env[e];
+                break;
+                case "PURRBOX_HTTPS_ON":
+                    env_overrides["PURRBOX_HTTPS_ON"] = process.env[e];
+                break;
+                case "PURRBOX_HTTPS_PORT":
+                    env_overrides["PURRBOX_HTTPS_PORT"] = process.env[e];
+                break;
+                case "PURRBOX_SSL_KEY_FILE":
+                    env_overrides["PURRBOX_SSL_KEY_FILE"] = process.env[e];
+                break;
+                case "PURRBOX_SSL_CERT_FILE":
+                    env_overrides["PURRBOX_SSL_CERT_FILE"] = process.env[e];
+                break;
+                case "PURRBOX_AUTO_REFRESH_ON":
+                    env_overrides["PURRBOX_AUTO_REFRESH_ON"] = process.env[e];
+                break;
+                case "PURRBOX_AUTO_REFRESH_TIMER":
+                    env_overrides["PURRBOX_AUTO_REFRESH_TIMER"] = process.env[e];
+                break;
+
+                //Logger overrides
+                case "PURRBOX_LOG_TYPE":
+                    env_overrides["PURRBOX_LOG_TYPE"] = process.env[e];
+                break;
+                case "PURRBOX_LOG_FILE_PURGE":
+                    env_overrides["PURRBOX_LOG_FILE_PURGE"] = process.env[e];
+                break;
+                case "PURRBOX_LOG_SERVER_IPADDR":
+                    env_overrides["PURRBOX_LOG_SERVER_IPADDR"] = process.env[e];
+                break;
+                case "PURRBOX_LOG_SERVER_PORT":
+                    env_overrides["PURRBOX_LOG_SERVER_PORT"] = process.env[e];
+                break;
+                case "PURRBOX_LOG_SERVER_PROTOCOL":
+                    env_overrides["PURRBOX_LOG_SERVER_PROTOCOL"] = process.env[e];
+                break;
+            }
+        }
+
+        //Return environment overrides
+        return env_overrides;
+    }
+    load_server_conf() {
+        let server_conf = this.paths["conf_server"];
+
+        //Load config file
         let if_cfg_exists = fs.existsSync(server_conf);
         let conf_data = {}
         if(if_cfg_exists == true) {
@@ -645,8 +723,29 @@ class manage_server {
             }
         }
 
+        //Return config data
         return conf_data;
     }
+    load_logger_conf() {
+        let logger_conf = this.paths["conf_logger"];
+
+        //Check for config file
+        let if_cfg_exists = fs.existsSync(logger_conf);
+        let conf_data = {}
+        if(if_cfg_exists == true) {
+            //Load JSON data
+            try {
+                conf_data = JSON.parse(fs.readFileSync(logger_conf));
+            }catch{
+                console.error(" :: Cannot open server conf [" + logger_conf + "] :: JSON config parse error, ignoring"); 
+                return;
+            }
+        }
+
+        //Return config data
+        return conf_data;
+    }
+
     load_project_conf(project_name=null) {
         //Check arguments
         if(project_name == null) { return {"error":"Project name is 'null'"}}
@@ -1258,7 +1357,9 @@ class manage_server {
         mapping.map_generate();
 
         //Load server configs
+        let env_overrides = this.load_env_overrides();
         let server_config = this.load_server_conf();
+        let logger_config = this.load_logger_conf();
         let files_restricted = this.files_restricted();
         let all_projects = mapping.web_configs.projects;
         let templates_system = this.get_templates("system");
@@ -1292,7 +1393,9 @@ class manage_server {
         //Check if no auth
         if(auth_mode == "none") {
             //Get config defaults
+            result.data["env_overrides"] = env_overrides;
             result.data["server"] = server_config;
+            result.data["logger"] = logger_config;
             result.data["paths"] = this.paths;
             result.data["protected_paths"] = files_restricted;
             result.data["projects"] = all_projects;
@@ -1302,7 +1405,9 @@ class manage_server {
             }
         }else{
             //Authenticated user
+            result.data["env_overrides"] = env_overrides;
             result.data["server"] = server_config;
+            result.data["logger"] = logger_config;
             result.data["paths"] = this.paths;
             result.data["protected_paths"] = files_restricted;
             result.data["projects"] = {}
@@ -1333,10 +1438,6 @@ class manage_server {
                     //Check user allowed access to project
                     if(allow_true == true) {
                         result.data["projects"][project] = this_project;
-                    }else{
-                        //Removed showing project as disabled -- decide later if keeping
-                        //result.data["projects"][project] = this_project
-                        //result.data["projects"][project]["state"] = "disabled";
                     }
                 }
             }

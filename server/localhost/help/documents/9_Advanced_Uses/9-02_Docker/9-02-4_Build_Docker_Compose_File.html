@@ -49,19 +49,19 @@ services:
       environment:
          # Environment to overrides server configuration file
          PURRBOX_WORKERS: 2
-         PURRBOX_CACHE_ON: 0
-         PURRBOX_DEBUG_MODE_ON: 0
-         PURRBOX_MGMT_MODE: 1
+         PURRBOX_CACHE_ON: "false"
+         PURRBOX_DEBUG_MODE_ON: "false"
+         PURRBOX_MGMT_MODE: "true"
          PURRBOX_MGMT_UI: "<hl>mgmtui,mgmtui.domain.com,192.168.50.198</hl>"
          PURRBOX_ENV: "dev"
          PURRBOX_ENV_NAME: "dev-test"
-         PURRBOX_HTTP_ON: 1
+         PURRBOX_HTTP_ON: "true"
          PURRBOX_HTTP_PORT: 80
-         PURRBOX_HTTPS_ON: 1
+         PURRBOX_HTTPS_ON: "true"
          PURRBOX_HTTPS_PORT: 443
          PURRBOX_SSL_KEY_FILE: "ssl.key"
          PURRBOX_SSL_CERT_FILE: "ssl.crt"
-         PURRBOX_AUTO_REFRESH_ON: 1
+         PURRBOX_AUTO_REFRESH_ON: "true"
          PURRBOX_AUTO_REFRESH_TIMER: 5000
          # Environment to overrides logging configuration file
          PURRBOX_LOG_TYPE: "file"

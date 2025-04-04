@@ -372,26 +372,26 @@ class vhost_server {
                     }
                 break;
                 case "PURRBOX_CACHE_ON":
-                    if(process.env[e] == 0) {
+                    if(process.env[e] == "false") {
                         this.cache_on = false;
                     }
-                    if(process.env[e] == 1) {
+                    if(process.env[e] == "true") {
                         this.cache_on = true;
                     }   
                 break;
                 case "PURRBOX_DEBUG_MODE_ON":
-                    if(process.env[e] == 0) {
+                    if(process.env[e] == "false") {
                         this.debug_mode_on = false;
                     }
-                    if(process.env[e] == 1) {
+                    if(process.env[e] == "true") {
                         this.debug_mode_on = true;
                     }   
                 break;
                 case "PURRBOX_MGMT_MODE":
-                    if(process.env[e] == 0) {
+                    if(process.env[e] == "false") {
                         this.mgmt_mode = false;
                     }
-                    if(process.env[e] == 1) {
+                    if(process.env[e] == "true") {
                         this.mgmt_mode = true;
                     }
                 break;
@@ -423,10 +423,10 @@ class vhost_server {
                     this.environment_name = process.env[e];
                 break;
                 case "PURRBOX_HTTP_ON":
-                    if(process.env[e] == 0) {
+                    if(process.env[e] == "false") {
                         this.http_on = false;
                     }
-                    if(process.env[e] == 1) {
+                    if(process.env[e] == "true") {
                         this.http_on = true;
                     }
                 break;
@@ -436,10 +436,10 @@ class vhost_server {
                     }
                 break;
                 case "PURRBOX_HTTPS_ON":
-                    if(process.env[e] == 0) {
+                    if(process.env[e] == "false") {
                         this.https_on = false;
                     }
-                    if(process.env[e] == 1) {
+                    if(process.env[e] == "true") {
                         this.https_on = true;
                     }
                 break;
@@ -455,10 +455,10 @@ class vhost_server {
                     this.ssl_cert = process.env[e];
                 break;
                 case "PURRBOX_AUTO_REFRESH_ON":
-                    if(process.env[e] == 0) {
+                    if(process.env[e] == "false") {
                         this.auto_refresh_on = false;
                     }
-                    if(process.env[e] == 1) {
+                    if(process.env[e] == "true") {
                         this.auto_refresh_on = true;
                     }
                 break;
