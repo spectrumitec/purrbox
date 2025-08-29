@@ -30,48 +30,16 @@ Web server start script, node process cluster manager
 
 */
 
-//Check modules exist
-try{
-    //Test modules
-    let module_test = null;
-    module_test = require("cluster")
-    module_test = require("ip")
-    module_test = require("bcrypt")
-    module_test = require("crypto")
-    module_test = require("jsonwebtoken")
-    module_test = require("syslog-client")
+//Import node modules
+import cluster from "node:cluster";
 
-    //Cleanup before load
-    delete module_test;
-    for(let cached in require.cache) {
-        delete require.cache[cached];
-    }
-}catch(e) {
-    console.log(e.message)
-    console.log("")
-    console.log("Modules required:")
-    console.log(" - ip")
-    console.log(" - bcrypt")
-    console.log(" - crypto")
-    console.log(" - jsonwebtoken")
-    console.log(" - syslog-client")
-    console.log("")
-    console.log("npm install ip bcrypt crypto jsonwebtoken syslog-client")
-    console.log("")
-    process.exit()
-}
+//Import vhost server class
+import vhost_server from "./server/class/vhost_server.mjs";
+import vhost_logger from "./server/class/vhost_logger.mjs";
 
-//Set Node JS constants
-const cluster = require("cluster");
-const path = require("path");
-
-//Set vhost class
-const vhost_server = require(path.join(__dirname,"server","class","vhost_server.js"));
-const server = new vhost_server()
-
-//Set vhost logger
-const vhost_logger = require(path.join(__dirname,"server","class","vhost_logger.js"));
-const logger = new vhost_logger()
+//Create class
+const server = new vhost_server();
+const logger = new vhost_logger();
 
 //Set parameters
 var app_ver = `${server.application} ${server.application_ver} ${server.application_mode}`

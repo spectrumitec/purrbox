@@ -6,6 +6,8 @@
 <img src="../../images/4_file_create_dialog_api.png" alt="" />
 <br /><br />
 <p>
+  <b>NOTE:</b> Server running in '<blue>ECMAScript mode</blue>', a filename for API will need to have a file extension of '<blue>.mjs</blue>'.
+  <br /><br />
 	API file types are predefined code to work with this system. They are marked commented sections (<hl>highlighted</hl> below) where you can put in your own code. In Node.js, there is ECMAScript and CommonJS. This version of server uses CommonJS syntax. ECMAScript format is currently being tested on a parallel version. Both formats cannot be run at the same time on the same server.
 	<br /><br />
 	There is a predefined '<blue>exports.request</blue>' function used by the server to call your API. At the bottom of the function is a '<blue>return _response;</blue>' line that the server will use to get status code, any added headers, and the response body in whichever preferred format. Just note, the '<blue>Content-Type</blue>' header would need to be updated as per the response body. Under the '<blue>exports.request</blue>' function there are some default functions '<blue>_error</blue>' amd the '<blue>_return</blue>' function. You can add additional functions to the bottom of the file as you see fit if not choosing to write and import a class object.

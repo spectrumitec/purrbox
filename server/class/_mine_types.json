@@ -39,5 +39,6 @@
     ".mpeg": "video/mpeg",
     ".wav": "audio/wav",
     ".webm": "video/webm",
-    ".weba": "audio/webm"
+    ".weba": "audio/webm",
+    ".yaml": "text/html; charset=UTF-8"
 }

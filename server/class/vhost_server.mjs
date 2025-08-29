@@ -1,3 +1,5 @@
+'use strict';
+
 /*
 
 MIT License
@@ -34,20 +36,23 @@ VHost server class (web services)
 // Node JS virtual host server
 //
 
+//Set dirname
+const __dirname = import.meta.dirname;
+
 //Set Node JS constants
-const http = require("http");
-const https = require("https");
-const url = require("url");
-const os = require("os");
-const fs = require("fs");
-const path = require("path");
+import http from "http"
+import https from "https"
+import * as url from "url"
+import * as os from "os"
+import * as fs from "fs"
+import * as path from "path";
 
-//Set vhost logger
-const vhost_logger = require(path.join(__dirname,"vhost_logger.js"));
+//Import classes
+import vhost_logger from "./vhost_logger.mjs";
+import vhost_mapping from "./vhost_mapping.mjs";
+
+//Initialize classes
 const logger = new vhost_logger()
-
-//Set vhost logger
-const vhost_mapping = require(path.join(__dirname,"vhost_mapping.js"));
 const mapping = new vhost_mapping()
 
 //Server class
@@ -55,7 +60,7 @@ class vhost_server {
     //System details
     application = "Purrbox";
     application_ver = "x.x.x";
-    application_mode = "(CommonJS)";
+    application_mode = "(ECMAScript)";
     hostname = "localhost";     //Hostname of running instance
     ipv4_address = "";          //Local IPv4 address
     ipv6_address = "";          //Local IPv6 address
@@ -771,7 +776,7 @@ class vhost_server {
     start_https_server() {
         //Reference to parent class
         var parent = this;
-
+        
         //Create server
         this.https_listener = https.createServer(this.ssl_certificate, function (req, res) {
             //Process request
@@ -1042,10 +1047,16 @@ class vhost_server {
         }
     }
     async exec_server_side(res, file_path, params, this_request) {
+        //Adjust windows path issues (ECMAScript mode)
+        if(file_path.includes("\\")) {
+            file_path = file_path.replaceAll("\\", "/");
+            file_path = file_path.substring(2,(file_path.length));
+        }
+
         //Run server side code
         try {
             //Include server side code
-            let exec_javascript = require(file_path);
+            let exec_javascript = await import(file_path);
 
             //Execute request and get response
             let response = await exec_javascript.request(params);
@@ -1161,7 +1172,7 @@ class vhost_server {
         //Get mime type
         return mime_types[this_ext] || mime_types.default;
     }
-    
+
     //////////////////////////////////////
     // Debug mode functions
     //////////////////////////////////////
@@ -1220,4 +1231,4 @@ class vhost_server {
 }
 
 //Export modules
-module.exports = vhost_server;
+export default vhost_server;

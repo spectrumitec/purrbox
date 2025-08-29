@@ -16,8 +16,9 @@
      ├ server                           Main server folder
      │   ├ class                        System classes (web server and components for management UI)
      │   ├ conf                         Configuration location for system classes (created on first server start from JWT config creation)
-     │   ├ default_system               Location of system default files (e.g. 404 and 500 error pages, maintenance page)
      │   ├ default_file_types           Location of file template types (used when creating new files in Management UI)
+     │   ├ default_ssl                  Default system self-signed certificates
+     │   ├ default_system               Location of system default files (e.g. 404 and 500 error pages, maintenance page)
      │   ├ default_templates            Location of default system template (project or website types)
      │   ├   ├template                  Template folder (project template type)
      │   ├   ├  ├ website_folder        Website content folder
@@ -43,7 +44,8 @@
      ├ server_start.js                  Server start script
      ├ LICENSE                          MIT license file
      ├ README.md                        GitHub README
-     ├ server_start.js                  Server start script
+     ├ server_start.js                  Server start script (CommonJS mode)
+     ├ server_start.mjs                 Server start script (ECMAScript mode)
      └ vhost_server.service             Linux systemd service example
 </pre>
 <br />

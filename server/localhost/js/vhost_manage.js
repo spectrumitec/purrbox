@@ -25,6 +25,8 @@ SOFTWARE.
 */
 
 //Vars
+var application = {}
+
 var server_configs = {}
 var server_paths = {}
 var protected_paths = {}
@@ -1263,6 +1265,7 @@ function ui_dir_jstree_format(dir, files="") {
             switch(dir[i].ext) {
                 case ".html":   dir[i]["icon"] = `images/file_html_${locked}icon.png`; break;
                 case ".js":     dir[i]["icon"] = `images/file_js_${locked}icon.png`; break;
+                case ".mjs":    dir[i]["icon"] = `images/file_js_${locked}icon.png`; break;
                 case ".css":    dir[i]["icon"] = `images/file_json_css_${locked}icons.png`; break;
                 case ".json":   dir[i]["icon"] = `images/file_json_css_${locked}icons.png`; break;
                 case ".txt":    dir[i]["icon"] = `images/file_txt_${locked}icon.png`; break;
@@ -1353,6 +1356,11 @@ function ui_page_layout() {
 //Build page content
 function ui_page_content(data) {
     log("ui_page_content")
+
+    //Set application details
+    application = data.application;
+    $("#app_name").html(application.name);
+    $("#app_version").html(`${application.version} ${application.mode}`);
 
     //Store configs
     server_configs = data.server;
@@ -2314,7 +2322,7 @@ function ui_resolve_panel() {
                         if(https_port == "443") {
                             this_https_url = `https://${this_hostname}${this_path}`;
                         }else{
-                            this_https_url = `https://${this_hostname}:${http_port}${this_path}`;
+                            this_https_url = `https://${this_hostname}:${https_port}${this_path}`;
                         }
                         this_https_a = `<a href="${this_https_url}" target="_blank">HTTPS</a>`;
                     }else{
@@ -3200,7 +3208,7 @@ function ui_websites_resolve() {
                     if(https_port == "443") {
                         this_https_url = `https://${this_hostname}${this_path}`;
                     }else{
-                        this_https_url = `https://${this_hostname}:${http_port}${this_path}`;
+                        this_https_url = `https://${this_hostname}:${https_port}${this_path}`;
                     }
                     this_https_a = `<a href="${this_https_url}" target="_blank">HTTPS</a>`;
                 }else{
@@ -4432,6 +4440,7 @@ function ui_project_files_tree(dir) {
                 ".htm",
                 ".css",
                 ".js",
+                ".mjs",
                 ".txt",
                 ".json",
                 ".conf",
@@ -4442,6 +4451,7 @@ function ui_project_files_tree(dir) {
                 ".cpp",
                 ".cs",
                 ".h",
+                ".yaml",
                 ""
             ]
             if(match_ext.indexOf(data.node.original.ext) > -1) {
@@ -4941,7 +4951,7 @@ function admin_server_settings() {
     //Set call parameters
     let params = {
         "id":"get_configs",
-        "func_call":ui_admin_server_settings,
+        "func_call":ui_admin_settings,
         "method":"GET",
         "url":url,
         "query":json
@@ -5358,10 +5368,144 @@ function ui_admin_page() {
 }
 
 //Server settings
-function ui_admin_server_settings(response) {
+function ui_admin_settings(response) {
     //Get server settings
+    let env_overrides = response.env_overrides;
     let server_configs = response.server;
+    let logger_configs = response.logger;
 
+    //Environment table
+    let html_env_rows = ui_admin_settings_environment(env_overrides);
+    let html_srv_cfg_rows = ui_admin_settings_server_conf(server_configs);
+    let html_log_cfg_rows = ui_admin_settings_logger_conf(logger_configs);
+
+    //Update HTML
+    if(html_env_rows == "") {
+        html_env_rows = `<div class="grid3_col">No environment override values</div>`;
+    }
+    if(html_srv_cfg_rows == "") {
+        html_srv_cfg_rows = `<div class="grid3_col">*** Server Config Setting Not Found ***</div>`;
+    }
+    let html = `
+        <div class="grid3 grid3_server_settings">
+            <div class="grid3_head">Environment Overrides</div>
+            <div class="grid1_sub_head">Environment</div>
+            <div class="grid1_sub_head">Value</div>
+            <div class="grid1_sub_head">Override Setting</div>
+            ${html_env_rows}
+        </div>
+        <br />
+        <div class="grid3 grid3_server_settings">
+            <div class="grid3_head">Server Config File Settings</div>
+            <div class="grid1_sub_head">Parameter</div>
+            <div class="grid1_sub_head">Value</div>
+            <div class="grid1_sub_head">Description</div>
+            ${html_srv_cfg_rows}
+        </div>
+        <br />
+        <div class="grid3 grid3_server_settings">
+            <div class="grid3_head">Logger Config File Settings</div>
+            <div class="grid1_sub_head">Parameter</div>
+            <div class="grid1_sub_head">Value</div>
+            <div class="grid1_sub_head">Description</div>
+            ${html_log_cfg_rows}
+        </div>
+    `;
+
+    //Update panel
+    $("#admin_panel").html(html);
+}
+function ui_admin_settings_environment(env_overrides) {
+    //Create table
+    let html_rows = "";
+    for(setting in env_overrides) {
+        //Setting description
+        let this_desc = "";
+        switch(setting) {
+            //Server overrides
+            case "PURRBOX_WORKERS": 
+                this_desc = "Server Settings : workers";
+            break;
+            case "PURRBOX_CACHE_ON": 
+                this_desc = "Server Settings : cache_on";
+            break;
+            case "PURRBOX_DEBUG_MODE_ON": 
+                this_desc = "Server Settings : debug_mode_on";
+            break;
+            case "PURRBOX_MGMT_MODE": 
+                this_desc = "Server Settings : mgmt_mode";
+            break;
+            case "PURRBOX_MGMT_UI": 
+                this_desc = "Server Settings : mgmt_ui";
+            break;
+            case "PURRBOX_ENV": 
+                this_desc = "Server Settings : environment";
+            break;
+            case "PURRBOX_ENV_NAME": 
+                this_desc = "Server Settings : environment_name";
+            break;
+            case "PURRBOX_HTTP_ON": 
+                this_desc = "Server Settings : http_on";
+            break;
+            case "PURRBOX_HTTP_PORT": 
+                this_desc = "Server Settings : http_port";
+            break;
+            case "PURRBOX_HTTPS_ON": 
+                this_desc = "Server Settings : https_on";
+            break;
+            case "PURRBOX_HTTPS_PORT": 
+                this_desc = "Server Settings : https_port";
+            break;
+            case "PURRBOX_SSL_KEY_FILE": 
+                this_desc = "Server Settings : ssl_key";
+            break;
+            case "PURRBOX_SSL_CERT_FILE": 
+                this_desc = "Server Settings : ssl_cert";
+            break;
+            case "PURRBOX_AUTO_REFRESH_ON": 
+                this_desc = "Server Settings : auto_refresh_on";
+            break;
+            case "PURRBOX_AUTO_REFRESH_TIMER": 
+                this_desc = "Server Settings : auto_refresh_timer";
+            break;
+
+            //Logging overrides
+            case "PURRBOX_LOG_TYPE": 
+                this_desc = "Logger Settings : use";
+            break;
+            case "PURRBOX_LOG_FILE_PURGE": 
+                this_desc = "Logger Settings : file &gt; delete_older";
+            break;
+            case "PURRBOX_LOG_SERVER_IPADDR": 
+                this_desc = "Logger Settings : server &gt; ipaddr";
+            break;
+            case "PURRBOX_LOG_SERVER_PORT": 
+                this_desc = "Logger Settings : server &gt; port";
+            break;
+            case "PURRBOX_LOG_SERVER_PROTOCOL": 
+                this_desc = "Logger Settings : server &gt; protocol";
+            break;
+            
+            default:
+                this_desc = "";
+        }
+
+        //Format value
+        let this_value = (env_overrides[setting]).toString();
+        this_value = this_value.replace(",","<br />");
+
+        //HTML rows
+        html_rows += `
+            <div class="grid1_col">${setting}</div>
+            <div class="grid1_col">${this_value}</div>
+            <div class="grid1_col">${this_desc}</div>
+        `;
+    }
+
+    //Return html row data
+    return html_rows;
+}
+function ui_admin_settings_server_conf(server_configs) {
     //Create table
     let html_rows = "";
     for(setting in server_configs) {
@@ -5439,23 +5583,74 @@ function ui_admin_server_settings(response) {
         `;
     }
 
-    //Update HTML
-    if(html_rows == "") {
-        html_rows = `<div class="grid3_col">*** No templates exist ***</div>`;
-    }
-    let html = `
-        <div class="grid3 grid3_server_settings">
-            <div class="grid3_head">Server Settings</div>
-            <div class="grid1_sub_head">Parameter</div>
-            <div class="grid1_sub_head">Value</div>
-            <div class="grid1_sub_head">Description</div>
-            ${html_rows}
-        </div>
-    `;
-
-    //Update panel
-    $("#admin_panel").html(html);
+    //Return html row data
+    return html_rows;
 }
+function ui_admin_settings_logger_conf(logger_configs) {
+    //Create table
+    let html_rows = "";
+    for(setting in logger_configs) {
+        //Setting description
+        let this_desc = "";
+        switch(setting) {
+            case "use": 
+                this_desc = `
+                    Logging Settings:<br />
+                    &nbsp;&nbsp;&nbsp;<b>none</b> - disabled<br />
+                    &nbsp;&nbsp;&nbsp;<b>file</b> - log file in /www/logs<br />
+                    &nbsp;&nbsp;&nbsp;<b>server</b> - send logs to log server
+                `;
+            break;
+            case "file": 
+                this_desc = `
+                    &nbsp;&nbsp;&nbsp;<b>delete_older</b> than X time<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; number + m (min)<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; number + h (hours)<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; number + d (days)<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; number + w (weeks)<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; number (default seconds)<br />
+                `;
+            break;
+            case "server": 
+                this_desc = `
+                    &nbsp;&nbsp;&nbsp; <b>ipaddr</b> - IP Address<br />
+                    &nbsp;&nbsp;&nbsp; <b>port</b> - Port Number<br />
+                    &nbsp;&nbsp;&nbsp; <b>protocol</b> - Network Protocol<br />
+                `;
+            break;
+            
+            default:
+                this_desc = "";
+        }
+        
+        //Format value
+        let this_value = "";
+        if(typeof(logger_configs[setting]) == "string") {
+            this_value = (logger_configs[setting]).toString();
+        }else if(typeof(logger_configs[setting]) == "object") {
+            this_value += `<div class="grid3_inner">`;
+            for(subsetting in logger_configs[setting]) {
+                let setting_value = (logger_configs[setting][subsetting]).toString()
+                this_value += `<div class="grid1_inner_col">${subsetting}</div>`;
+                this_value += `<div class="grid1_inner_col">&nbsp;&nbsp;</div>`;
+                this_value += `<div class="grid1_inner_col">${setting_value}</div>`;
+            }
+            this_value += `</div>`;
+        }
+
+        //HTML rows
+        html_rows += `
+            <div class="grid1_col">${setting}</div>
+            <div class="grid1_col">${this_value}</div>
+            <div class="grid1_col">${this_desc}</div>
+        `;
+    }
+
+    //Return html row data
+    return html_rows;
+}
+
+//URL Mapping Query
 function ui_admin_server_url_mapping(response) {
     //Get data
     let web_configs = {};

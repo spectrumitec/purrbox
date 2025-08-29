@@ -30,18 +30,21 @@ Node JS virtual server logger
     to log server
 */
 
+//Set dirname
+const __dirname = import.meta.dirname;
+
 //Set Node JS constants
-const os = require("os");
-const fs = require("fs");
-const path = require("path");
-const syslog = require("syslog-client");
+import * as os from "os"
+import * as fs from "fs"
+import * as path from "path";
+import * as syslog from "syslog-client";
 
 //Server class
 class vhost_logger {
     //Version
     application = "Purrbox";
     application_ver = "x.x.x";
-    application_mode = "(CommonJS)";
+    application_mode = "(ECMAScript)";
 
     //System paths
     paths = {}                          //System paths
@@ -191,7 +194,7 @@ class vhost_logger {
             }
         }
     }
-
+    
     //Calulate time
     calc_log_file_purge(field) {
         //Calculate time in seconds
@@ -400,4 +403,4 @@ class vhost_logger {
 }
 
 //Export modules
-module.exports = vhost_logger;
+export default vhost_logger;

@@ -36,12 +36,18 @@ SOFTWARE.
        - Act as auth service
 */
 
+//Set dirname
+const __dirname = import.meta.dirname;
+
 //Set Node JS constants
-const fs = require("fs");
-const path = require("path");
-const bcrypt = require("bcrypt");
-const crypto = require('crypto');
-const jwt = require("jsonwebtoken");
+import * as fs from "fs"
+import * as path from "path";
+import * as bcrypt from "bcrypt";
+import * as crypto from "crypto";
+import * as jsonwebtoken from "jsonwebtoken";
+
+//Set constant
+const jwt = jsonwebtoken.default;
 
 //TO BE REMOVED
 const s = path.sep;
@@ -2614,4 +2620,4 @@ class jwt_auth {
 }
 
 //Export modules
-module.exports = jwt_auth;
+export default jwt_auth;

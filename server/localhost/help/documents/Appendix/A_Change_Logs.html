@@ -1,26 +1,47 @@
 <h1>Change Log Information</h1>
+<h3>v1.1.0</h3>
+<blue>Add ECMAScript mode</blue><br />
+- Enable server process to run in 'CommonJS' or 'ECMAScript' mode via alternate server start script.<br />
+<blue>VHost server process</blue><br />
+- Add process terminate signal catch<br />
+- Implement environment variable setting for containerization<br />
+- Detect missing SSL certificates and create default ones<br />
+- Correct header parsing in containers<br />
+- Change cache on function. Detect file changes in web_source folder and restart process<br />
+<blue>Logging</blue><br />
+- Add fields to log outputs<br />
+- Startup cleanup for container logs<br />
+<blue>Management UI</blue><br />
+- Allow view of YAML files<br />
+- Correct HTTP and HTTPS links from resolve sections<br />
+<blue>Help documents added</blue><br />
+- Add advanced uses documents<br />
+- Updates to help documents<br />
+<blue>General</blue><br />
+- Various bug fixes<br />
+<br />
 <h3>v1.0.0</h3>
-Management UI cleanup<br />
+<blue>Management UI cleanup</blue><br />
 - Many bug fixes to UI<br />
 - Reduced the number of management panels<br />
 - Rebuild DNS resolution management (DNS and Proxy mapping)<br />
 - Added sub mapping for website rules<br />
 - Added Admin URL testing and mapping information panel<br />
-Rebuild and improve matching logic<br />
+<blue>Rebuild and improve matching logic</blue><br />
 - Improve to performance<br />
 - Added Proxy map (domain + path) function<br />
 - Improved error pages<br />
 - Improved maintenance page functionality<br />
 - Improved website focusing content<br />
-Project configuration load and validation<br />
+<blue>Project configuration load and validation</blue><br />
 - Looks for invalid configuration and attempt to correct on load<br />
 - Problem detection report for Management UI status<br />
-VHost server process<br />
+<blue>VHost server process</blue><br />
 - Improved stack trace error captures and logging<br />
 - Added more server variables for use with API coding (helpers)<br />
 - Added more useful logging outputs, more Information<br />
 - Generates logs for project and website separately<br />
-Help documents added<br />
+<blue>Help documents added</blue><br />
 <br />
 <h3>Initial Build</h3>
 Core engine for matching FQDN only<br />

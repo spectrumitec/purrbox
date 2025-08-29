@@ -39,62 +39,25 @@
 </pre>
 <i>** crypto module not needed for newer versions of node **</i>
 <br /><br />
-<p>5. Start Node JS Purrbox</p>
+<p>
+5. Start Node JS Purrbox
+<br /><br />
+Starting in CommonJS mode
+</p>
 <pre>
-    node start_server
+    node start_server.js
+</pre>
+<p>Starting in ECMAScript mode</p>
+<pre>
+    node start_server.mjs
 </pre>
 <p>6. Open a web browser and connect to the server IP address (or localhost if running on your local system). The defualt login is 'admin' and password 'admin'. You may change password after login in top right corner from user drop down.</p>
 
-<b>Server Configuration:</b><br />
-<p>Server configuration files are located in the conf directory from root. Changes to the configuration settings requires a server restart. The following is an example 'server_conf.json'. If you prefer to connect to the Dev Managment UI via server hostname, you can add the FQDN and hostnames in your server configuration 'server_dev_ui' setting(See example below 'nodejs-dev' and 'nodejs-dev.network.local').</p>
-<pre>
-    {
-        "hostname":"nodejs-dev",
-        "workers":1,
-        "cache_on":false,
-        "debug_mode_on":false,
-        "mgmt_mode":true,
-        "mgmt_ui":[
-            "nodejs-dev",
-            "nodejs-dev.network.local"
-        ],
-        "environment":"dev",
-        "environment_name":"testing",
-        "http_on":true,
-        "http_port":80,
-        "https_on":true,
-        "https_port":443,
-        "ssl_key":"key.pem",
-        "ssl_cert":"cert.pem",
-        "auto_refresh_on":true,
-        "auto_refresh_timer":5000
-    }
-</pre>
-
-Syslog or log files can be configured. In conf directory off the root folder, you can edit the logger.conf. You may either select to use 'file' or 'network'. File logging is more ideal for single instance and testing. Setting to network can point logs at graylog. 
-<pre>
-    {
-    	"use": "server",
-    	"file": {
-    		"delete_older": "7d"
-    	},
-    	"server": {
-    		"ipaddr": "192.168.1.5",
-    		"port": "1514",
-    		"protocol": "udp"
-    	}
-    }
-</pre>
-
-<b>Current Limitations:</b><br />
-<ul>
-    <li>SSL certificates cannot be assinged individually to each site. A server hosting multiple sites will require a SAN or wildcard certificate. Alternatively, you can create a new self signed certificate and allow a load balancer to handle the SSL certificates (SSL offload).</li>
-    <li>This version uses CommonJS. ECMAScript is not yet available.</li>
-</ul>
-
 <b>Starting Up</b><br />
 <p>
-	After installation, you should be able to connect to the management UI. Check out the 'Help' tab for information and how tos. Default login creds are 'admin' and 'admin'
+	After installation, you should be able to connect to the management UI. Default login creds are 'admin' and 'admin'
+    <br /><br />
+    Check out the 'Help' tab for information and How Tos.
 	<br /><br />
 	Enjoy!
 </p>

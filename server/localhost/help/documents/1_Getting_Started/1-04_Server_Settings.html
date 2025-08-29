@@ -54,7 +54,7 @@
 	<div class="grid1_col">Number of worker instances that will launch and be managed by the cluster module</div>
 	<div class="grid1_col">cache_on</div>
 	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
-	<div class="grid1_col">When the server serves files, it will typically cache to content. This setting tells the server to delete the cache after each load otherwise a server process needs to be restart.</div>
+	<div class="grid1_col">This setting tells the server to delete the cache after each load (in CommonJS mode) or restart process (in ECMAScript mode). The server process needs to be restart manually when set to '<blue>true</blue>'.</div>
 	<div class="grid1_col">debug_mode_on</div>
 	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
 	<div class="grid1_col">There is more output at the console screen for troubleshooting needs. Best used for local installation with 1 worker process. More than 1 worker process disables debug more as there is many more outputs to console.</div>
@@ -145,6 +145,71 @@
 	<div class="grid1_col"><blue>udp</blue><br /><blue>tcp</blue></div>
 	<div class="grid1_col">Protocol that the log server will accept</div>
 </div>
+<h3>Server Environment Variable Overrides</h3>
+<p>
+	The following table are environment variables that will override the server configruation or logging configuration. These are ideal for containers or kubernetes.
+	<br /><br />
+	Server Config Environment Variables Table:
+</p>
+<div class="grid2 grid2_server_conf">
+	<div class="grid1_sub_head">Property</div>
+	<div class="grid1_sub_head">Value</div>
+	<div class="grid1_col">PURRBOX_WORKERS</div>
+	<div class="grid1_col"><blue>number</blue></div>
+	<div class="grid1_col">PURRBOX_CACHE_ON</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">PURRBOX_DEBUG_MODE_ON</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">PURRBOX_MGMT_MODE</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">PURRBOX_MGMT_UI</div>
+	<div class="grid1_col"><blue>hostname</blue>,<blue>hostname.domain.com</blue>,<blue>IP address</blue><br />*** Comma separated values</div>
+	<div class="grid1_col">PURRBOX_ENV</div>
+	<div class="grid1_col"><blue>dev</blue><br /><blue>qa</blue><br /><blue>stage</blue><br /><blue>prod</blue></div>
+	<div class="grid1_col">PURRBOX_ENV_NAME</div>
+	<div class="grid1_col"><blue>string</blue></div>
+	<div class="grid1_col">PURRBOX_HTTP_ON</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">PURRBOX_HTTP_PORT</div>
+	<div class="grid1_col"><blue>number</blue></div>
+	<div class="grid1_col">PURRBOX_HTTPS_ON</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">PURRBOX_HTTPS_PORT</div>
+	<div class="grid1_col"><blue>number</blue></div>
+	<div class="grid1_col">PURRBOX_SSL_KEY_FILE</div>
+	<div class="grid1_col">"<blue>ssl.key</blue>" or other filename</div>
+	<div class="grid1_col">PURRBOX_SSL_CERT_FILE</div>
+	<div class="grid1_col">"<blue>ssl.crt</blue>" or other filename</div>
+	<div class="grid1_col">PURRBOX_AUTO_REFRESH_ON</div>
+	<div class="grid1_col"><blue>true</blue> or <blue>false</blue></div>
+	<div class="grid1_col">PURRBOX_AUTO_REFRESH_TIMER</div>
+	<div class="grid1_col"><blue>Number</blue> in milliseconds</div>
+</div>
+
+<p>
+	Logging Config Environment Variables Table:
+</p>
+<div class="grid2 grid2_server_conf">
+	<div class="grid1_sub_head">Property</div>
+	<div class="grid1_sub_head">Value</div>
+	<div class="grid1_col">PURRBOX_LOG_TYPE</div>
+	<div class="grid1_col"><blue>none</blue><br /><blue>file</blue><br /><blue>server</blue></div>
+	<div class="grid1_col">PURRBOX_LOG_FILE_PURGE</div>
+	<div class="grid1_col">
+		<blue>number + m</blue><br />
+		<blue>number + h</blue><br />
+		<blue>number + d</blue><br />
+		<blue>number + w</blue><br />
+		<blue>number</blue> (default = seconds)
+	</div>
+	<div class="grid1_col">PURRBOX_LOG_SERVER_IPADDR</div>
+	<div class="grid1_col"><blue>IP address</blue> of server mode logging</div>
+	<div class="grid1_col">PURRBOX_LOG_SERVER_PORT</div>
+	<div class="grid1_col"><blue>Port number</blue> if server mode logging</div>
+	<div class="grid1_col">PURRBOX_LOG_SERVER_PROTOCOL</div>
+	<div class="grid1_col"><blue>udp</blue><br /><blue>tcp</blue></div>
+</div>
+
 <br />
 <br />
 <br />

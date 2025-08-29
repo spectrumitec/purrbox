@@ -34,14 +34,19 @@ VHost server mapping class (web services)
 // Node JS virtual host server
 //
 
+//Set dirname
+const __dirname = import.meta.dirname;
+
 //Set Node JS constants
-const url = require("url");
-const os = require("os");
-const fs = require("fs");
-const path = require("path");
+import * as url from "url";
+import * as os from "os";
+import * as fs from "fs";
+import * as path from "path";
+
+//Import classes
+import vhost_logger from "./vhost_logger.mjs";
 
 //Set vhost logger
-const vhost_logger = require(path.join(__dirname,"vhost_logger.js"));
 const logger = new vhost_logger()
 
 //Server class
@@ -1859,7 +1864,7 @@ class vhost_mapping {
             let this_path = "";
             let this_file = "";
             if(match.url_parsed.filename == "") {
-                this_uri = this_uri.substring(0, (this_uri.length - 1)) + ".js";
+                this_uri = this_uri.substring(0, (this_uri.length - 1)) + ".mjs";
                 this_path = path.dirname(this_uri);
                 this_file = path.basename(this_uri);
                 match.website_uri_suffix = this_path;
@@ -1894,7 +1899,7 @@ class vhost_mapping {
 
         //Check if error pages and javascript
         if(this_uri.includes("_error_pages")) {
-            if(path.extname(match.file_name) == ".js") {
+            if(path.extname(match.file_name) == ".mjs") {
                 match.file_exec = "server";
             }
         }
@@ -1941,7 +1946,7 @@ class vhost_mapping {
                 let this_path = "";
                 let this_file = "";
                 if(match.url_parsed.filename == "") {
-                    this_url = relative_sub_uri.substring(0, (relative_sub_uri.length - 1)) + ".js";
+                    this_url = relative_sub_uri.substring(0, (relative_sub_uri.length - 1)) + ".mjs";
                     this_path = path.dirname(this_url) + "/";
                     this_file = path.basename(this_url);
                 }else{
@@ -2173,7 +2178,7 @@ class vhost_mapping {
                             //Process target path, determine if filename already detected
                             if(match.url_parsed.filename == "") {
                                 //Filename is blank, change trailing slash to file extension
-                                target_path = target_path.substring(0, target_path.length - 1) + ".js";
+                                target_path = target_path.substring(0, target_path.length - 1) + ".mjs";
                                 this_sub_path = path.dirname(target_path);
                                 this_file = path.basename(target_path);
                             }else{
@@ -2335,7 +2340,7 @@ class vhost_mapping {
                         match.file_name = file_name;
 
                         //Check if default document is '.js'
-                        if(path.extname(match.default_doc) == ".js") {
+                        if(path.extname(match.default_doc) == ".mjs") {
                             match.file_match_type = "path_static_server_exec";
                             match.file_exec = "server";
                         }else{
@@ -2426,7 +2431,7 @@ class vhost_mapping {
                     //Determine client or server execute
                     match.file_match_type = "path_static";
                     match.file_exec = "client";
-                    if(path.extname(match.file_name) == ".js") {
+                    if(path.extname(match.file_name) == ".mjs") {
                         match.file_match_type = "path_static_server_exec";
                         match.file_exec = "server";
                     }
@@ -2460,7 +2465,7 @@ class vhost_mapping {
                 let this_path = "";
                 let this_file = "";
                 if(match.url_parsed.filename == "") {
-                    this_url = relative_sub_uri.substring(0, (relative_sub_uri.length - 1)) + ".js";
+                    this_url = relative_sub_uri.substring(0, (relative_sub_uri.length - 1)) + ".mjs";
                     this_path = path.dirname(this_url) + "/";
                     this_file = path.basename(this_url);
                 }else{
@@ -2546,7 +2551,7 @@ class vhost_mapping {
                 let this_path = "";
                 let this_file = "";
                 if(match.url_parsed.filename == "") {
-                    this_url = relative_sub_uri.substring(0, (relative_sub_uri.length - 1)) + ".js";
+                    this_url = relative_sub_uri.substring(0, (relative_sub_uri.length - 1)) + ".mjs";
                     this_path = path.dirname(this_url) + "/";
                     this_file = path.basename(this_url);
                 }else{
@@ -2829,4 +2834,4 @@ class vhost_mapping {
 }
 
 //Export modules
-module.exports = vhost_mapping;
+export default vhost_mapping;

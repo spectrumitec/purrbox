@@ -34,14 +34,17 @@ Management class for localhost host Dev UI
 // Node JS manage projects
 //
 
-//Set Node JS constants
-const fs = require("fs");
-const path = require("path");
+//Set dirname
+const __dirname = import.meta.dirname;
 
-//Import modules
-const jwt_auth = require(path.join(path.dirname(__dirname),"class","jwt_auth.js"));
-const vhost_logger = require(path.join(__dirname,"vhost_logger.js"));
-const vhost_mapping = require(path.join(__dirname,"vhost_mapping.js"));
+//Set Node JS constants
+import * as fs from "fs"
+import * as path from "path"
+
+//Import classes
+import jwt_auth from "./jwt_auth.mjs";
+import vhost_logger from "./vhost_logger.mjs";
+import vhost_mapping from "./vhost_mapping.mjs";
 
 //Initialize classes
 const logger = new vhost_logger()
@@ -52,7 +55,7 @@ class manage_server {
     //System details
     application = "Purrbox";
     application_ver = "x.x.x";
-    application_mode = "(CommonJS)";
+    application_mode = "(ECMAScript)";
 
     //General settings
     paths = {}
@@ -2725,6 +2728,7 @@ class manage_server {
                             ".html", 
                             ".htm", 
                             ".js", 
+                            ".mjs",
                             ".json", 
                             ".jsonld", 
                             ".txt", 
@@ -3688,13 +3692,23 @@ class manage_server {
                     </html>
                 `;
             break;
-            case ".js":
+            case ".js": case ".mjs":
                 //Check is API response
                 let response = `"Status ${status_code} - ${status_message}"`;
                 if(is_api == true) {
                     response = `{"status":"${status_code}","message":"${status_message}"}`;
                 }
 
+                //Determine export for file extension
+                let export_func = "";
+                if(file_ext == ".js"){
+                    export_func = "exports.request = async function";
+                }
+                if(file_ext == ".mjs"){
+                    export_func = "export async function request";
+                }
+
+                //Set content
                 content = `//Set response data
                     var _response = {
                         "status_code":${status_code},
@@ -3705,7 +3719,7 @@ class manage_server {
                     }
 
                     //Module request
-                    exports.request = async function(params={}) {
+                    ${export_func}(params={}) {
                         //Set const
                         const _env = params._server.environment;
                         const _server = params._server;
@@ -4233,14 +4247,10 @@ class manage_server {
         // Do command ///////////////
 
         //Set paths
-        //let file_type_path = `${this.paths.server}default_file_types${s}`;
         let file_type_path = path.join(this.paths.server, "default_file_types");
-        //let file_type_html = `${file_type_path}file_type.html`;
-        //let file_type_css = `${file_type_path}file_type.css`;
-        //let file_type_api = `${file_type_path}file_type.js`;
         let file_type_html = path.join(file_type_path, "file_type.html");
         let file_type_css = path.join(file_type_path, "file_type.css");
-        let file_type_api = path.join(file_type_path, "file_type.js");
+        let file_type_api = path.join(file_type_path, "file_type.mjs");
 
         //Set file contents
         let file_content = "";
@@ -5176,4 +5186,4 @@ class manage_server {
 }
 
 //Export modules
-module.exports = manage_server;
+export { manage_server};
